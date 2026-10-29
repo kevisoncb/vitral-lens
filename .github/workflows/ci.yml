@@ -29,10 +29,7 @@ jobs:
       - name: Aplicar o schema
         run: |
           psql -v ON_ERROR_STOP=1 -q -f supabase/tests/stub_supabase.sql
-          psql -v ON_ERROR_STOP=1 -q -f supabase/migrations/0001_base_multiempresa.sql
-          psql -v ON_ERROR_STOP=1 -q -f supabase/migrations/0002_pagamento_e_atalhos.sql
-          psql -v ON_ERROR_STOP=1 -q -f supabase/migrations/0003_storage_receitas.sql
-          psql -v ON_ERROR_STOP=1 -q -f supabase/migrations/0004_site_e_agendamento.sql
+          for m in supabase/migrations/0*.sql; do psql -v ON_ERROR_STOP=1 -q -f "$m"; done
       - name: Teste de permissões
         run: |
           psql -q -f supabase/tests/rls_smoke.sql 2>&1 | tee saida.txt
@@ -41,6 +38,7 @@ jobs:
           grep -q "Informe o motivo da perda" saida.txt
           grep -q "consulta_sem_conflito" saida.txt
           grep -q "lab criou OS direto (esperado numeros 1,2) | 1,2" saida.txt
+          grep -q "entregue | t *| t" saida.txt
       - name: Teste de pagamento (sinal, saldo e OS automática)
         run: |
           psql -q -f supabase/tests/pagamento_smoke.sql 2>&1 | tee pagamento.txt
@@ -63,6 +61,27 @@ jobs:
           grep -q "O perfil Dono sempre tem acesso total" site.txt
           grep -q "A ótica precisa de pelo menos um Dono ativo" site.txt
           grep -q "otica apagada em cascata *| *t" site.txt
+      - name: Teste do fluxo unificado (exame, receita, OS com ficha técnica, produção)
+        run: |
+          psql -q -f supabase/tests/consultorio_smoke.sql 2>&1 | tee fluxo.txt
+          grep -q "receita com 2 olhos e medico | Dra. Carla | CBOO 123 | *2" fluxo.txt
+          grep -q "Exame concluído não pode ser alterado" fluxo.txt
+          grep -q "ficha tecnica | Multifocal 1.67 | Antirreflexo | Armação metal | *31.5 | *32.0 | *19.0 | t" fluxo.txt
+          grep -q "lab nao ve exame (esperado 0) | *0" fluxo.txt
+          grep -q "producao | *3 | t *| Eixo fora" fluxo.txt
+      - name: Teste das áreas e da conversa entre os cards
+        run: |
+          psql -q -f supabase/tests/areas_smoke.sql 2>&1 | tee areas.txt
+          grep -q "card do consultorio | consultorio | t" areas.txt
+          grep -q "Esta etapa é movida pela equipe do laboratório" areas.txt
+          grep -q "Esta etapa é movida pela equipe da loja" areas.txt
+          grep -q "lab ve clientes (esperado 0) | *0" areas.txt
+          grep -q "puxada pelo lab | Lab" areas.txt
+          grep -q "balcao le recado | laboratorio" areas.txt
+          grep -q "nota fiscal sem adicional (esperado f) | f" areas.txt
+          grep -q "Para abrir outra, contrate o adicional" areas.txt
+          grep -q "lojas com adicional (esperado 2) | *2" areas.txt
+          grep -q "preco intacto | 450.00" areas.txt
 
   web:
     name: Aplicativo (tipos)

@@ -31,7 +31,7 @@ select 'vagas amanha (esperado 3)' as teste, count(*) from horarios_livres('otic
 select 'agendou' as teste, agendar_pelo_site('otica-site', (select min(inicio) from horarios_livres('otica-site', current_date + 1)), 'João', '27991112233', true) as ok;
 select 'vagas depois (esperado 2)' as teste, count(*) from horarios_livres('otica-site', current_date + 1);
 select agendar_pelo_site('otica-site', (select (current_date + 1 + time '09:00') at time zone 'America/Sao_Paulo'), 'Outro', '27994445566', true);
-select 'plano essencial sem agenda online (esperado 0)' as teste, count(*) from horarios_livres('otica-basica', current_date + 1);
+select 'sem horarios cadastrados (esperado 0)' as teste, count(*) from horarios_livres('otica-basica', current_date + 1);
 select mover_sem_retorno();
 select proximo_numero('f0000000-0000-0000-0000-000000000001', 'os');
 reset role;

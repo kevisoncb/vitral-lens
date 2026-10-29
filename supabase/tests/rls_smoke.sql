@@ -46,10 +46,13 @@ select 'numero da OS' as teste, numero from ordens_servico;
 insert into ordens_servico (otica_id, cliente_id, etapa_id, descricao)
 select otica_id, cliente_id, etapa_id, 'direto' from ordens_servico;   -- deve falhar (vendedor só vê o laboratório)
 
--- laboratório move a OS até Entregue: histórico e garantia
+-- laboratório leva a OS até "Chegou na loja"; a entrega é da loja (migração 0006)
 reset role; set role authenticated; set request.jwt.claim.sub = 'c0000000-0000-0000-0000-000000000004';
 select 'lab vê a OS' as teste, count(*) from ordens_servico;
 select 'lab não vê valores (sem acesso a atendimentos)' as teste, count(*) from atendimentos;
+update ordens_servico set etapa_id = (select id from os_etapas where nome = 'Chegou na loja' and otica_id = ordens_servico.otica_id);
+update ordens_servico set etapa_id = (select id from os_etapas where nome = 'Entregue' and otica_id = ordens_servico.otica_id);  -- deve falhar
+reset role; set role authenticated; set request.jwt.claim.sub = 'c0000000-0000-0000-0000-000000000002';
 update ordens_servico set etapa_id = (select id from os_etapas where nome = 'Entregue' and otica_id = ordens_servico.otica_id);
 select 'entregue' as teste, data_entrega is not null as entrega, garantia_ate is not null as garantia, (select count(*) from os_historico) as historico from ordens_servico;
 
