@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FormularioLista } from "./_vitra/formulario-lista";
+import { FormularioLista } from "./_vitral/formulario-lista";
 
 export const metadata: Metadata = {
-  title: "Vitra · sistema para óticas",
+  title: "Vitral · sistema para óticas",
   description: "Consultório, loja e laboratório da sua ótica num fluxo só. Plano único de R$ 99 por mês.",
 };
 
@@ -31,13 +31,13 @@ const VANTAGENS = [
   "Dados de saúde protegidos conforme a LGPD.",
 ];
 
-/** Site do Vitra (quem está logado vai direto para o sistema, pelo middleware). */
-export default function SiteDoVitra() {
+/** Site do Vitral (quem está logado vai direto para o sistema, pelo middleware). */
+export default function SiteDoVitral() {
   return (
     <div className="site">
       <header className="site-topo">
-        <strong>Vitra</strong>
-        <nav aria-label="Site do Vitra">
+        <strong>Vitral</strong>
+        <nav aria-label="Site do Vitral">
           <a href="#como-funciona">Como funciona</a>
           <a href="#preco">Preço</a>
           <a href="#lista">Lista de espera</a>
@@ -91,7 +91,7 @@ export default function SiteDoVitra() {
         <FormularioLista />
       </section>
 
-      <footer className="site-rodape">Vitra · sistema para óticas</footer>
+      <footer className="site-rodape">Vitral · sistema para óticas</footer>
     </div>
   );
 }

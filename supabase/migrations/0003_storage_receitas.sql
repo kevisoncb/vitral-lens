@@ -1,4 +1,4 @@
--- Vitra — migração 0003: pasta privada para foto/PDF da receita (dado de saúde, LGPD).
+-- Vitral — migração 0003: pasta privada para foto/PDF da receita (dado de saúde, LGPD).
 -- Caminho do arquivo: <otica_id>/<receita_id>/<arquivo>. Só quem tem acesso a receitas da
 -- própria ótica lê ou grava. Só roda no Supabase (no Postgres puro dos testes não há schema storage).
 do $$

@@ -2,7 +2,7 @@
   "name": "vitral-lens",
   "version": "0.1.0",
   "private": true,
-  "description": "Vitra: sistema web para óticas (vendas, laboratório, clientes, receitas e agenda)",
+  "description": "Vitral: sistema web para óticas (vendas, laboratório, clientes, receitas e agenda)",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

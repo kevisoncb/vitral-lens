@@ -1,4 +1,4 @@
--- Vitra — migração 0006: uma área por perfil e plano único
+-- Vitral — migração 0006: uma área por perfil e plano único
 --
 -- Áreas (cada uma com tela própria):
 --   loja         balcão: agenda, vendas, clientes, catálogo, acompanhar e entregar OS
@@ -26,7 +26,7 @@ revoke execute on function minha_area() from anon;
 create or replace function perfis_por_area(p_otica uuid) returns void
 language plpgsql security definer set search_path = public as $$
 begin
-  perform set_config('vitra.preparando_otica', 'sim', true);
+  perform set_config('vitral.preparando_otica', 'sim', true);
 
   update perfis set area = case chave
       when 'dono'         then 'gestao'
@@ -52,7 +52,7 @@ begin
       'laboratorio', '["ver","criar","editar","excluir"]'::jsonb, 'receitas', '["ver"]'::jsonb))
   on conflict (otica_id, chave) do nothing;
 
-  perform set_config('vitra.preparando_otica', '', true);
+  perform set_config('vitral.preparando_otica', '', true);
 end $$;
 revoke execute on function perfis_por_area(uuid) from public, anon, authenticated;
 
@@ -145,7 +145,7 @@ alter table recursos_adicionais enable row level security;
 alter table otica_adicionais enable row level security;
 create policy recursos_adicionais_ver on recursos_adicionais for select to authenticated using (true);
 create policy otica_adicionais_ver on otica_adicionais for select to authenticated using (otica_id = minha_otica());
--- contratar/cancelar adicional: só a service role (painel do Vitra)
+-- contratar/cancelar adicional: só a service role (painel do Vitral)
 
 create or replace function recurso_ativo(r text) returns boolean
 language sql stable security definer set search_path = public as $$
@@ -205,7 +205,7 @@ declare
   extras int;
 begin
   if auth.uid() is null then
-    return new;  -- service role / painel do Vitra
+    return new;  -- service role / painel do Vitral
   end if;
   select coalesce(sum(quantidade), 0) into extras from otica_adicionais
    where otica_id = new.otica_id and recurso = 'multiloja';

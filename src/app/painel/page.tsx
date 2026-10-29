@@ -6,7 +6,7 @@ import { NovaOtica } from "./nova-otica";
 const STATUS: Record<string, string> = { teste: "Em teste", ativa: "Ativa", suspensa: "Suspensa", cancelada: "Cancelada" };
 const MENSALIDADE = 99;
 
-/** Óticas do Vitra: criar com o login do dono, situação e adicionais (nota fiscal, lojas extras). */
+/** Óticas do Vitral: criar com o login do dono, situação e adicionais (nota fiscal, lojas extras). */
 export default async function PainelOticas({ searchParams }: { searchParams: Promise<{ erro?: string; ok?: string }> }) {
   const { erro, ok } = await searchParams;
   const supabase = await criarClienteServidor();

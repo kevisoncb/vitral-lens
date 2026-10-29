@@ -70,7 +70,7 @@ export default async function SiteDaOtica({ params }: Props) {
       </section>
 
       <footer className="site-rodape">
-        {site.nome} · Seus dados são usados só para responder o seu pedido (LGPD). · Feito com Vitra
+        {site.nome} · Seus dados são usados só para responder o seu pedido (LGPD). · Feito com Vitral
       </footer>
       {zap && <a className="site-zap" href={zap} target="_blank" rel="noreferrer" aria-label="Falar no WhatsApp">WhatsApp</a>}
     </div>

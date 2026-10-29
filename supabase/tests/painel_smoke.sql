@@ -1,6 +1,6 @@
--- Teste do painel do Vitra (migração 0014).
+-- Teste do painel do Vitral (migração 0014).
 \set ON_ERROR_STOP off
-insert into vitra_admins (usuario_id, email) values ('ab000000-0000-0000-0000-000000000001', 'admin@vitra.com');
+insert into vitral_admins (usuario_id, email) values ('ab000000-0000-0000-0000-000000000001', 'admin@vitral.com');
 insert into oticas (id, nome, status) values ('ab100000-0000-0000-0000-000000000001', 'Ótica Painel', 'ativa');
 insert into usuarios (id, otica_id, perfil_id, nome, email)
 select 'ab200000-0000-0000-0000-000000000001', 'ab100000-0000-0000-0000-000000000001', id, 'Dono Painel', 'dono@painel.com'
@@ -8,14 +8,14 @@ from perfis where otica_id = 'ab100000-0000-0000-0000-000000000001' and chave = 
 
 -- dono de uma ótica não entra no painel
 set role authenticated; set request.jwt.claim.sub = 'ab200000-0000-0000-0000-000000000001';
-select 'dono e admin? (esperado f)' as teste, sou_admin_vitra();
+select 'dono e admin? (esperado f)' as teste, sou_admin_vitral();
 select * from painel_oticas();
-select count(*) from vitra_admins;
+select count(*) from vitral_admins;
 reset role;
 
 -- admin cria ótica com dono, liga adicional, suspende e lê a lista de espera
 set role authenticated; set request.jwt.claim.sub = 'ab000000-0000-0000-0000-000000000001';
-select 'admin? (esperado t)' as teste, sou_admin_vitra();
+select 'admin? (esperado t)' as teste, sou_admin_vitral();
 select 'criou' as teste, painel_criar_otica('Ótica Nova', 'otica-nova', 'ab200000-0000-0000-0000-000000000009', 'Nova Dona', 'Nova@Otica.com') is not null;
 select painel_criar_otica('Outra', 'otica-nova', 'ab200000-0000-0000-0000-000000000008', 'X', 'x@x.com');      -- slug repetido
 select painel_criar_otica('Outra', 'outra', 'ab200000-0000-0000-0000-000000000001', 'X', 'x@x.com');           -- login já é de ótica

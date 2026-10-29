@@ -1,4 +1,4 @@
--- Teste da Versão 2 (migração 0010): importação de planilhas e lista de espera do Vitra.
+-- Teste da Versão 2 (migração 0010): importação de planilhas e lista de espera do Vitral.
 \set ON_ERROR_STOP off
 insert into oticas (id, nome, status) values ('a7000000-0000-0000-0000-000000000001', 'Ótica Importa', 'ativa');
 insert into oticas (id, nome, status) values ('a7000000-0000-0000-0000-000000000002', 'Ótica Vizinha', 'ativa');
@@ -46,7 +46,7 @@ set role authenticated; set request.jwt.claim.sub = 'a7200000-0000-0000-0000-000
 select importar_clientes('[{"nome": "Não pode"}]'::jsonb);
 reset role;
 
--- lista de espera (site do Vitra, sem login)
+-- lista de espera (site do Vitral, sem login)
 set role anon;
 select 'lista de espera' as teste, entrar_lista_espera('Maria', 'Ótica Sol', 'Colatina', 'es', '(27) 98888-0000', 'maria@sol.com', 1, true);
 select 'lista mesmo telefone' as teste, entrar_lista_espera('Maria', 'Ótica Sol', 'Colatina', 'ES', '27988880000', null, 1, true);

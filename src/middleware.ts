@@ -2,7 +2,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
- * Domínio próprio da ótica -> site público. Ex.: SITE_DOMINIOS="oticaomega.com.br=omega,www.oticaomega.com.br=omega"
+ * Domínio próprio da ótica -> site público. Ex.: SITE_DOMINIOS="oticasnery.com.br=nery,www.oticasnery.com.br=nery"
  * Cada domínio também precisa ser adicionado no projeto da Vercel.
  */
 function slugDoDominio(host: string | null): string | null {
@@ -51,7 +51,7 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const caminho = request.nextUrl.pathname;
-  // "/" é o site do Vitra (lista de espera); quem está logado vai direto para o sistema
+  // "/" é o site do Vitral (lista de espera); quem está logado vai direto para o sistema
   const publica = caminho === "/login" || caminho === "/";
 
   if (!user && !publica) {

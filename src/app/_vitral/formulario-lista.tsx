@@ -43,7 +43,7 @@ export function FormularioLista() {
       <input type="text" name="site" tabIndex={-1} autoComplete="off" aria-hidden="true" className="site-isca" />
       <label className="marcar">
         <input type="checkbox" name="aceite" required />
-        Autorizo o Vitra a usar estes dados para falar comigo sobre o sistema.
+        Autorizo o Vitral a usar estes dados para falar comigo sobre o sistema.
       </label>
       {estado && !estado.ok && <p className="erro" role="alert">{estado.mensagem}</p>}
       <button className="botao" type="submit" disabled={enviando}>{enviando ? "Enviando…" : "Quero entrar na lista"}</button>

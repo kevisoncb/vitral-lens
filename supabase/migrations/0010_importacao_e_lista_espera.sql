@@ -1,11 +1,11 @@
--- Vitra — migração 0010 (Versão 2): importação de planilhas e lista de espera do Vitra
+-- Vitral — migração 0010 (Versão 2): importação de planilhas e lista de espera do Vitral
 --
 -- 1. importar_clientes() e importar_produtos(): a tela lê a planilha (CSV) no navegador, mostra
 --    a prévia e manda as linhas em JSON. O banco grava com as permissões de quem importa (RLS),
 --    pula os repetidos e devolve quantos entraram e por que cada linha ficou de fora.
 -- 2. Busca de cliente pelo telefone ou CPF só com os números (também deixa mais rápidos o
 --    pedido de orçamento e o agendamento pelo site, que já procuram assim).
--- 3. Lista de espera do site do Vitra (óticas interessadas). Só a service role lê.
+-- 3. Lista de espera do site do Vitral (óticas interessadas). Só a service role lê.
 
 -- ---------------------------------------------------------------------------
 -- 1. Índices por número (telefone e CPF sem pontuação)
@@ -158,10 +158,10 @@ grant execute on function importar_produtos(jsonb) to authenticated;
 revoke execute on function importar_produtos(jsonb) from public, anon;
 
 -- ---------------------------------------------------------------------------
--- 4. Lista de espera do Vitra (site do produto)
+-- 4. Lista de espera do Vitral (site do produto)
 -- ---------------------------------------------------------------------------
 -- Tabela da plataforma, não de uma ótica: sem otica_id, com RLS ligado e nenhuma política
--- (ninguém do app lê; o painel do Vitra usa a service role).
+-- (ninguém do app lê; o painel do Vitral usa a service role).
 create table lista_espera (
   id              uuid primary key default gen_random_uuid(),
   nome            text not null,

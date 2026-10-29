@@ -32,7 +32,7 @@ export async function criarUsuario(_anterior: EstadoConvite, formulario: FormDat
     user_metadata: { nome },
   });
   if (erroAuth || !criado.user) {
-    return { ok: false, mensagem: erroAuth?.message.includes("already") ? "Esse e-mail já tem login no Vitra." : (erroAuth?.message ?? "Erro ao criar login") };
+    return { ok: false, mensagem: erroAuth?.message.includes("already") ? "Esse e-mail já tem login no Vitral." : (erroAuth?.message ?? "Erro ao criar login") };
   }
 
   const { error } = await supabase.from("usuarios").insert({

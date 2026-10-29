@@ -1,4 +1,4 @@
--- Vitra — migração 0012 (Versão 4): PDV e financeiro
+-- Vitral — migração 0012 (Versão 4): PDV e financeiro
 --
 -- 1. Duas áreas novas, cada uma com tela e menu próprios: pdv (caixa) e financeiro (financeiro e
 --    contador). Perfil novo: Contador (só leitura do financeiro e dos relatórios).

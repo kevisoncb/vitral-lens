@@ -4,7 +4,7 @@ import { criarClientePublico } from "@/lib/supabase/publico";
 
 export type EstadoLista = { ok: boolean; mensagem: string } | null;
 
-/** Inscrição na lista de espera do Vitra (site do produto, sem login). */
+/** Inscrição na lista de espera do Vitral (site do produto, sem login). */
 export async function entrarNaLista(_anterior: EstadoLista, formulario: FormData): Promise<EstadoLista> {
   // campo escondido: robôs costumam preencher tudo
   if (String(formulario.get("site") ?? "") !== "") return { ok: true, mensagem: "Pronto!" };

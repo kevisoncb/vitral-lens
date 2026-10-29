@@ -1,4 +1,4 @@
--- Vitra — migração 0011 (Versão 3): estoque e comissões
+-- Vitral — migração 0011 (Versão 3): estoque e comissões
 --
 -- 1. Módulos de permissão novos: estoque e comissoes.
 -- 2. Estoque por loja: livro de movimentos (nunca se apaga nem se altera) e saldo mantido pelo
@@ -40,9 +40,9 @@ alter table perfis enable trigger proteger_perfil_dono;
 create or replace function preparar_otica_v3() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
-  perform set_config('vitra.preparando_otica', 'sim', true);
+  perform set_config('vitral.preparando_otica', 'sim', true);
   perform permissoes_v3(new.id);
-  perform set_config('vitra.preparando_otica', '', true);
+  perform set_config('vitral.preparando_otica', '', true);
   return new;
 end $$;
 -- roda depois dos trg_preparar_otica_v6* (ordem alfabética)

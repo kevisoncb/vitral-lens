@@ -16,7 +16,7 @@ export default async function PaginaLogin({
   return (
     <main className="login">
       <section className="login-marca">
-        <strong style={{ fontSize: 24 }}>Vitra</strong>
+        <strong style={{ fontSize: 24 }}>Vitral</strong>
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <h1>Nenhum cliente esquecido no caminho.</h1>
           <p>

@@ -2,7 +2,7 @@ import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { dataHoraBR } from "@/lib/formatar";
 import { linkWhatsApp } from "@/lib/whatsapp";
 
-/** Quem se inscreveu no site do Vitra. O contato é pelo WhatsApp, com a mensagem pronta. */
+/** Quem se inscreveu no site do Vitral. O contato é pelo WhatsApp, com a mensagem pronta. */
 export default async function ListaDeEspera() {
   const supabase = await criarClienteServidor();
   const { data } = await supabase.rpc("painel_lista_espera");
@@ -12,7 +12,7 @@ export default async function ListaDeEspera() {
     <>
       <div>
         <h1>Lista de espera</h1>
-        <p className="subtitulo">{inscritos.length} {inscritos.length === 1 ? "ótica inscrita" : "óticas inscritas"} pelo site do Vitra, das mais novas para as mais antigas.</p>
+        <p className="subtitulo">{inscritos.length} {inscritos.length === 1 ? "ótica inscrita" : "óticas inscritas"} pelo site do Vitral, das mais novas para as mais antigas.</p>
       </div>
       <section className="bloco">
         {inscritos.length > 0 ? (
@@ -23,7 +23,7 @@ export default async function ListaDeEspera() {
               </thead>
               <tbody>
                 {inscritos.map((i) => {
-                  const zap = linkWhatsApp(i.telefone, `Olá ${i.nome.split(" ")[0]}, aqui é do Vitra! Você se inscreveu na lista de espera com a ${i.otica_nome}. Podemos conversar sobre a implantação?`);
+                  const zap = linkWhatsApp(i.telefone, `Olá ${i.nome.split(" ")[0]}, aqui é do Vitral! Você se inscreveu na lista de espera com a ${i.otica_nome}. Podemos conversar sobre a implantação?`);
                   return (
                     <tr key={i.id}>
                       <td>{dataHoraBR(i.criado_em)}</td>

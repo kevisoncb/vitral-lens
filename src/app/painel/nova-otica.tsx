@@ -9,10 +9,10 @@ export function NovaOtica() {
     <form action={enviar} className="formulario formulario-largo">
       <div className="linha">
         <label className="rotulo" style={{ flex: "3 1 240px" }}>Nome da ótica
-          <input className="campo" name="nome" required placeholder="Ótica Ômega" />
+          <input className="campo" name="nome" required placeholder="Óticas Nery" />
         </label>
         <label className="rotulo">Endereço do site (opcional)
-          <input className="campo" name="slug" placeholder="omega" pattern="[a-z0-9-]{3,40}" title="3 a 40 letras minúsculas, números ou hífen" />
+          <input className="campo" name="slug" placeholder="nery" pattern="[a-z0-9-]{3,40}" title="3 a 40 letras minúsculas, números ou hífen" />
         </label>
       </div>
       <div className="linha">

@@ -1,4 +1,4 @@
-# Vitra: capacidade, velocidade e custo para crescer
+# Vitral: capacidade, velocidade e custo para crescer
 
 > Documento para planejar o crescimento e para usar na venda.
 > Medido em 2026-10-29. Refazer o teste a cada mudança grande no banco (`supabase/carga/`).
@@ -109,7 +109,7 @@ O tamanho do banco no Supabase muda em minutos, sem trocar código. A aplicaçã
 
 ## 4. Quando pensar em algo diferente
 
-- **Sistema instalado na máquina:** só para hardware que o navegador não alcança, como TEF (maquininha integrada) ou impressora fiscal antiga. Nesse caso, um pequeno programa local conversa com o Vitra na nuvem. Nota fiscal não precisa disso: dá para emitir por API (Focus NFe, NFe.io e similares).
+- **Sistema instalado na máquina:** só para hardware que o navegador não alcança, como TEF (maquininha integrada) ou impressora fiscal antiga. Nesse caso, um pequeno programa local conversa com o Vitral na nuvem. Nota fiscal não precisa disso: dá para emitir por API (Focus NFe, NFe.io e similares).
 - **Sem internet na loja:** o PWA pode guardar a agenda e a fila do dia offline. Fica para a Versão 2.
 - **Banco separado por cliente grande:** só para uma rede que exija isso em contrato. O desenho por `otica_id` + RLS permite mover uma ótica para outro banco sem mudar o código.
 

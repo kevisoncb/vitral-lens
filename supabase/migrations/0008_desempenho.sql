@@ -1,4 +1,4 @@
--- Vitra — migração 0008: desempenho para muitas óticas e muitos usuários ao mesmo tempo
+-- Vitral — migração 0008: desempenho para muitas óticas e muitos usuários ao mesmo tempo
 --
 -- 1. Regras de segurança (RLS) mais rápidas: funções como minha_otica() e acesso() passam a
 --    ser calculadas UMA vez por consulta, e não uma vez por linha. Recomendação oficial do

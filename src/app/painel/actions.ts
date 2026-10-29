@@ -11,7 +11,7 @@ import type { Database } from "@/lib/supabase/tipos";
 export type EstadoNovaOtica = { ok: boolean; mensagem: string; senha?: string } | null;
 
 /**
- * Ótica nova com o login do dono. Confere no banco que quem pede é da equipe do Vitra ANTES de usar
+ * Ótica nova com o login do dono. Confere no banco que quem pede é da equipe do Vitral ANTES de usar
  * a service role, que serve só para criar o login no Auth; os dados entram por painel_criar_otica().
  */
 export async function criarOtica(_anterior: EstadoNovaOtica, formulario: FormData): Promise<EstadoNovaOtica> {
@@ -22,8 +22,8 @@ export async function criarOtica(_anterior: EstadoNovaOtica, formulario: FormDat
   if (!nome || !donoNome || !email) return { ok: false, mensagem: "Preencha o nome da ótica, o nome e o e-mail do dono." };
 
   const supabase = await criarClienteServidor();
-  const { data: admin } = await supabase.rpc("sou_admin_vitra");
-  if (!admin) return { ok: false, mensagem: "Só a equipe do Vitra cria óticas." };
+  const { data: admin } = await supabase.rpc("sou_admin_vitral");
+  if (!admin) return { ok: false, mensagem: "Só a equipe do Vitral cria óticas." };
 
   const senha = randomBytes(9).toString("base64url");
   const auth = criarClienteAdmin();
@@ -34,7 +34,7 @@ export async function criarOtica(_anterior: EstadoNovaOtica, formulario: FormDat
     user_metadata: { nome: donoNome },
   });
   if (erroAuth || !criado.user) {
-    return { ok: false, mensagem: erroAuth?.message.includes("already") ? "Esse e-mail já tem login no Vitra." : (erroAuth?.message ?? "Erro ao criar o login") };
+    return { ok: false, mensagem: erroAuth?.message.includes("already") ? "Esse e-mail já tem login no Vitral." : (erroAuth?.message ?? "Erro ao criar o login") };
   }
 
   const { error } = await supabase.rpc("painel_criar_otica", {

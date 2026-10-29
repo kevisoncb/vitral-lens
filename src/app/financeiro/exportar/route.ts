@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
   return new NextResponse(csv, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="vitra-financeiro-${mes}.csv"`,
+      "Content-Disposition": `attachment; filename="vitral-financeiro-${mes}.csv"`,
       "Cache-Control": "no-store",
     },
   });

@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Vitra",
+  title: "Vitral",
   description: "Vendas, laboratório, receitas e agenda da sua ótica em um só lugar.",
 };
 

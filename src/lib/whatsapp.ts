@@ -1,5 +1,5 @@
 /**
- * Link do WhatsApp com a mensagem pronta. O Vitra não envia nada sozinho:
+ * Link do WhatsApp com a mensagem pronta. O Vitral não envia nada sozinho:
  * o funcionário abre a conversa e aperta enviar.
  */
 export function linkWhatsApp(telefone: string | null | undefined, mensagem: string): string | null {

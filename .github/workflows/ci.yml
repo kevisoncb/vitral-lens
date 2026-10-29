@@ -84,7 +84,7 @@ jobs:
           grep -q "preco intacto | 450.00" areas.txt
           grep -q "balcao poe primeira foto | t" areas.txt
           grep -q "Seu perfil não pode trocar a foto" areas.txt
-      - name: Teste da Versão 2 (importação de planilhas, lista de espera do Vitra)
+      - name: Teste da Versão 2 (importação de planilhas, lista de espera do Vitral)
         run: |
           psql -q -f supabase/tests/versao2_smoke.sql 2>&1 | tee versao2.txt
           grep -q '"inseridos": 2, "repetidos": 2' versao2.txt
@@ -134,11 +134,11 @@ jobs:
           grep -q 'new row violates row-level security policy for table "contas_pagar"' versao4.txt
           grep -q "valor intacto | 320.00" versao4.txt
           grep -q "horario sem otica_id (esperado 1) | *1" versao4.txt
-      - name: Teste do painel do Vitra
+      - name: Teste do painel do Vitral
         run: |
           psql -q -f supabase/tests/painel_smoke.sql 2>&1 | tee painel.txt
           grep -q "dono e admin? (esperado f) | f" painel.txt
-          grep -q "Só a equipe do Vitra acessa o painel" painel.txt
+          grep -q "Só a equipe do Vitral acessa o painel" painel.txt
           grep -q "criou | t" painel.txt
           grep -q "Esse endereço de site já é de outra ótica" painel.txt
           grep -q "Esse login já pertence a uma ótica" painel.txt

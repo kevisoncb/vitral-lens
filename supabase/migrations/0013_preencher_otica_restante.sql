@@ -1,4 +1,4 @@
--- Vitra — migração 0013: otica_id automático nas tabelas que faltavam
+-- Vitral — migração 0013: otica_id automático nas tabelas que faltavam
 --
 -- Achado pelos tipos gerados do banco: a tela "Horários e bloqueios" grava em horarios_trabalho
 -- sem otica_id, e essa tabela não tinha o trigger preencher_otica() (0002). O cadastro de horários

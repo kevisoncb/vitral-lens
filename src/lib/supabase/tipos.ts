@@ -2370,7 +2370,7 @@ export type Database = {
           },
         ];
       };
-      vitra_admins: {
+      vitral_admins: {
         Row: {
           usuario_id: string;
           email: string;
@@ -2406,7 +2406,7 @@ export type Database = {
       criar_os_do_atendimento: { Args: { p_atendimento: string | null; p_data_prometida?: string | null }; Returns: string };
       definir_foto_produto: { Args: { p_item: string | null; p_caminho: string | null }; Returns: boolean };
       entrar_lista_espera: { Args: { p_nome: string | null; p_otica: string | null; p_cidade: string | null; p_uf: string | null; p_telefone: string | null; p_email: string | null; p_lojas: number | null; p_aceite_lgpd: boolean | null }; Returns: boolean };
-      exigir_admin_vitra: { Args: Record<PropertyKey, never>; Returns: undefined };
+      exigir_admin_vitral: { Args: Record<PropertyKey, never>; Returns: undefined };
       fechar_caixa: { Args: { p_caixa: string | null; p_contado: number | null; p_observacao?: string | null }; Returns: Json };
       horarios_livres: { Args: { p_slug: string | null; p_dia: string | null }; Returns: { inicio: string; fim: string }[] };
       horarios_ocupados: { Args: { p_loja: string | null; p_dia: string | null }; Returns: { inicio: string; fim: string }[] };
@@ -2435,7 +2435,7 @@ export type Database = {
       registrar_pagamento: { Args: { p_atendimento: string | null; p_valor: number | null; p_forma: string | null; p_parcelas?: number | null; p_sinal?: boolean | null; p_data_prometida?: string | null }; Returns: string };
       registrar_venda: { Args: { p_caixa: string | null; p_cliente: string | null; p_itens: Json | null; p_desconto: number | null; p_pagamentos: Json | null; p_observacao?: string | null }; Returns: string };
       site_da_otica: { Args: { p_slug: string | null }; Returns: { nome: string; titulo: string; sobre: string; endereco: string; whatsapp: string; horario: string; instagram: string; cor: string; logo_url: string; agendamento_online: boolean }[] };
-      sou_admin_vitra: { Args: Record<PropertyKey, never>; Returns: boolean };
+      sou_admin_vitral: { Args: Record<PropertyKey, never>; Returns: boolean };
       transferir_estoque: { Args: { p_item: string | null; p_de: string | null; p_para: string | null; p_quantidade: number | null }; Returns: boolean };
     };
     Enums: {

@@ -12,9 +12,9 @@ export default async function LayoutDaLoja({ children }: { children: React.React
   const sessao = await obterSessao();
 
   if (!sessao) {
-    // equipe do Vitra não pertence a uma ótica: vai para o painel
+    // equipe do Vitral não pertence a uma ótica: vai para o painel
     const supabase = await criarClienteServidor();
-    const { data: admin } = await supabase.rpc("sou_admin_vitra");
+    const { data: admin } = await supabase.rpc("sou_admin_vitral");
     if (admin) redirect("/painel");
     return (
       <main className="conteudo">
@@ -43,7 +43,7 @@ export default async function LayoutDaLoja({ children }: { children: React.React
   return (
     <div className="app">
       <nav className="menu" aria-label="Menu principal">
-        <strong style={{ padding: "0 10px 24px", fontSize: 20, color: "#fff" }}>Vitra</strong>
+        <strong style={{ padding: "0 10px 24px", fontSize: 20, color: "#fff" }}>Vitral</strong>
         <Navegacao itens={itens} />
         <div className="menu-rodape">
           {sessao.oticaNome} · {ROTULO_AREA[sessao.area]}
