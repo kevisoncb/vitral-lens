@@ -1,8 +1,8 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
- * Domínio próprio da ótica -> site público. Ex.: SITE_DOMINIOS="oticaomega.com.br=omega,www.oticaomega.com.br=omega"
+ * Domínio próprio da ótica -> site público. Ex.: SITE_DOMINIOS="oticasnery.com.br=nery,www.oticasnery.com.br=nery"
  * Cada domínio também precisa ser adicionado no projeto da Vercel.
  */
 function slugDoDominio(host: string | null): string | null {
@@ -37,7 +37,7 @@ export async function middleware(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(lista) {
+        setAll(lista: { name: string; value: string; options: CookieOptions }[]) {
           lista.forEach(({ name, value }) => request.cookies.set(name, value));
           response = NextResponse.next({ request });
           lista.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
@@ -51,7 +51,8 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const caminho = request.nextUrl.pathname;
-  const publica = caminho === "/login";
+  // "/" é o site do Vitral (lista de espera); quem está logado vai direto para o sistema
+  const publica = caminho === "/login" || caminho === "/";
 
   if (!user && !publica) {
     const url = request.nextUrl.clone();

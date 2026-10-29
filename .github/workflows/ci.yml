@@ -84,14 +84,92 @@ jobs:
           grep -q "preco intacto | 450.00" areas.txt
           grep -q "balcao poe primeira foto | t" areas.txt
           grep -q "Seu perfil não pode trocar a foto" areas.txt
+      - name: Teste da Versão 2 (importação de planilhas, lista de espera do Vitral)
+        run: |
+          psql -q -f supabase/tests/versao2_smoke.sql 2>&1 | tee versao2.txt
+          grep -q '"inseridos": 2, "repetidos": 2' versao2.txt
+          grep -q '"linha": 6, "motivo": "CPF com 3 números"' versao2.txt
+          grep -q "clientes depois (esperado 3) *| *3" versao2.txt
+          grep -q "produtos depois (esperado 2) *| *2" versao2.txt
+          grep -q "vizinha ve so os seus (esperado 1) *| *1" versao2.txt
+          grep -q "Seu perfil não pode cadastrar clientes" versao2.txt
+          grep -q "É preciso aceitar o uso dos dados para entrar na lista" versao2.txt
+          grep -q "permission denied for function importar_clientes" versao2.txt
+          grep -q "inscritos (esperado 1) *| *1 | ES" versao2.txt
+      - name: Teste da Versão 3 (estoque e comissões)
+        run: |
+          psql -q -f supabase/tests/versao3_smoke.sql 2>&1 | tee versao3.txt
+          grep -q "controla estoque | armacao=true,lente=false" versao3.txt
+          grep -q "perda (esperado 3) *| *3" versao3.txt
+          grep -q "saldos por loja | Bairro=1,Centro=2" versao3.txt
+          grep -q "permission denied for table estoque_movimentos" versao3.txt
+          grep -q "Informe o motivo da saída" versao3.txt
+          grep -q "Seu perfil não pode dar entrada no estoque" versao3.txt
+          grep -q 'new row violates row-level security policy for table "comissao_regras"' versao3.txt
+          grep -q "vitor ve so a dele (esperado 1) | *1 | 40.00" versao3.txt
+          grep -q "baixa uma vez por venda (esperado Centro=0) | Bairro=1,Centro=0" versao3.txt
+          grep -q "comissoes | Vera=47.00/700.00,Vitor=40.00/400.00" versao3.txt
+          grep -q "Seu perfil não pode pagar comissões" versao3.txt
+          grep -q "dono ve todas e paga (esperado 2) | *2" versao3.txt
+          grep -q "lab nao ve estoque nem comissoes (esperado 0 0) | *0 | *0" versao3.txt
+      - name: Teste da Versão 4 (PDV e financeiro)
+        run: |
+          psql -q -f supabase/tests/versao4_smoke.sql 2>&1 | tee versao4.txt
+          grep -q "areas v4 | caixa=pdv,contador=financeiro,financeiro=financeiro" versao4.txt
+          grep -q "abre caixa | t" versao4.txt
+          grep -q "Desconto acima de 10% precisa do gerente" versao4.txt
+          grep -q "não fecham com o total da venda" versao4.txt
+          grep -q "Crediário precisa do cliente identificado" versao4.txt
+          grep -q "permission denied for table vendas" versao4.txt
+          grep -q "Só o gerente cancela venda" versao4.txt
+          grep -q "vendas do caixa | 1=380.00,2=50.00" versao4.txt
+          grep -q "estoque apos vendas (esperado estojo 7, sol 2) | Estojo=7,Óculos de sol=2" versao4.txt
+          grep -q "comissao pdv (5% de 380) | 2.50,19.00" versao4.txt
+          grep -q "conta a receber do crediario | 50.00 | 2030-01-10" versao4.txt
+          grep -q "estoque apos cancelar (esperado estojo 9, sol 3) | Estojo=9,Óculos de sol=3" versao4.txt
+          grep -q "comissoes apos cancelar | aberta,cancelada" versao4.txt
+          grep -q '"esperado": 50.00, "diferenca": -5.00' versao4.txt
+          grep -q "caixa nao ve contas a pagar (esperado 0) | *0" versao4.txt
+          grep -q "contador le | *1 | 2030-11-19" versao4.txt
+          grep -q 'new row violates row-level security policy for table "contas_pagar"' versao4.txt
+          grep -q "valor intacto | 320.00" versao4.txt
+          grep -q "horario sem otica_id (esperado 1) | *1" versao4.txt
+      - name: Teste do painel do Vitral
+        run: |
+          psql -q -f supabase/tests/painel_smoke.sql 2>&1 | tee painel.txt
+          grep -q "dono e admin? (esperado f) | f" painel.txt
+          grep -q "Só a equipe do Vitral acessa o painel" painel.txt
+          grep -q "criou | t" painel.txt
+          grep -q "Esse endereço de site já é de outra ótica" painel.txt
+          grep -q "Esse login já pertence a uma ótica" painel.txt
+          grep -q 'painel | Ótica Nova | suspensa | *1 | *1 | {"multiloja": 2} | nova@otica.com' painel.txt
+          grep -q "Ótica não encontrada" painel.txt
+          grep -q "dona da nova (suspensa) ve a otica? (esperado 0) | *0" painel.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Consultas das telas batem com o banco (tabelas, colunas, relações, rpc)
+        run: |
+          npm ci
+          node supabase/tests/conferir_consultas.mjs
+      - name: Tipos do banco em dia (src/lib/supabase/tipos.ts)
+        run: node supabase/gerar_tipos.mjs --conferir
 
   web:
-    name: Aplicativo (tipos)
+    name: Aplicativo (tipos e build)
     runs-on: ubuntu-latest
+    env:
+      # chaves falsas: o build não fala com o Supabase, só precisa que existam
+      NEXT_PUBLIC_SUPABASE_URL: https://exemplo.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: chave-falsa
+      NEXT_TELEMETRY_DISABLED: 1
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install
+          cache: npm
+      - run: npm ci
       - run: npm run typecheck
+      - run: npm run build

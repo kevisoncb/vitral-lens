@@ -6,6 +6,8 @@ export type Modulo =
   | "laboratorio"
   | "agenda"
   | "catalogo"
+  | "estoque"
+  | "comissoes"
   | "relatorios"
   | "pdv"
   | "financeiro"
@@ -35,9 +37,12 @@ export const MENU: ItemMenu[] = [
   { modulo: "clientes", rotulo: "Clientes", href: "/clientes" },
   { modulo: "agenda", rotulo: "Agenda", href: "/agenda" },
   { modulo: "catalogo", rotulo: "Catálogo", href: "/catalogo" },
+  { modulo: "estoque", rotulo: "Estoque", href: "/estoque" },
+  { modulo: "comissoes", rotulo: "Comissões", href: "/comissoes" },
   { modulo: "consultorio", rotulo: "Consultório", href: "/consultorio", soGestao: true },
   { modulo: "laboratorio", rotulo: "Produção (laboratório)", href: "/producao", soGestao: true },
-  { modulo: "financeiro", rotulo: "Financeiro", href: "/financeiro" },
+  { modulo: "pdv", rotulo: "PDV (caixa)", href: "/pdv", soGestao: true },
+  { modulo: "financeiro", rotulo: "Financeiro", href: "/financeiro", soGestao: true },
   { modulo: "relatorios", rotulo: "Relatórios", href: "/relatorios" },
   { modulo: "configuracoes", rotulo: "Configurações", href: "/configuracoes" },
 ];

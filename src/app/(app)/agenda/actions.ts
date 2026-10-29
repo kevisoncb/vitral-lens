@@ -43,9 +43,11 @@ export async function marcarConsulta(formulario: FormData) {
   redirect(`/agenda?dia=${dia}`);
 }
 
-export async function mudarStatus(id: string, dia: string, status: string) {
-  const permitidos = ["agendada", "confirmada", "compareceu", "faltou", "cancelada"];
-  if (!permitidos.includes(status)) return;
+const STATUS = ["agendada", "confirmada", "compareceu", "faltou", "cancelada"] as const;
+
+export async function mudarStatus(id: string, dia: string, valor: string) {
+  const status = STATUS.find((s) => s === valor);
+  if (!status) return;
   const supabase = await criarClienteServidor();
   await supabase.from("consultas").update({ status }).eq("id", id);
   revalidatePath("/agenda");

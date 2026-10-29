@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { MENU } from "@/lib/permissoes";
 import { INICIO_DA_AREA, ROTULO_AREA } from "@/lib/areas";
 import { obterSessao } from "@/lib/sessao";
+import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { sair } from "../login/actions";
 import { Navegacao } from "./navegacao";
 
@@ -11,6 +12,10 @@ export default async function LayoutDaLoja({ children }: { children: React.React
   const sessao = await obterSessao();
 
   if (!sessao) {
+    // equipe do Vitral não pertence a uma ótica: vai para o painel
+    const supabase = await criarClienteServidor();
+    const { data: admin } = await supabase.rpc("sou_admin_vitral");
+    if (admin) redirect("/painel");
     return (
       <main className="conteudo">
         <h1>Acesso não liberado</h1>
@@ -25,7 +30,7 @@ export default async function LayoutDaLoja({ children }: { children: React.React
     );
   }
 
-  if (sessao.area === "consultorio" || sessao.area === "laboratorio") {
+  if (sessao.area !== "loja" && sessao.area !== "gestao") {
     redirect(INICIO_DA_AREA[sessao.area]);
   }
 
@@ -38,7 +43,7 @@ export default async function LayoutDaLoja({ children }: { children: React.React
   return (
     <div className="app">
       <nav className="menu" aria-label="Menu principal">
-        <strong style={{ padding: "0 10px 24px", fontSize: 20, color: "#fff" }}>Vitra</strong>
+        <strong style={{ padding: "0 10px 24px", fontSize: 20, color: "#fff" }}>Vitral</strong>
         <Navegacao itens={itens} />
         <div className="menu-rodape">
           {sessao.oticaNome} · {ROTULO_AREA[sessao.area]}

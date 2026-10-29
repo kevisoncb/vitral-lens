@@ -1,11 +1,11 @@
-# Vitra (vitral-lens)
+# Vitral (vitral-lens)
 
 > **Leia este arquivo antes de mexer no projeto e atualize-o ao terminar.**
 > Ele é o mapa do projeto: o que existe, o que foi testado, o que falta e o que mudou.
 > Toda sessão (sua ou do Claude) começa aqui e termina atualizando as seções
 > **Estado**, **Checklist** e **Histórico**.
 
-**Vitra é o sistema que une as três partes de uma ótica num fluxo só:**
+**Vitral é o sistema que une as três partes de uma ótica num fluxo só:**
 **consultório** (exame → receita) → **loja** (orçamento → pagamento) → **laboratório** (ficha técnica → construção do óculos → entrega).
 Tudo ligado ao mesmo cliente, sem redigitar nada, com os cards passando de uma área para outra em tempo real.
 
@@ -32,8 +32,15 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 | 0007 | Fotos de produtos (Storage público) | 🟡 só roda no Supabase |
 | 0008 | Desempenho: RLS com `(select ...)`, índices, busca por pedaço do nome | ✅ (teste de carga: `docs/ESCALA.md`) |
 | 0009 | Foto do produto: quem cadastrou na venda põe a primeira | ✅ |
+| 0010 | Versão 2: importar clientes e produtos de planilha (pula repetidos), lista de espera do Vitral | ✅ |
+| 0011 | Versão 3: estoque por loja (livro de movimentos, baixa na venda, contagem, transferência) e comissões (regras, cálculo no pagamento, pagamento) | ✅ |
+| 0012 | Versão 4: áreas `pdv` e `financeiro`, perfil Contador, caixa, venda no PDV (crediário, estoque, comissão, cancelamento), categorias de custo, alíquota | ✅ |
+| 0013 | `otica_id` automático em horários, lojas, perfis, motivos e etapas (o cadastro de horários falhava) | ✅ |
+| 0014 | Painel do Vitral: `vitral_admins` e funções `painel_*` (óticas, criar ótica com dono, adicionais, situação, lista de espera) | ✅ |
 
-### Telas (`src/`): todas 🟡, escritas sem npm e nunca executadas
+### Telas (`src/`): todas 🟡, compilam (`typecheck` e `build` passam) mas ainda não foram abertas com um Supabase de verdade
+
+A venda do PDV (`src/app/pdv/venda.tsx`) foi aberta no navegador com produtos de exemplo, no computador e no celular: busca por código, soma, desconto, divisão do pagamento e troco funcionam. Falta ligar num Supabase.
 
 | Área | Tela | Rota |
 |---|---|---|
@@ -46,17 +53,29 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 | Loja e gestão | Ordens de serviço: acompanha, avisa e entrega; recados com o laboratório | `/laboratorio`, `/laboratorio/[id]` |
 | Loja e gestão | Agenda interna | `/agenda` |
 | Loja e gestão | Catálogo com fotos; foto da armação depois da venda | `/catalogo`, `/catalogo/fotos` |
+| Loja e gestão | Estoque por loja: saldo, abaixo do mínimo, entrada, contagem, perda, transferência, histórico | `/estoque`, `/estoque/[id]` |
+| Loja e gestão | Comissões do mês (vendedor vê as dele; gestão vê todas, regras e pagamento) | `/comissoes` |
 | Gestão | Relatórios do mês | `/relatorios` |
 | Gestão | Configurações: ótica e site, lojas, usuários, perfis (área + permissões), horários e bloqueios, funil e motivos | `/configuracoes/...` |
 | Consultório | Fila do dia, exame (anamnese, AV, refração, conduta), histórico do paciente | `/consultorio`, `/consultorio/exame/[id]`, `/consultorio/paciente/[id]` |
 | Laboratório | Quadro de produção (ao vivo), OS com ficha técnica editável, etapas da construção, recados | `/producao`, `/producao/os/[id]` |
 | Laboratório (gerente) | Indicadores: prazo, retrabalho, espera, produção por pessoa | `/producao/indicadores` |
+| Gestão | Importar planilha (CSV do Excel ou do Google): clientes e produtos, com prévia e relatório de erros | `/configuracoes/importar` |
 | Público | Site da ótica + pedido de orçamento; agendamento online | `/site/[slug]`, `/site/[slug]/agendar` |
-| — | PDV e financeiro (Versão 4) | ⬜ só as tabelas |
-| — | Nota fiscal, estoque, comissões (Versão 3) | ⬜ |
-| — | Painel do Vitra (criar ótica, adicionais) | ⬜ hoje é SQL |
+| Público | Site do Vitral com preço e lista de espera (quem está logado vai para o sistema) | `/` |
+| PDV | Caixa: abrir, venda rápida (código de barras, várias formas, crediário, troco), sangria/suprimento, fechar com conferência | `/pdv` |
+| PDV | Vendas do dia (gerente cancela e devolve ao estoque), caixas fechados com diferença | `/pdv/vendas`, `/pdv/caixas` |
+| PDV | Cupom sem valor fiscal (impressora térmica de 80 mm), aberto ao finalizar a venda | `/cupom/[id]` |
+| Financeiro | Visão do mês (entradas, saídas, a pagar, a receber, impostos, comissões), exportação CSV para o contador | `/financeiro`, `/financeiro/exportar` |
+| Financeiro | Contas a pagar (repetir por meses), contas a receber (parcelas, lembrete no WhatsApp), categorias de custo | `/financeiro/pagar`, `/financeiro/receber`, `/financeiro/categorias` |
+| — | Nota fiscal (Versão 3) | ⬜ falta escolher a API (Focus NFe, NFe.io) |
+| Vitral | Painel: óticas (criar com o login do dono, situação, adicionais), lista de espera com WhatsApp | `/painel`, `/painel/espera` |
 
-**Por que tudo 🟡:** o código foi escrito num ambiente sem acesso ao npm. A sintaxe, os caminhos de import e os nomes exportados foram conferidos em todos os arquivos, mas nunca rodou `npm install`, `typecheck` nem o navegador. Espere erros de tipo pequenos no primeiro `npm run typecheck`, principalmente nos retornos do Supabase, que ainda não têm tipos gerados.
+**Consultas conferidas:** `supabase/tests/conferir_consultas.mjs` lê todo o `src/` e confere, contra o banco com as migrações aplicadas, cada `.from(...).select(...)`, filtro, ordem, insert/update, relação embutida (inclusive ambígua) e `rpc(...)`. Hoje: 128 consultas e 10 chamadas, nenhum problema. Roda no CI.
+
+**Tipos do banco:** `src/lib/supabase/tipos.ts` é gerado das migrações por `npm run tipos` (`supabase/gerar_tipos.mjs`, mesmo formato do `supabase gen types`, sem precisar de Docker) e todos os clientes do Supabase usam esses tipos. O CI falha se o arquivo estiver desatualizado. Mudou o banco? Rode `npm run tipos` com o Postgres local e commite.
+
+**Por que tudo 🟡:** `npm install`, `npm run typecheck` e `npm run build` passam, e o servidor sobe: `/login` abre e as rotas protegidas mandam para o login. Falta abrir cada tela ligada a um projeto Supabase real.
 
 ---
 
@@ -64,24 +83,39 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 
 Marque com `[x]` quando terminar e anote no Histórico.
 
-- [ ] `npm install`, `npm run typecheck`, corrigir os erros. Commitar `package-lock.json`.
-- [ ] Criar o projeto no Supabase **na região São Paulo (sa-east-1)**, na conta do dono do produto, e rodar as migrações 0001 → 0009 no SQL Editor.
-- [ ] Criar a Ótica Ômega, a loja e o usuário dono (SQL na seção 4).
+- [x] `npm install`, `npm run typecheck`, corrigir os erros. Commitar `package-lock.json`.
+- [ ] `npm audit` aponta o `postcss` embutido no Next 15 (só afeta o build, não o site no ar); a correção só vem no Next 16. Avaliar a migração depois da Versão 1.
+- [ ] Criar o projeto no Supabase **na região São Paulo (sa-east-1)**, na conta do dono do produto, e rodar as migrações 0001 → 0014 no SQL Editor.
+- [ ] Cadastrar você em `vitral_admins` e criar as Óticas Nery pelo painel (`/painel`, seção 4).
 - [ ] Rodar `supabase/seed_catalogo.sql` (ajustar os preços antes).
+- [x] Conferir as consultas das telas contra o banco sem o Supabase (`conferir_consultas.mjs`, no CI).
 - [ ] `.env.local` com as chaves e `npm run dev`. Abrir cada tela da tabela acima e trocar 🟡 por ✅.
 - [ ] Testar o fluxo das três áreas com três logins (consultório, balcão, laboratório) em três abas:
   - [ ] exame → concluir → card aparece no funil da loja;
   - [ ] orçamento (com um produto novo e foto da armação) → sinal → OS aparece em "Pago" na produção, ao vivo;
   - [ ] laboratório puxa, registra etapas, manda recado, move para "Chegou na loja";
   - [ ] loja vê o recado, avisa pelo WhatsApp, entrega.
-- [ ] Testar o site: `/site/omega` publicado, pedido de orçamento vira card; cadastrar horários e testar `/site/omega/agendar`.
+- [ ] Testar o site: `/site/nery` publicado, pedido de orçamento vira card; cadastrar horários e testar `/site/nery/agendar`.
 - [ ] Testar no celular e no tablet: mover cards pelo botão "Mover para" (arrastar não funciona no toque).
 - [ ] (Opcional) pg_cron: `select cron.schedule('sem-retorno', '0 * * * *', 'select mover_sem_retorno()');`
-- [ ] Deploy na Vercel (conta do dono, região `gru1`), variáveis de ambiente, domínio da Ômega em `SITE_DOMINIOS`.
-- [ ] Gerar tipos: `npx supabase gen types typescript --project-id <id> > src/lib/supabase/tipos.ts` e usar nos clientes.
+- [ ] Deploy na Vercel (conta do dono, região `gru1`), variáveis de ambiente, domínio das Óticas Nery em `SITE_DOMINIOS`.
+- [x] Gerar os tipos do banco e usar nos clientes (`npm run tipos`; achou o bug do cadastro de horários, corrigido na 0013).
 - [ ] Definir o preço dos adicionais: nota fiscal (sugestão: +R$ 50) e loja extra.
 - [ ] Ideias da concorrência para depois: assinatura digital da OS pelo link, medida de DNP pela câmera, entrada de produtos por XML, etiqueta com código de barras.
-- [ ] Depois: painel do Vitra, importação de planilha, PDV e financeiro, nota fiscal via API (Focus NFe, NFe.io).
+- [x] Versão 2: importação de planilha (clientes e produtos) e site do Vitral com lista de espera.
+- [ ] Importar a planilha de clientes das Óticas Nery (pedir o arquivo do sistema antigo) e conferir o relatório de erros.
+- [ ] Planilha `.xlsx` direto (hoje pede salvar como CSV; precisaria de uma biblioteca de leitura de Excel).
+- [x] Ler a lista de espera: `/painel/espera`, com o botão de chamar no WhatsApp.
+- [x] Versão 3 (sem nota fiscal): estoque por loja e comissões.
+- [ ] Contagem inicial do estoque das Óticas Nery (tela Estoque → Contagem, produto a produto) e cadastrar as regras de comissão.
+- [ ] Nota fiscal: escolher a API (Focus NFe, NFe.io), contratar na conta do dono e ligar ao adicional `nota_fiscal`.
+- [x] Versão 4: PDV e financeiro, com áreas e menus próprios.
+- [ ] Testar o PDV com um leitor de código de barras de verdade (ele "digita" o código e aperta Enter) e cadastrar os códigos das armações.
+- [ ] Combinar com o contador das Óticas Nery se o CSV do mês (`/financeiro/exportar`) atende ou se ele precisa de outro layout.
+- [x] Cupom não fiscal da venda do PDV (`/cupom/[id]`).
+- [ ] Testar o cupom numa impressora térmica de verdade (escolher a bobina de 80 mm e margem zero nas opções de impressão) e, com o adicional, a NFC-e.
+- [x] Painel do Vitral (criar ótica com o dono, situação, adicionais, lista de espera).
+- [ ] Cobrança da mensalidade (hoje o painel só mostra quantas óticas estão ativas): escolher Asaas, Mercado Pago ou Stripe.
 
 ---
 
@@ -111,28 +145,36 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - **Pagamento:** o primeiro pagamento move o card para a etapa ganha e cria a OS uma única vez.
 - **Agenda:** o mesmo horário nunca é marcado duas vezes. O site só vê horários livres.
 - **Site público:** só funções `security definer` liberadas para `anon`, com limite de uso e aceite LGPD.
+- **Estoque:** por loja, só dos produtos com `controla_estoque` (padrão: armação, lente de contato, acessório; lente sob medida não). O livro `estoque_movimentos` nunca se altera; entrada, saída, contagem e transferência só pelas funções do banco. O primeiro pagamento da venda dá baixa uma vez. A venda nunca é bloqueada por falta de estoque (o saldo pode ficar negativo e aparece em vermelho).
+- **Comissões:** regra mais específica vale (vendedor + categoria > vendedor > categoria > todos). Calculadas no primeiro pagamento, para o responsável do atendimento. O vendedor vê só as dele; `comissoes:editar` vê todas e marca como pagas.
+- **PDV (Versão 4):** área própria (`pdv`, perfil Caixa). Venda só por `registrar_venda()`: preço vem do catálogo, desconto acima de 10% exige `pdv:editar`, a soma dos pagamentos tem de fechar com o total, crediário exige cliente e vira conta a receber. Um caixa aberto por operador. Só o gerente cancela venda (devolve ao estoque e cancela a comissão aberta).
+- **Financeiro (Versão 4):** área própria (`financeiro`, perfis Financeiro e Contador; o Contador só lê). Regime de caixa: entradas = pagamentos (funil e PDV, menos vendas canceladas) + contas a receber recebidas; saídas = contas a pagar pagas. Imposto estimado = entradas × alíquota da ótica.
+- **Importação de planilha:** nunca apaga nem sobrescreve; cliente repetido (mesmo telefone ou CPF) e produto repetido (mesmo código, ou mesmo nome na categoria) são pulados. O banco confere a permissão de quem importa.
 - **Agilidade:**
   - o card muda na tela antes de o banco confirmar;
   - as telas atualizam sozinhas;
   - aparece um esqueleto na troca de tela;
   - toda regra de segurança nova usa `(select função())`, para não ficar lenta com muitas óticas.
-- **Service role** só no servidor e só para o Auth (criar login).
+- **Service role** só no servidor e só para o Auth (criar login). O painel do Vitral também segue isso: os dados passam pelas funções `painel_*`, que conferem `vitral_admins` no banco.
 - Código, domínio, Supabase e Vercel ficam no nome do dono do produto.
 
 ---
 
 ## 4. Como rodar
 
-1. Supabase (região São Paulo) → SQL Editor: rode `supabase/migrations/0001` a `0009`, em ordem.
-2. Primeira ótica e usuário dono (Authentication → Users → criar usuário; depois no SQL Editor):
+1. Supabase (região São Paulo) → SQL Editor: rode `supabase/migrations/0001` a `0014`, em ordem.
+2. Primeira ótica e usuário dono, pelo **painel do Vitral**:
+   - Authentication → Users → crie o seu login (o da equipe do Vitral) e, no SQL Editor:
+     `insert into vitral_admins (usuario_id, email) values ('<id do seu usuário no Auth>', 'voce@exemplo.com');`
+   - Entre no sistema: você cai em `/painel`. Em **Nova ótica**, informe o nome (Óticas Nery), o endereço do site (`nery`) e o nome e e-mail do dono. O painel cria o login do dono e mostra a senha temporária.
+   - Sem o painel (só SQL), o caminho antigo continua valendo:
 
 ```sql
-insert into oticas (nome, status, slug) values ('Ótica Ômega', 'ativa', 'omega') returning id;
+insert into oticas (nome, status, slug) values ('Óticas Nery', 'ativa', 'nery') returning id;
 insert into lojas (otica_id, nome) values ('<id da ótica>', 'Loja Centro');
 insert into usuarios (id, otica_id, perfil_id, nome, email)
 select '<id do usuário no Auth>', '<id da ótica>', id, 'Nome do dono', 'email@exemplo.com'
 from perfis where otica_id = '<id da ótica>' and chave = 'dono';
--- adicional contratado (exemplo): insert into otica_adicionais (otica_id, recurso) values ('<id>', 'nota_fiscal');
 ```
 
 3. `supabase/seed_catalogo.sql` para o catálogo de exemplo.
@@ -149,6 +191,11 @@ psql -f supabase/tests/pagamento_smoke.sql    # sinal, saldo, OS automática
 psql -f supabase/tests/site_smoke.sql         # site, agendamento online, Sem retorno, Dono
 psql -f supabase/tests/consultorio_smoke.sql  # exame → receita → OS com ficha → produção
 psql -f supabase/tests/areas_smoke.sql        # áreas, cards que conversam, plano, produto na venda
+psql -f supabase/tests/versao2_smoke.sql      # importação de planilhas, lista de espera
+psql -f supabase/tests/versao3_smoke.sql      # estoque e comissões
+psql -f supabase/tests/versao4_smoke.sql      # PDV e financeiro
+node supabase/tests/conferir_consultas.mjs    # as consultas das telas batem com o banco (precisa do npm install)
+node supabase/gerar_tipos.mjs --conferir      # src/lib/supabase/tipos.ts em dia com as migrações
 ```
 
 Cada teste imprime as linhas esperadas e alguns erros de propósito: eles provam que o bloqueio funciona. O GitHub Actions (`.github/workflows/ci.yml`) roda tudo a cada push e confere as linhas. O teste de carga (1.000 óticas) está em `supabase/carga/` e os resultados em `docs/ESCALA.md`.
@@ -166,6 +213,11 @@ src/app/acoes/         Server Actions compartilhadas (OS)
 src/app/(app)/         tela da loja e da gestão (menu lateral)
 src/app/consultorio/   tela do consultório
 src/app/producao/      tela do laboratório
+src/app/pdv/           tela do caixa (PDV)
+src/app/financeiro/    tela do financeiro e do contador
+src/app/_vitral/        site do Vitral (lista de espera), servido em /
+src/app/painel/        painel do Vitral (equipe do produto: óticas, adicionais, lista de espera)
+src/app/cupom/         cupom da venda do PDV (impressão)
 src/app/site/[slug]/   site público da ótica e agendamento online (sem login)
 src/app/conta/         minha conta (qualquer área)
 ```
@@ -176,6 +228,24 @@ src/app/conta/         minha conta (qualquer área)
 
 Mais recente em cima. Uma linha por sessão: data, o que mudou, o que ficou pendente.
 
+- **2026-10-29 (13)** — Nome do produto: **Vitral** (era Vitra) em toda a interface, documentos e banco (`vitral_admins`, `sou_admin_vitral()`, pasta `src/app/_vitral`, migração `0014_painel_do_vitral.sql`); nada estava em produção. Primeiro cliente: **Óticas Nery** (no lugar da Ótica Ômega, que não existe); site de exemplo `/site/nery`.
+  - Pendente: domínio do Vitral e das Óticas Nery.
+- **2026-10-29 (12)** — Painel do Vitral: migração 0014 (`vitral_admins`, `sou_admin_vitral()`, `painel_oticas()`, `painel_criar_otica()`, `painel_definir_adicional()`, `painel_mudar_status()`, `painel_lista_espera()`), teste `painel_smoke.sql` no CI, telas `/painel` e `/painel/espera`. Admin sem ótica que entra no sistema vai direto para o painel. A seção 4 agora cria a Ômega pelo painel.
+  - Pendente: cobrança da mensalidade.
+- **2026-10-29 (11)** — Cupom sem valor fiscal da venda do PDV (`/cupom/[id]`, 80 mm, abre a impressão sozinho depois de finalizar a venda; link também na lista de vendas).
+  - Pendente: testar numa impressora térmica.
+- **2026-10-29 (10)** — Tipos do banco gerados das migrações (`supabase/gerar_tipos.mjs`, `npm run tipos`, conferido no CI) e ligados a todos os clientes do Supabase. Para isso, `@supabase/ssr` subiu de 0.6.1 para 0.12.7 (a 0.6 não casava com o supabase-js 2.118 e deixava tudo `never`). Os tipos acharam o cadastro de horários sem `otica_id`, que falharia no banco: migração 0013 e teste novo no `versao4_smoke.sql`.
+  - Pendente: abrir as telas no Supabase real.
+- **2026-10-29 (9)** — Versão 4: migração 0012 (áreas `pdv` e `financeiro`, perfil Contador, `venda_itens`, `caixa_movimentos`, `abrir_caixa()`, `registrar_venda()`, `cancelar_venda()`, `fechar_caixa()`, categorias de custo padrão, alíquota), teste `versao4_smoke.sql` no CI. Telas `/pdv` (+ vendas, caixas) e `/financeiro` (+ pagar, receber, categorias, exportar CSV). Saiu a página provisória `(app)/[modulo]`. Teste de carga refeito com as Versões 3 e 4 (`docs/ESCALA.md`): tudo abaixo de 6 ms. Tirados do repositório os `.txt` de saída dos testes que tinham entrado nos commits anteriores.
+  - Pendente: cupom não fiscal da venda; NFC-e com o adicional; painel do Vitral.
+- **2026-10-29 (8)** — Versão 3: migração 0011 (módulos `estoque` e `comissoes`, `estoque_saldos`/`estoque_movimentos`, `movimentar_estoque()`, `transferir_estoque()`, `comissao_regras`/`comissoes`, `marcar_comissoes_pagas()`, trigger `venda_fechada` no primeiro pagamento), teste `versao3_smoke.sql` no CI. Telas `/estoque`, `/estoque/[id]`, `/comissoes`. Funções de mês passaram para `src/lib/formatar.ts`.
+  - Pendente: nota fiscal (escolher a API); devolução de venda ao estoque hoje é uma entrada manual.
+- **2026-10-29 (7)** — Versão 2: migração 0010 (importar_clientes, importar_produtos, lista_espera + entrar_lista_espera, índices por telefone/CPF só com números), teste `versao2_smoke.sql` no CI. Telas: importar planilha (`/configuracoes/importar`, leitura do CSV no navegador em `src/lib/planilha.ts`) e site do Vitral em `/`.
+  - Pendente: `.xlsx` direto; tela para ler a lista de espera (painel do Vitral).
+- **2026-10-29 (6)** — Conferidor das consultas (`supabase/tests/conferir_consultas.mjs`, no CI): 128 consultas e 10 rpc das telas batem com o banco. Não deu para subir o Supabase local (registros de imagem Docker bloqueados e download do PostgREST/GoTrue barrado neste ambiente).
+  - Pendente: abrir as telas com um Supabase de verdade.
+- **2026-10-29 (5)** — Primeiro `npm install` (Next 15.5.28, React 19.3, supabase-js 2.118, @supabase/ssr 0.6.1); `package-lock.json` commitado. Typecheck tinha só 10 erros (parâmetro `setAll` sem tipo em `servidor.ts` e `middleware.ts`), corrigidos. `npm run build` passa e `next start` responde. CI do aplicativo agora usa `npm ci` e roda também o build.
+  - Pendente: Supabase real, `.env.local` e abrir cada tela; tipos gerados do banco.
 - **2026-10-29 (4)** — Novo posicionamento: consultório + loja + laboratório num fluxo só; plano único de R$ 99 com adicionais (nota fiscal, lojas extras).
   - Migrações 0005 a 0009: consultório (exame que gera receita), ficha técnica e produção da OS, áreas por perfil, quem move cada etapa, cards que conversam, recados, Realtime, gerente de laboratório, produto cadastrado na venda com foto, desempenho.
   - Teste de carga com 1.000 óticas: funil de 366 ms para 2 ms; cerca de 1.100 telas por segundo com 100 conexões. Resultados em `docs/ESCALA.md`.

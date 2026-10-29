@@ -2,15 +2,16 @@
   "name": "vitral-lens",
   "version": "0.1.0",
   "private": true,
-  "description": "Vitra: sistema web para óticas (vendas, laboratório, clientes, receitas e agenda)",
+  "description": "Vitral: sistema web para óticas (vendas, laboratório, clientes, receitas e agenda)",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "tipos": "node supabase/gerar_tipos.mjs"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.6.1",
+    "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.49.0",
     "next": "^15.3.0",
     "react": "^19.0.0",

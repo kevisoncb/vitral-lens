@@ -10,9 +10,11 @@ export const MODULOS_CONFIGURAVEIS: { modulo: Modulo; rotulo: string }[] = [
   { modulo: "laboratorio", rotulo: "Laboratório (excluir = gerente do lab)" },
   { modulo: "agenda", rotulo: "Agenda" },
   { modulo: "catalogo", rotulo: "Catálogo" },
+  { modulo: "estoque", rotulo: "Estoque (criar = entrada; editar = saída, ajuste, transferência)" },
+  { modulo: "comissoes", rotulo: "Comissões (ver = só as próprias; editar = todas, regras e pagamento)" },
   { modulo: "relatorios", rotulo: "Relatórios" },
-  { modulo: "pdv", rotulo: "PDV (Versão 4)" },
-  { modulo: "financeiro", rotulo: "Financeiro (Versão 4)" },
+  { modulo: "pdv", rotulo: "PDV (editar = gerente: desconto acima de 10%, cancelar venda, caixa de outro)" },
+  { modulo: "financeiro", rotulo: "Financeiro (ver = contador)" },
   { modulo: "usuarios", rotulo: "Usuários e perfis" },
   { modulo: "configuracoes", rotulo: "Configurações" },
 ];

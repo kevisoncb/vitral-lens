@@ -1,4 +1,4 @@
-# Vitra: capacidade, velocidade e custo para crescer
+# Vitral: capacidade, velocidade e custo para crescer
 
 > Documento para planejar o crescimento e para usar na venda.
 > Medido em 2026-10-29. Refazer o teste a cada mudança grande no banco (`supabase/carga/`).
@@ -37,6 +37,21 @@ Medido por `supabase/carga/medir.sql`: mediana de 5 execuções na ótica nº 50
 | Agenda do dia | 9 ms | **0,6 ms** |
 | Ficha do cliente | 1,7 ms | **0,7 ms** |
 | Mover um card | 2,6 ms | 3,2 ms |
+
+### Telas das Versões 3 e 4 (migrações 0010 a 0012)
+
+Medido de novo em 2026-10-29, com a carga acrescida de, por ótica, 200 produtos (120 com estoque), 150 vendas no PDV, 300 comissões, 60 contas a pagar e 40 a receber. Banco: **1,1 GB**. Mesma máquina, mediana de 5 execuções na ótica nº 500, como o dono.
+
+| Tela | Tempo no banco |
+|---|---|
+| Estoque (produtos com saldo) | 2,5 ms |
+| Comissões do mês (todas) | 1,8 ms |
+| Vendas do PDV no dia | 1,3 ms |
+| Financeiro: entradas do mês | 1,6 ms |
+| Financeiro: contas a pagar em aberto | 0,7 ms |
+| **Registrar venda no PDV** (venda, itens, pagamento, baixa no estoque e comissão) | 3,6 ms |
+
+As telas antigas continuaram na mesma faixa (funil 3,2 ms, laboratório 1,3 ms, busca 1,7 ms).
 
 **O que a migração 0008 mudou:** as regras de segurança passaram a calcular "qual é a ótica do usuário" e "o que ele pode fazer" uma vez por consulta, em vez de uma vez por linha. Ela também criou os índices que faltavam e a busca por pedaço do nome (trigram). Sem isso, o funil ficaria cada vez mais lento conforme a base crescesse.
 
@@ -94,7 +109,7 @@ O tamanho do banco no Supabase muda em minutos, sem trocar código. A aplicaçã
 
 ## 4. Quando pensar em algo diferente
 
-- **Sistema instalado na máquina:** só para hardware que o navegador não alcança, como TEF (maquininha integrada) ou impressora fiscal antiga. Nesse caso, um pequeno programa local conversa com o Vitra na nuvem. Nota fiscal não precisa disso: dá para emitir por API (Focus NFe, NFe.io e similares).
+- **Sistema instalado na máquina:** só para hardware que o navegador não alcança, como TEF (maquininha integrada) ou impressora fiscal antiga. Nesse caso, um pequeno programa local conversa com o Vitral na nuvem. Nota fiscal não precisa disso: dá para emitir por API (Focus NFe, NFe.io e similares).
 - **Sem internet na loja:** o PWA pode guardar a agenda e a fila do dia offline. Fica para a Versão 2.
 - **Banco separado por cliente grande:** só para uma rede que exija isso em contrato. O desenho por `otica_id` + RLS permite mover uma ótica para outro banco sem mudar o código.
 

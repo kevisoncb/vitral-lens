@@ -453,3 +453,57 @@ a.linha-valor { text-decoration: none; color: inherit; }
 .linha-tempo-laboratorio::before { background: #7c3aed !important; }
 .linha-tempo small { color: #56625e; }
 .linha-tempo span { color: #45514d; font-size: 14px; }
+
+/* Tabelas (importação, estoque, comissões, PDV, financeiro) */
+.tabela-rolagem { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.tabela { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tabela th { text-align: left; font-size: 12px; font-weight: 700; color: #56625e; padding: 8px 10px; border-bottom: 1px solid #dce3e0; white-space: nowrap; }
+.tabela td { padding: 9px 10px; border-bottom: 1px solid #eef1f0; vertical-align: middle; }
+.tabela td.numero, .tabela th.numero { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tabela tr:last-child td { border-bottom: none; }
+.tabela tfoot td { font-weight: 700; border-top: 1px solid #dce3e0; }
+.tabela .campo { height: 38px; font-size: 14px; }
+.botao-link { background: none; border: none; padding: 0; color: var(--verde); font-weight: 700; text-decoration: underline; cursor: pointer; }
+.lista-erros { margin: 0; padding-left: 18px; color: var(--erro-texto); font-size: 14px; display: flex; flex-direction: column; gap: 2px; }
+
+/* PDV */
+.pdv-grade { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (min-width: 1000px) { .pdv-grade { grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr); } }
+.pdv-lado { display: flex; flex-direction: column; gap: 16px; }
+.pdv-busca { position: relative; display: block; }
+.pdv-sugestoes { position: absolute; z-index: 10; left: 0; right: 0; top: calc(100% + 4px); margin: 0; padding: 4px; list-style: none; background: #fff; border: 1px solid var(--borda-campo); border-radius: 10px; box-shadow: 0 8px 24px rgba(18, 48, 44, 0.12); }
+.pdv-sugestoes button { width: 100%; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; justify-content: space-between; padding: 10px 12px; border: none; background: none; border-radius: 8px; text-align: left; cursor: pointer; font-size: 15px; font-weight: 500; color: var(--texto); }
+.pdv-sugestoes button:hover, .pdv-sugestoes button:focus-visible { background: var(--verde-claro); }
+.pdv-sugestoes small { color: var(--texto-suave); font-weight: 500; }
+.pdv-qtd { width: 72px !important; text-align: right; }
+.pdv-total { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px; padding: 14px 16px; border-radius: 12px; background: var(--verde-claro); }
+.pdv-total span { color: var(--texto-suave); font-weight: 600; }
+.pdv-total strong { font-size: 30px; letter-spacing: -0.02em; }
+.pdv-valor { display: flex; align-items: center; height: 48px; font-weight: 700; }
+.pdv-troco { align-self: center; font-size: 18px; color: var(--ok-texto); }
+.pdv-cliente { display: flex; align-items: center; gap: 10px; height: 48px; font-size: 16px; font-weight: 600; color: var(--texto); }
+.pdv-finalizar { height: 54px; font-size: 17px; flex: 1 1 260px; }
+.erro-texto { color: var(--erro-texto) !important; font-weight: 700 !important; }
+.pdv-grade > * { min-width: 0; }
+@media (max-width: 640px) { .area-conteudo { padding: 16px; } .barra-area { padding: 12px 16px; } }
+@media (max-width: 640px) { .so-largo { display: none; } .tabela td, .tabela th { padding: 8px 6px; } }
+
+/* Cupom do PDV (impressora térmica de 80 mm) */
+.cupom { width: 80mm; max-width: 100%; margin: 16px auto; padding: 4mm; background: #fff; color: #000; font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 12px; line-height: 1.35; display: flex; flex-direction: column; gap: 6px; }
+.cupom header, .cupom footer { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1px; }
+.cupom header strong { font-size: 15px; }
+.cupom-titulo { margin: 4px 0 0; text-align: center; font-weight: 700; border-block: 1px dashed #000; padding: 3px 0; }
+.cupom-linha { display: flex; justify-content: space-between; gap: 8px; }
+.cupom-total { font-size: 15px; font-weight: 700; border-top: 1px dashed #000; padding-top: 4px; }
+.cupom table { width: 100%; border-collapse: collapse; border-top: 1px dashed #000; font: inherit; }
+.cupom td small { font-size: 11px; }
+.cupom td { padding: 3px 0; vertical-align: top; }
+.cupom td:last-child { text-align: right; white-space: nowrap; padding-left: 8px; }
+.cupom-acoes { display: flex; gap: 8px; justify-content: center; margin-bottom: 8px; font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
+@media print {
+  /* o tamanho do papel (bobina de 80 mm) vem da impressora; o Chrome não aceita altura automática */
+  @page { margin: 0; }
+  html, body { background: #fff !important; }
+  .cupom { margin: 0; width: 80mm; }
+  .cupom-acoes { display: none; }
+}

@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import type { Database } from "./tipos";
 
 /**
  * Cliente sem login (papel anon) para o site público da ótica.
@@ -6,7 +7,7 @@ import { createClient } from "@supabase/supabase-js";
  * horarios_livres e agendar_pelo_site. Não lê nenhuma tabela.
  */
 export function criarClientePublico() {
-  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+  return createClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }

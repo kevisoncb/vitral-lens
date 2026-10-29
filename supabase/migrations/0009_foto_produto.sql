@@ -1,4 +1,4 @@
--- Vitra — migração 0009: quem cadastrou o produto na venda pode pôr a primeira foto
+-- Vitral — migração 0009: quem cadastrou o produto na venda pode pôr a primeira foto
 -- (o balcão cria produto, mas não edita o catálogo).
 create or replace function definir_foto_produto(p_item uuid, p_caminho text) returns boolean
 language plpgsql security definer set search_path = public as $$

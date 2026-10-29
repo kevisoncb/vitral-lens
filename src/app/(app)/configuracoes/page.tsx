@@ -26,13 +26,13 @@ export default async function ConfigOtica({ searchParams }: { searchParams: Prom
           <label className="rotulo">CNPJ<input className="campo" name="cnpj" defaultValue={o.cnpj ?? ""} /></label>
           <label className="rotulo">Telefone<input className="campo" name="telefone" defaultValue={o.telefone ?? ""} /></label>
         </div>
-        <p className="vazio">Plano Vitra (tudo incluído) · situação: {o.status}. Adicionais (nota fiscal, lojas extras) são contratados com o suporte do Vitra.</p>
+        <p className="vazio">Plano Vitral (tudo incluído) · situação: {o.status}. Adicionais (nota fiscal, lojas extras) são contratados com o suporte do Vitral.</p>
 
         <h2>Site institucional</h2>
         <p className="vazio">
           {o.slug
             ? <>Endereço: <a href={`/site/${o.slug}`} target="_blank" rel="noreferrer">/site/{o.slug}</a> (o domínio próprio é ligado pelo suporte).</>
-            : "O endereço do site ainda não foi definido. Peça ao suporte do Vitra."}
+            : "O endereço do site ainda não foi definido. Peça ao suporte do Vitral."}
         </p>
         <label className="marcar"><input type="checkbox" name="site_publicado" defaultChecked={o.site_publicado} /> Site publicado</label>
         <label className="rotulo">Frase de destaque<input className="campo" name="site_titulo" defaultValue={o.site_titulo ?? ""} placeholder="Óculos e lentes com atendimento de verdade" /></label>
@@ -43,7 +43,7 @@ export default async function ConfigOtica({ searchParams }: { searchParams: Prom
         </div>
         <div className="linha">
           <label className="rotulo">Horário de funcionamento<textarea className="campo" name="site_horario" rows={2} defaultValue={o.site_horario ?? ""} placeholder={"Seg a sex 9h às 18h\nSáb 9h às 13h"} /></label>
-          <label className="rotulo">Instagram<input className="campo" name="site_instagram" defaultValue={o.site_instagram ?? ""} placeholder="@oticaomega" /></label>
+          <label className="rotulo">Instagram<input className="campo" name="site_instagram" defaultValue={o.site_instagram ?? ""} placeholder="@oticasnery" /></label>
           <label className="rotulo">Cor principal<input className="campo" type="color" name="site_cor" defaultValue={o.site_cor ?? "#0f6e64"} /></label>
         </div>
         <div className="janela-botoes"><button className="botao" type="submit">Salvar</button></div>

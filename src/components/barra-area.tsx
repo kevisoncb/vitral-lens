@@ -13,7 +13,7 @@ export function BarraArea({ sessao, titulo, abas }: { sessao: Sessao; titulo: st
   return (
     <header className="barra-area">
       <div className="barra-area-marca">
-        <strong>Vitra</strong>
+        <strong>Vitral</strong>
         <span>{titulo}</span>
       </div>
       <nav className="barra-area-abas" aria-label={titulo}>

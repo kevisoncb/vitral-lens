@@ -1,7 +1,7 @@
 -- Teste do pagamento (migração 0002). Rodar depois de stub, 0001 e 0002 num banco limpo.
 \set ON_ERROR_STOP off
 insert into oticas (id, nome, plano, status) values
-  ('d0000000-0000-0000-0000-000000000001', 'Ótica Ômega', 'profissional', 'ativa');
+  ('d0000000-0000-0000-0000-000000000001', 'Óticas Nery', 'profissional', 'ativa');
 insert into lojas (id, otica_id, nome) values
   ('d1000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000001', 'Centro');
 insert into usuarios (id, otica_id, perfil_id, nome, email)
