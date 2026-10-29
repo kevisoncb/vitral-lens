@@ -34,8 +34,11 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 | 0009 | Foto do produto: quem cadastrou na venda põe a primeira | ✅ |
 | 0010 | Versão 2: importar clientes e produtos de planilha (pula repetidos), lista de espera do Vitra | ✅ |
 | 0011 | Versão 3: estoque por loja (livro de movimentos, baixa na venda, contagem, transferência) e comissões (regras, cálculo no pagamento, pagamento) | ✅ |
+| 0012 | Versão 4: áreas `pdv` e `financeiro`, perfil Contador, caixa, venda no PDV (crediário, estoque, comissão, cancelamento), categorias de custo, alíquota | ✅ |
 
 ### Telas (`src/`): todas 🟡, compilam (`typecheck` e `build` passam) mas ainda não foram abertas com um Supabase de verdade
+
+A venda do PDV (`src/app/pdv/venda.tsx`) foi aberta no navegador com produtos de exemplo, no computador e no celular: busca por código, soma, desconto, divisão do pagamento e troco funcionam. Falta ligar num Supabase.
 
 | Área | Tela | Rota |
 |---|---|---|
@@ -58,7 +61,10 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 | Gestão | Importar planilha (CSV do Excel ou do Google): clientes e produtos, com prévia e relatório de erros | `/configuracoes/importar` |
 | Público | Site da ótica + pedido de orçamento; agendamento online | `/site/[slug]`, `/site/[slug]/agendar` |
 | Público | Site do Vitra com preço e lista de espera (quem está logado vai para o sistema) | `/` |
-| — | PDV e financeiro (Versão 4) | ⬜ só as tabelas |
+| PDV | Caixa: abrir, venda rápida (código de barras, várias formas, crediário, troco), sangria/suprimento, fechar com conferência | `/pdv` |
+| PDV | Vendas do dia (gerente cancela e devolve ao estoque), caixas fechados com diferença | `/pdv/vendas`, `/pdv/caixas` |
+| Financeiro | Visão do mês (entradas, saídas, a pagar, a receber, impostos, comissões), exportação CSV para o contador | `/financeiro`, `/financeiro/exportar` |
+| Financeiro | Contas a pagar (repetir por meses), contas a receber (parcelas, lembrete no WhatsApp), categorias de custo | `/financeiro/pagar`, `/financeiro/receber`, `/financeiro/categorias` |
 | — | Nota fiscal (Versão 3) | ⬜ falta escolher a API (Focus NFe, NFe.io) |
 | — | Painel do Vitra (criar ótica, adicionais) | ⬜ hoje é SQL |
 
@@ -74,7 +80,7 @@ Marque com `[x]` quando terminar e anote no Histórico.
 
 - [x] `npm install`, `npm run typecheck`, corrigir os erros. Commitar `package-lock.json`.
 - [ ] `npm audit` aponta o `postcss` embutido no Next 15 (só afeta o build, não o site no ar); a correção só vem no Next 16. Avaliar a migração depois da Versão 1.
-- [ ] Criar o projeto no Supabase **na região São Paulo (sa-east-1)**, na conta do dono do produto, e rodar as migrações 0001 → 0009 no SQL Editor.
+- [ ] Criar o projeto no Supabase **na região São Paulo (sa-east-1)**, na conta do dono do produto, e rodar as migrações 0001 → 0012 no SQL Editor.
 - [ ] Criar a Ótica Ômega, a loja e o usuário dono (SQL na seção 4).
 - [ ] Rodar `supabase/seed_catalogo.sql` (ajustar os preços antes).
 - [x] Conferir as consultas das telas contra o banco sem o Supabase (`conferir_consultas.mjs`, no CI).
@@ -98,7 +104,11 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - [x] Versão 3 (sem nota fiscal): estoque por loja e comissões.
 - [ ] Contagem inicial do estoque da Ômega (tela Estoque → Contagem, produto a produto) e cadastrar as regras de comissão.
 - [ ] Nota fiscal: escolher a API (Focus NFe, NFe.io), contratar na conta do dono e ligar ao adicional `nota_fiscal`.
-- [ ] Depois: painel do Vitra, PDV e financeiro.
+- [x] Versão 4: PDV e financeiro, com áreas e menus próprios.
+- [ ] Testar o PDV com um leitor de código de barras de verdade (ele "digita" o código e aperta Enter) e cadastrar os códigos das armações.
+- [ ] Combinar com o contador da Ômega se o CSV do mês (`/financeiro/exportar`) atende ou se ele precisa de outro layout.
+- [ ] Impressão do cupom/recibo da venda do PDV (não fiscal) e, com o adicional, a NFC-e.
+- [ ] Depois: painel do Vitra (criar ótica, adicionais, ler a lista de espera).
 
 ---
 
@@ -130,6 +140,8 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - **Site público:** só funções `security definer` liberadas para `anon`, com limite de uso e aceite LGPD.
 - **Estoque:** por loja, só dos produtos com `controla_estoque` (padrão: armação, lente de contato, acessório; lente sob medida não). O livro `estoque_movimentos` nunca se altera; entrada, saída, contagem e transferência só pelas funções do banco. O primeiro pagamento da venda dá baixa uma vez. A venda nunca é bloqueada por falta de estoque (o saldo pode ficar negativo e aparece em vermelho).
 - **Comissões:** regra mais específica vale (vendedor + categoria > vendedor > categoria > todos). Calculadas no primeiro pagamento, para o responsável do atendimento. O vendedor vê só as dele; `comissoes:editar` vê todas e marca como pagas.
+- **PDV (Versão 4):** área própria (`pdv`, perfil Caixa). Venda só por `registrar_venda()`: preço vem do catálogo, desconto acima de 10% exige `pdv:editar`, a soma dos pagamentos tem de fechar com o total, crediário exige cliente e vira conta a receber. Um caixa aberto por operador. Só o gerente cancela venda (devolve ao estoque e cancela a comissão aberta).
+- **Financeiro (Versão 4):** área própria (`financeiro`, perfis Financeiro e Contador; o Contador só lê). Regime de caixa: entradas = pagamentos (funil e PDV, menos vendas canceladas) + contas a receber recebidas; saídas = contas a pagar pagas. Imposto estimado = entradas × alíquota da ótica.
 - **Importação de planilha:** nunca apaga nem sobrescreve; cliente repetido (mesmo telefone ou CPF) e produto repetido (mesmo código, ou mesmo nome na categoria) são pulados. O banco confere a permissão de quem importa.
 - **Agilidade:**
   - o card muda na tela antes de o banco confirmar;
@@ -143,7 +155,7 @@ Marque com `[x]` quando terminar e anote no Histórico.
 
 ## 4. Como rodar
 
-1. Supabase (região São Paulo) → SQL Editor: rode `supabase/migrations/0001` a `0009`, em ordem.
+1. Supabase (região São Paulo) → SQL Editor: rode `supabase/migrations/0001` a `0012`, em ordem.
 2. Primeira ótica e usuário dono (Authentication → Users → criar usuário; depois no SQL Editor):
 
 ```sql
@@ -171,6 +183,7 @@ psql -f supabase/tests/consultorio_smoke.sql  # exame → receita → OS com fic
 psql -f supabase/tests/areas_smoke.sql        # áreas, cards que conversam, plano, produto na venda
 psql -f supabase/tests/versao2_smoke.sql      # importação de planilhas, lista de espera
 psql -f supabase/tests/versao3_smoke.sql      # estoque e comissões
+psql -f supabase/tests/versao4_smoke.sql      # PDV e financeiro
 node supabase/tests/conferir_consultas.mjs    # as consultas das telas batem com o banco (precisa do npm install)
 ```
 
@@ -189,6 +202,9 @@ src/app/acoes/         Server Actions compartilhadas (OS)
 src/app/(app)/         tela da loja e da gestão (menu lateral)
 src/app/consultorio/   tela do consultório
 src/app/producao/      tela do laboratório
+src/app/pdv/           tela do caixa (PDV)
+src/app/financeiro/    tela do financeiro e do contador
+src/app/_vitra/        site do Vitra (lista de espera), servido em /
 src/app/site/[slug]/   site público da ótica e agendamento online (sem login)
 src/app/conta/         minha conta (qualquer área)
 ```
@@ -199,6 +215,8 @@ src/app/conta/         minha conta (qualquer área)
 
 Mais recente em cima. Uma linha por sessão: data, o que mudou, o que ficou pendente.
 
+- **2026-10-29 (9)** — Versão 4: migração 0012 (áreas `pdv` e `financeiro`, perfil Contador, `venda_itens`, `caixa_movimentos`, `abrir_caixa()`, `registrar_venda()`, `cancelar_venda()`, `fechar_caixa()`, categorias de custo padrão, alíquota), teste `versao4_smoke.sql` no CI. Telas `/pdv` (+ vendas, caixas) e `/financeiro` (+ pagar, receber, categorias, exportar CSV). Saiu a página provisória `(app)/[modulo]`. Teste de carga refeito com as Versões 3 e 4 (`docs/ESCALA.md`): tudo abaixo de 6 ms. Tirados do repositório os `.txt` de saída dos testes que tinham entrado nos commits anteriores.
+  - Pendente: cupom não fiscal da venda; NFC-e com o adicional; painel do Vitra.
 - **2026-10-29 (8)** — Versão 3: migração 0011 (módulos `estoque` e `comissoes`, `estoque_saldos`/`estoque_movimentos`, `movimentar_estoque()`, `transferir_estoque()`, `comissao_regras`/`comissoes`, `marcar_comissoes_pagas()`, trigger `venda_fechada` no primeiro pagamento), teste `versao3_smoke.sql` no CI. Telas `/estoque`, `/estoque/[id]`, `/comissoes`. Funções de mês passaram para `src/lib/formatar.ts`.
   - Pendente: nota fiscal (escolher a API); devolução de venda ao estoque hoje é uma entrada manual.
 - **2026-10-29 (7)** — Versão 2: migração 0010 (importar_clientes, importar_produtos, lista_espera + entrar_lista_espera, índices por telefone/CPF só com números), teste `versao2_smoke.sql` no CI. Telas: importar planilha (`/configuracoes/importar`, leitura do CSV no navegador em `src/lib/planilha.ts`) e site do Vitra em `/`.

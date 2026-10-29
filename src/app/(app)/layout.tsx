@@ -25,7 +25,7 @@ export default async function LayoutDaLoja({ children }: { children: React.React
     );
   }
 
-  if (sessao.area === "consultorio" || sessao.area === "laboratorio") {
+  if (sessao.area !== "loja" && sessao.area !== "gestao") {
     redirect(INICIO_DA_AREA[sessao.area]);
   }
 

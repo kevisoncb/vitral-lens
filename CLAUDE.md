@@ -19,7 +19,7 @@ Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Stora
 ## Regras do produto (não mudar sem combinar)
 
 - **Multiempresa:** toda tabela de negócio tem `otica_id` e RLS. Uma ótica nunca vê dados de outra. Receita é dado de saúde (LGPD).
-- **Áreas:** todo perfil tem `area` (loja, consultorio, laboratorio, gestao). Consultório e laboratório têm telas próprias (`/consultorio`, `/producao`) e não abrem a da loja; gestão entra em todas. Use `exigirArea()` em toda tela de área. Laboratório não vê valores nem a tabela de clientes (nome vem em `ordens_servico.cliente_nome`).
+- **Áreas:** todo perfil tem `area` (loja, consultorio, laboratorio, gestao, pdv, financeiro). Consultório, laboratório, PDV e financeiro têm telas próprias (`/consultorio`, `/producao`, `/pdv`, `/financeiro`) e não abrem a da loja; gestão entra em todas. Use `exigirArea()` em toda tela de área. Laboratório não vê valores nem a tabela de clientes (nome vem em `ordens_servico.cliente_nome`).
 - **Cards que conversam:** exame concluído → card na loja (`card_do_exame`); pagamento → OS em "Pago" no lab; lab até "Chegou na loja" → loja avisa e entrega; recados em `os_mensagens`. Etapa da OS tem `area` e o banco confere quem move (`os_etapa_permitida`). Telas com cards usam `<AoVivo tabelas={[...]}/>`.
 - **Permissões:** por perfil e por módulo (`ver`, `criar`, `editar`, `excluir`) em `perfis.permissoes`; adicionais pagos em `otica_adicionais`. A checagem real é no banco (`acesso()`); o menu só esconde o que não pode.
 - **WhatsApp:** nunca automático. Só link `wa.me` com mensagem pronta (`src/lib/whatsapp.ts`). Confirmação de consulta também é manual.
@@ -28,7 +28,7 @@ Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Stora
 - **Agenda:** o mesmo horário nunca é marcado duas vezes (constraint `consulta_sem_conflito`). O site de agendamento usa `horarios_ocupados()`, que expõe só os horários.
 - **Plano único (R$ 99):** tudo incluído. Adicionais em `recursos_adicionais`/`otica_adicionais` (nota fiscal, lojas extras); `recurso_ativo()` só bloqueia o que é adicional. `oticas.plano` e `plano_recursos` ficaram só por compatibilidade.
 - **Produto na venda:** não achou no catálogo, cadastra na hora (`criado_na_venda`); armação pede foto (`/catalogo/fotos`, reduzida no navegador); lente não.
-- **PDV e financeiro (Versão 4):** módulos separados no mesmo projeto, com login e menu próprios. O PDV mostra só vendas; o financeiro (gerente) tem contas a pagar e a receber, custos, impostos e acesso do contador. As tabelas já existem; as telas ainda não.
+- **PDV e financeiro (Versão 4):** módulos separados no mesmo projeto, com login e menu próprios. O PDV mostra só vendas; o financeiro (gerente) tem contas a pagar e a receber, custos, impostos e acesso do contador (perfil Contador, só leitura). Venda do PDV só por `registrar_venda()` (preço do catálogo; desconto acima de 10% exige `pdv:editar`; crediário vira conta a receber); só o gerente cancela (`cancelar_venda()` devolve ao estoque).
 - **Pagamento:** o primeiro pagamento move o card para a etapa ganha e cria a OS uma única vez (`registrar_pagamento()`).
 - **Site público:** só funções liberadas para `anon` (`site_da_otica`, `pedido_orcamento_site`, `horarios_livres`, `agendar_pelo_site`, e `entrar_lista_espera` do site do Vitra em `/`), com limite de uso e aceite LGPD. O perfil Dono não perde acesso e a ótica nunca fica sem Dono ativo.
 - **Estoque e comissões (Versão 3):** o primeiro pagamento do atendimento dá baixa no estoque (só itens com `controla_estoque`) e gera a comissão (trigger `venda_fechada`). O livro `estoque_movimentos` e `comissoes` só mudam por funções do banco. A venda nunca é bloqueada por falta de estoque.
@@ -38,13 +38,13 @@ Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Stora
 ## Fases
 
 1. **Versão 1 (Ótica Ômega):** contas e permissões, clientes e receitas, funil, laboratório, agenda interna, site institucional da ótica.
-2. **Versão 2:** agendamento online pelo site, relatórios, multiloja, importação de planilhas, site e lista de espera do Vitra.
+2. **Versão 2:** agendamento online pelo site, relatórios, multiloja, importação de planilhas, site e lista de espera do Vitra (prontos).
 3. **Versão 3:** nota fiscal, estoque, comissões (estoque e comissões prontos; nota fiscal espera a escolha da API).
-4. **Versão 4:** PDV e financeiro.
+4. **Versão 4:** PDV e financeiro (prontos).
 
 ## Estado atual e próximos passos
 
-Ficam no `README.md` (seções 1 e 2), para não ter duas versões. Resumo: banco testado (0001 a 0011); o `src/` já compila (`npm run typecheck` e `npm run build` passam), mas as telas ainda não foram abertas com um Supabase real; o próximo passo é criar o projeto no Supabase, `.env.local` e `npm run dev`.
+Ficam no `README.md` (seções 1 e 2), para não ter duas versões. Resumo: banco testado (0001 a 0012); o `src/` já compila (`npm run typecheck` e `npm run build` passam), mas as telas ainda não foram abertas com um Supabase real; o próximo passo é criar o projeto no Supabase, `.env.local` e `npm run dev`.
 
 ## Telas de referência
 

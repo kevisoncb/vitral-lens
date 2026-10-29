@@ -38,6 +38,21 @@ Medido por `supabase/carga/medir.sql`: mediana de 5 execuções na ótica nº 50
 | Ficha do cliente | 1,7 ms | **0,7 ms** |
 | Mover um card | 2,6 ms | 3,2 ms |
 
+### Telas das Versões 3 e 4 (migrações 0010 a 0012)
+
+Medido de novo em 2026-10-29, com a carga acrescida de, por ótica, 200 produtos (120 com estoque), 150 vendas no PDV, 300 comissões, 60 contas a pagar e 40 a receber. Banco: **1,1 GB**. Mesma máquina, mediana de 5 execuções na ótica nº 500, como o dono.
+
+| Tela | Tempo no banco |
+|---|---|
+| Estoque (produtos com saldo) | 2,5 ms |
+| Comissões do mês (todas) | 1,8 ms |
+| Vendas do PDV no dia | 1,3 ms |
+| Financeiro: entradas do mês | 1,6 ms |
+| Financeiro: contas a pagar em aberto | 0,7 ms |
+| **Registrar venda no PDV** (venda, itens, pagamento, baixa no estoque e comissão) | 3,6 ms |
+
+As telas antigas continuaram na mesma faixa (funil 3,2 ms, laboratório 1,3 ms, busca 1,7 ms).
+
 **O que a migração 0008 mudou:** as regras de segurança passaram a calcular "qual é a ótica do usuário" e "o que ele pode fazer" uma vez por consulta, em vez de uma vez por linha. Ela também criou os índices que faltavam e a busca por pedaço do nome (trigram). Sem isso, o funil ficaria cada vez mais lento conforme a base crescesse.
 
 ### Usuários simultâneos

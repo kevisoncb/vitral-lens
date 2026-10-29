@@ -41,7 +41,8 @@ export const MENU: ItemMenu[] = [
   { modulo: "comissoes", rotulo: "Comissões", href: "/comissoes" },
   { modulo: "consultorio", rotulo: "Consultório", href: "/consultorio", soGestao: true },
   { modulo: "laboratorio", rotulo: "Produção (laboratório)", href: "/producao", soGestao: true },
-  { modulo: "financeiro", rotulo: "Financeiro", href: "/financeiro" },
+  { modulo: "pdv", rotulo: "PDV (caixa)", href: "/pdv", soGestao: true },
+  { modulo: "financeiro", rotulo: "Financeiro", href: "/financeiro", soGestao: true },
   { modulo: "relatorios", rotulo: "Relatórios", href: "/relatorios" },
   { modulo: "configuracoes", rotulo: "Configurações", href: "/configuracoes" },
 ];

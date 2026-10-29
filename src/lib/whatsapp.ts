@@ -19,3 +19,8 @@ export function mensagemOculosPronto(nomeCliente: string, nomeOtica: string): st
   const primeiro = nomeCliente.split(" ")[0];
   return `Olá ${primeiro}, seus óculos chegaram na ${nomeOtica}! Você já pode vir retirar. Qualquer dúvida, é só chamar.`;
 }
+
+export function mensagemLembreteParcela(nomeCliente: string, nomeOtica: string, valor: string, vencimento: string): string {
+  const primeiro = nomeCliente.split(" ")[0];
+  return `Olá ${primeiro}, tudo bem? Aqui é da ${nomeOtica}. Passando para lembrar da parcela de ${valor} com vencimento em ${vencimento}. Se já pagou, desconsidere. Obrigado!`;
+}

@@ -112,6 +112,27 @@ jobs:
           grep -q "Seu perfil não pode pagar comissões" versao3.txt
           grep -q "dono ve todas e paga (esperado 2) | *2" versao3.txt
           grep -q "lab nao ve estoque nem comissoes (esperado 0 0) | *0 | *0" versao3.txt
+      - name: Teste da Versão 4 (PDV e financeiro)
+        run: |
+          psql -q -f supabase/tests/versao4_smoke.sql 2>&1 | tee versao4.txt
+          grep -q "areas v4 | caixa=pdv,contador=financeiro,financeiro=financeiro" versao4.txt
+          grep -q "abre caixa | t" versao4.txt
+          grep -q "Desconto acima de 10% precisa do gerente" versao4.txt
+          grep -q "não fecham com o total da venda" versao4.txt
+          grep -q "Crediário precisa do cliente identificado" versao4.txt
+          grep -q "permission denied for table vendas" versao4.txt
+          grep -q "Só o gerente cancela venda" versao4.txt
+          grep -q "vendas do caixa | 1=380.00,2=50.00" versao4.txt
+          grep -q "estoque apos vendas (esperado estojo 7, sol 2) | Estojo=7,Óculos de sol=2" versao4.txt
+          grep -q "comissao pdv (5% de 380) | 2.50,19.00" versao4.txt
+          grep -q "conta a receber do crediario | 50.00 | 2030-01-10" versao4.txt
+          grep -q "estoque apos cancelar (esperado estojo 9, sol 3) | Estojo=9,Óculos de sol=3" versao4.txt
+          grep -q "comissoes apos cancelar | aberta,cancelada" versao4.txt
+          grep -q '"esperado": 50.00, "diferenca": -5.00' versao4.txt
+          grep -q "caixa nao ve contas a pagar (esperado 0) | *0" versao4.txt
+          grep -q "contador le | *1 | 2030-11-19" versao4.txt
+          grep -q 'new row violates row-level security policy for table "contas_pagar"' versao4.txt
+          grep -q "valor intacto | 320.00" versao4.txt
       - uses: actions/setup-node@v4
         with:
           node-version: 22
