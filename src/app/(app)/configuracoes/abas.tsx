@@ -6,6 +6,7 @@ const ABAS = [
   { href: "/configuracoes/perfis", rotulo: "Perfis e permissões" },
   { href: "/configuracoes/agenda", rotulo: "Horários e bloqueios" },
   { href: "/configuracoes/funil", rotulo: "Funil e motivos" },
+  { href: "/configuracoes/importar", rotulo: "Importar planilha" },
 ];
 
 export function Abas({ atual }: { atual: string }) {

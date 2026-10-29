@@ -84,6 +84,18 @@ jobs:
           grep -q "preco intacto | 450.00" areas.txt
           grep -q "balcao poe primeira foto | t" areas.txt
           grep -q "Seu perfil não pode trocar a foto" areas.txt
+      - name: Teste da Versão 2 (importação de planilhas, lista de espera do Vitra)
+        run: |
+          psql -q -f supabase/tests/versao2_smoke.sql 2>&1 | tee versao2.txt
+          grep -q '"inseridos": 2, "repetidos": 2' versao2.txt
+          grep -q '"linha": 6, "motivo": "CPF com 3 números"' versao2.txt
+          grep -q "clientes depois (esperado 3) *| *3" versao2.txt
+          grep -q "produtos depois (esperado 2) *| *2" versao2.txt
+          grep -q "vizinha ve so os seus (esperado 1) *| *1" versao2.txt
+          grep -q "Seu perfil não pode cadastrar clientes" versao2.txt
+          grep -q "É preciso aceitar o uso dos dados para entrar na lista" versao2.txt
+          grep -q "permission denied for function importar_clientes" versao2.txt
+          grep -q "inscritos (esperado 1) *| *1 | ES" versao2.txt
       - uses: actions/setup-node@v4
         with:
           node-version: 22

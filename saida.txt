@@ -1,0 +1,91 @@
+      teste      | perfis | etapas | os_etapas 
+-----------------+--------+--------+-----------
+ padrões criados |      8 |      5 |         6
+(1 row)
+
+         teste         | count 
+-----------------------+-------
+ vendedor vê 1 cliente |     1
+(1 row)
+
+psql:supabase/tests/rls_smoke.sql:28: ERROR:  new row violates row-level security policy for table "clientes"
+              teste               | count 
+----------------------------------+-------
+ vendedor financeiro (esperado 0) |     0
+(1 row)
+
+psql:supabase/tests/rls_smoke.sql:31: ERROR:  new row violates row-level security policy for table "contas_pagar"
+psql:supabase/tests/rls_smoke.sql:37: ERROR:  Informe o motivo da perda
+CONTEXT:  PL/pgSQL function atendimento_mudou() line 10 at RAISE
+       teste        |  etapa  |   motivo   
+--------------------+---------+------------
+ perdido com motivo | Perdido | Achou caro
+(1 row)
+
+         teste         | ok 
+-----------------------+----
+ OS criada pela função | t
+(1 row)
+
+    teste     | numero 
+--------------+--------
+ numero da OS |      1
+(1 row)
+
+psql:supabase/tests/rls_smoke.sql:47: ERROR:  new row violates row-level security policy for table "ordens_servico"
+    teste    | count 
+-------------+-------
+ lab vê a OS |     1
+(1 row)
+
+                     teste                      | count 
+------------------------------------------------+-------
+ lab não vê valores (sem acesso a atendimentos) |     0
+(1 row)
+
+psql:supabase/tests/rls_smoke.sql:54: ERROR:  Esta etapa é movida pela equipe da loja
+CONTEXT:  PL/pgSQL function os_etapa_permitida() line 11 at RAISE
+  teste   | entrega | garantia | historico 
+----------+---------+----------+-----------
+ entregue | t       | t        |         2
+(1 row)
+
+               teste                | count 
+------------------------------------+-------
+ outra ótica: clientes (esperado 0) |     0
+(1 row)
+
+            teste             | count 
+------------------------------+-------
+ outra ótica: OS (esperado 0) |     0
+(1 row)
+
+               teste                | count 
+------------------------------------+-------
+ outra ótica: usuarios (esperado 1) |     1
+(1 row)
+
+       teste       | ok 
+-------------------+----
+ dono vê auditoria | t
+(1 row)
+
+          teste           | count 
+--------------------------+-------
+ dono lança conta a pagar |     1
+(1 row)
+
+psql:supabase/tests/rls_smoke.sql:75: ERROR:  conflicting key value violates exclusion constraint "consulta_sem_conflito"
+DETAIL:  Key conflicts with existing key.
+          teste           |         inicio         |          fim           
+--------------------------+------------------------+------------------------
+ horários ocupados no dia | 2026-11-10 18:00:00+00 | 2026-11-10 19:00:00+00
+(1 row)
+
+psql:supabase/tests/rls_smoke.sql:78: ERROR:  permission denied for table oticas
+                   teste                    | string_agg 
+--------------------------------------------+------------
+ lab criou OS direto (esperado numeros 1,2) | 1,2
+(1 row)
+
+psql:supabase/tests/rls_smoke.sql:90: ERROR:  new row violates row-level security policy for table "ordens_servico"

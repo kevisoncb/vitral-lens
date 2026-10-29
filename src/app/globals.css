@@ -453,3 +453,15 @@ a.linha-valor { text-decoration: none; color: inherit; }
 .linha-tempo-laboratorio::before { background: #7c3aed !important; }
 .linha-tempo small { color: #56625e; }
 .linha-tempo span { color: #45514d; font-size: 14px; }
+
+/* Tabelas (importação, estoque, comissões, PDV, financeiro) */
+.tabela-rolagem { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.tabela { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tabela th { text-align: left; font-size: 12px; font-weight: 700; color: #56625e; padding: 8px 10px; border-bottom: 1px solid #dce3e0; white-space: nowrap; }
+.tabela td { padding: 9px 10px; border-bottom: 1px solid #eef1f0; vertical-align: middle; }
+.tabela td.numero, .tabela th.numero { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tabela tr:last-child td { border-bottom: none; }
+.tabela tfoot td { font-weight: 700; border-top: 1px solid #dce3e0; }
+.tabela .campo { height: 38px; font-size: 14px; }
+.botao-link { background: none; border: none; padding: 0; color: var(--verde); font-weight: 700; text-decoration: underline; cursor: pointer; }
+.lista-erros { margin: 0; padding-left: 18px; color: var(--erro-texto); font-size: 14px; display: flex; flex-direction: column; gap: 2px; }

@@ -32,6 +32,7 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 | 0007 | Fotos de produtos (Storage público) | 🟡 só roda no Supabase |
 | 0008 | Desempenho: RLS com `(select ...)`, índices, busca por pedaço do nome | ✅ (teste de carga: `docs/ESCALA.md`) |
 | 0009 | Foto do produto: quem cadastrou na venda põe a primeira | ✅ |
+| 0010 | Versão 2: importar clientes e produtos de planilha (pula repetidos), lista de espera do Vitra | ✅ |
 
 ### Telas (`src/`): todas 🟡, compilam (`typecheck` e `build` passam) mas ainda não foram abertas com um Supabase de verdade
 
@@ -51,7 +52,9 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 | Consultório | Fila do dia, exame (anamnese, AV, refração, conduta), histórico do paciente | `/consultorio`, `/consultorio/exame/[id]`, `/consultorio/paciente/[id]` |
 | Laboratório | Quadro de produção (ao vivo), OS com ficha técnica editável, etapas da construção, recados | `/producao`, `/producao/os/[id]` |
 | Laboratório (gerente) | Indicadores: prazo, retrabalho, espera, produção por pessoa | `/producao/indicadores` |
+| Gestão | Importar planilha (CSV do Excel ou do Google): clientes e produtos, com prévia e relatório de erros | `/configuracoes/importar` |
 | Público | Site da ótica + pedido de orçamento; agendamento online | `/site/[slug]`, `/site/[slug]/agendar` |
+| Público | Site do Vitra com preço e lista de espera (quem está logado vai para o sistema) | `/` |
 | — | PDV e financeiro (Versão 4) | ⬜ só as tabelas |
 | — | Nota fiscal, estoque, comissões (Versão 3) | ⬜ |
 | — | Painel do Vitra (criar ótica, adicionais) | ⬜ hoje é SQL |
@@ -85,7 +88,11 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - [ ] Gerar tipos: `npx supabase gen types typescript --project-id <id> > src/lib/supabase/tipos.ts` e usar nos clientes.
 - [ ] Definir o preço dos adicionais: nota fiscal (sugestão: +R$ 50) e loja extra.
 - [ ] Ideias da concorrência para depois: assinatura digital da OS pelo link, medida de DNP pela câmera, entrada de produtos por XML, etiqueta com código de barras.
-- [ ] Depois: painel do Vitra, importação de planilha, PDV e financeiro, nota fiscal via API (Focus NFe, NFe.io).
+- [x] Versão 2: importação de planilha (clientes e produtos) e site do Vitra com lista de espera.
+- [ ] Importar a planilha de clientes da Ômega (pedir o arquivo do sistema antigo) e conferir o relatório de erros.
+- [ ] Planilha `.xlsx` direto (hoje pede salvar como CSV; precisaria de uma biblioteca de leitura de Excel).
+- [ ] Ler a lista de espera: hoje só pelo SQL Editor (`select * from lista_espera order by criado_em desc`), até existir o painel do Vitra.
+- [ ] Depois: painel do Vitra, PDV e financeiro, nota fiscal via API (Focus NFe, NFe.io).
 
 ---
 
@@ -115,6 +122,7 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - **Pagamento:** o primeiro pagamento move o card para a etapa ganha e cria a OS uma única vez.
 - **Agenda:** o mesmo horário nunca é marcado duas vezes. O site só vê horários livres.
 - **Site público:** só funções `security definer` liberadas para `anon`, com limite de uso e aceite LGPD.
+- **Importação de planilha:** nunca apaga nem sobrescreve; cliente repetido (mesmo telefone ou CPF) e produto repetido (mesmo código, ou mesmo nome na categoria) são pulados. O banco confere a permissão de quem importa.
 - **Agilidade:**
   - o card muda na tela antes de o banco confirmar;
   - as telas atualizam sozinhas;
@@ -153,6 +161,7 @@ psql -f supabase/tests/pagamento_smoke.sql    # sinal, saldo, OS automática
 psql -f supabase/tests/site_smoke.sql         # site, agendamento online, Sem retorno, Dono
 psql -f supabase/tests/consultorio_smoke.sql  # exame → receita → OS com ficha → produção
 psql -f supabase/tests/areas_smoke.sql        # áreas, cards que conversam, plano, produto na venda
+psql -f supabase/tests/versao2_smoke.sql      # importação de planilhas, lista de espera
 node supabase/tests/conferir_consultas.mjs    # as consultas das telas batem com o banco (precisa do npm install)
 ```
 
@@ -181,6 +190,8 @@ src/app/conta/         minha conta (qualquer área)
 
 Mais recente em cima. Uma linha por sessão: data, o que mudou, o que ficou pendente.
 
+- **2026-10-29 (7)** — Versão 2: migração 0010 (importar_clientes, importar_produtos, lista_espera + entrar_lista_espera, índices por telefone/CPF só com números), teste `versao2_smoke.sql` no CI. Telas: importar planilha (`/configuracoes/importar`, leitura do CSV no navegador em `src/lib/planilha.ts`) e site do Vitra em `/`.
+  - Pendente: `.xlsx` direto; tela para ler a lista de espera (painel do Vitra).
 - **2026-10-29 (6)** — Conferidor das consultas (`supabase/tests/conferir_consultas.mjs`, no CI): 128 consultas e 10 rpc das telas batem com o banco. Não deu para subir o Supabase local (registros de imagem Docker bloqueados e download do PostgREST/GoTrue barrado neste ambiente).
   - Pendente: abrir as telas com um Supabase de verdade.
 - **2026-10-29 (5)** — Primeiro `npm install` (Next 15.5.28, React 19.3, supabase-js 2.118, @supabase/ssr 0.6.1); `package-lock.json` commitado. Typecheck tinha só 10 erros (parâmetro `setAll` sem tipo em `servidor.ts` e `middleware.ts`), corrigidos. `npm run build` passa e `next start` responde. CI do aplicativo agora usa `npm ci` e roda também o build.

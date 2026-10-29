@@ -51,7 +51,8 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const caminho = request.nextUrl.pathname;
-  const publica = caminho === "/login";
+  // "/" é o site do Vitra (lista de espera); quem está logado vai direto para o sistema
+  const publica = caminho === "/login" || caminho === "/";
 
   if (!user && !publica) {
     const url = request.nextUrl.clone();

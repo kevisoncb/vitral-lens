@@ -1,0 +1,98 @@
+      teste       |                                                                      string_agg                                                                       
+------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------
+ areas dos perfis | caixa=loja,dono=gestao,financeiro=gestao,laboratorio=laboratorio,laboratorio_gerente=laboratorio,optometrista=consultorio,recepcao=loja,vendedor=loja
+(1 row)
+
+      teste       | ok 
+------------------+----
+ lab sem clientes | t
+(1 row)
+
+ receita 
+---------
+ t
+(1 row)
+
+                 teste                  | count 
+----------------------------------------+-------
+ consultorio nao ve vendas (esperado 0) |     0
+(1 row)
+
+        teste        |   origem    | com_receita 
+---------------------+-------------+-------------
+ card do consultorio | consultorio | t
+(1 row)
+
+ os 
+----
+ t
+(1 row)
+
+      teste      | nome |  cliente_nome   
+-----------------+------+-----------------
+ OS nova em Pago | Pago | Carlos Paciente
+(1 row)
+
+psql:supabase/tests/areas_smoke.sql:29: ERROR:  Esta etapa é movida pela equipe do laboratório
+CONTEXT:  PL/pgSQL function os_etapa_permitida() line 11 at RAISE
+            teste             | count 
+------------------------------+-------
+ lab ve clientes (esperado 0) |     0
+(1 row)
+
+      teste      | nome | quando 
+-----------------+------+--------
+ puxada pelo lab | Lab  | t
+(1 row)
+
+psql:supabase/tests/areas_smoke.sql:38: ERROR:  Esta etapa é movida pela equipe da loja
+CONTEXT:  PL/pgSQL function os_etapa_permitida() line 11 at RAISE
+      teste       |    area     |                  texto                  
+------------------+-------------+-----------------------------------------
+ balcao le recado | laboratorio | Armação veio com a haste torta, trocar?
+(1 row)
+
+        teste         |      nome       
+----------------------+-----------------
+ etapa final do teste | Cliente avisado
+(1 row)
+
+    teste     |    nome     
+--------------+-------------
+ gestao moveu | Em montagem
+(1 row)
+
+                 teste                  | recurso_ativo 
+----------------------------------------+---------------
+ nota fiscal sem adicional (esperado f) | f
+(1 row)
+
+               teste                | recurso_ativo | recurso_ativo 
+------------------------------------+---------------+---------------
+ agenda no plano unico (esperado t) | t             | t
+(1 row)
+
+psql:supabase/tests/areas_smoke.sql:52: ERROR:  Seu plano inclui 1 loja(s). Para abrir outra, contrate o adicional de loja extra.
+CONTEXT:  PL/pgSQL function limite_de_lojas() line 11 at RAISE
+              teste               | count 
+----------------------------------+-------
+ lojas com adicional (esperado 2) |     2
+(1 row)
+
+          teste          |        nome         | criado_na_venda | autor 
+-------------------------+---------------------+-----------------+-------
+ produto criado na venda | Armação Ray-X preta | t               | t
+(1 row)
+
+     teste     | preco  
+---------------+--------
+ preco intacto | 450.00
+(1 row)
+
+          teste           | definir_foto_produto 
+--------------------------+----------------------
+ balcao poe primeira foto | t
+(1 row)
+
+psql:supabase/tests/areas_smoke.sql:71: ERROR:  Seu perfil não pode trocar a foto deste produto
+CONTEXT:  PL/pgSQL function definir_foto_produto(uuid,text) line 10 at RAISE

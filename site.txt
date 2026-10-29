@@ -1,0 +1,92 @@
+    teste     |    nome    | agendamento_online 
+--------------+------------+--------------------
+ site publico | Ótica Site | t
+(1 row)
+
+             teste             | count 
+-------------------------------+-------
+ site inexistente (esperado 0) |     0
+(1 row)
+
+psql:supabase/tests/site_smoke.sql:19: ERROR:  permission denied for table clientes
+    teste    | ok 
+-------------+----
+ pedido site | t
+(1 row)
+
+psql:supabase/tests/site_smoke.sql:23: ERROR:  É preciso aceitar o uso dos dados para enviar o pedido
+CONTEXT:  PL/pgSQL function pedido_orcamento_site(text,text,text,text,boolean) line 9 at RAISE
+psql:supabase/tests/site_smoke.sql:24: ERROR:  Informe seu nome
+CONTEXT:  PL/pgSQL function pedido_orcamento_site(text,text,text,text,boolean) line 12 at RAISE
+ pedido_orcamento_site 
+-----------------------
+ t
+(1 row)
+
+ pedido_orcamento_site 
+-----------------------
+ t
+(1 row)
+
+psql:supabase/tests/site_smoke.sql:27: ERROR:  Recebemos muitos pedidos agora. Tente mais tarde ou chame no WhatsApp.
+CONTEXT:  PL/pgSQL function pedido_orcamento_site(text,text,text,text,boolean) line 32 at RAISE
+           teste           | count 
+---------------------------+-------
+ vagas amanha (esperado 3) |     3
+(1 row)
+
+  teste  | ok 
+---------+----
+ agendou | t
+(1 row)
+
+           teste           | count 
+---------------------------+-------
+ vagas depois (esperado 2) |     2
+(1 row)
+
+psql:supabase/tests/site_smoke.sql:33: ERROR:  Esse horário não está mais disponível
+CONTEXT:  PL/pgSQL function agendar_pelo_site(text,timestamp with time zone,text,text,boolean) line 31 at RAISE
+                 teste                 | count 
+---------------------------------------+-------
+ sem horarios cadastrados (esperado 0) |     0
+(1 row)
+
+psql:supabase/tests/site_smoke.sql:35: ERROR:  permission denied for function mover_sem_retorno
+psql:supabase/tests/site_smoke.sql:36: ERROR:  permission denied for function proximo_numero
+           teste            | count 
+----------------------------+-------
+ cards do site (esperado 3) |     3
+(1 row)
+
+               teste                | count 
+------------------------------------+-------
+ cliente reaproveitado (esperado 1) |     1
+(1 row)
+
+              teste               | mover_sem_retorno 
+----------------------------------+-------------------
+ sem retorno movidos (esperado 3) |                 3
+(1 row)
+
+    teste    |    nome     | count 
+-------------+-------------+-------
+ etapa agora | Sem retorno |     3
+(1 row)
+
+psql:supabase/tests/site_smoke.sql:54: ERROR:  O perfil Dono sempre tem acesso total
+CONTEXT:  PL/pgSQL function proteger_perfil_dono() line 14 at RAISE
+psql:supabase/tests/site_smoke.sql:55: ERROR:  A ótica precisa de pelo menos um Dono ativo
+CONTEXT:  PL/pgSQL function proteger_ultimo_dono() line 13 at RAISE
+psql:supabase/tests/site_smoke.sql:56: ERROR:  Perfis padrão do sistema não podem ser excluídos
+CONTEXT:  PL/pgSQL function proteger_perfil_dono() line 8 at RAISE
+        teste        | ativo 
+---------------------+-------
+ dono continua ativo | t
+(1 row)
+
+          teste           | ok 
+--------------------------+----
+ otica apagada em cascata | t
+(1 row)
+
