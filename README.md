@@ -36,6 +36,7 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 | 0011 | Versão 3: estoque por loja (livro de movimentos, baixa na venda, contagem, transferência) e comissões (regras, cálculo no pagamento, pagamento) | ✅ |
 | 0012 | Versão 4: áreas `pdv` e `financeiro`, perfil Contador, caixa, venda no PDV (crediário, estoque, comissão, cancelamento), categorias de custo, alíquota | ✅ |
 | 0013 | `otica_id` automático em horários, lojas, perfis, motivos e etapas (o cadastro de horários falhava) | ✅ |
+| 0014 | Painel do Vitra: `vitra_admins` e funções `painel_*` (óticas, criar ótica com dono, adicionais, situação, lista de espera) | ✅ |
 
 ### Telas (`src/`): todas 🟡, compilam (`typecheck` e `build` passam) mas ainda não foram abertas com um Supabase de verdade
 
@@ -68,7 +69,7 @@ A venda do PDV (`src/app/pdv/venda.tsx`) foi aberta no navegador com produtos de
 | Financeiro | Visão do mês (entradas, saídas, a pagar, a receber, impostos, comissões), exportação CSV para o contador | `/financeiro`, `/financeiro/exportar` |
 | Financeiro | Contas a pagar (repetir por meses), contas a receber (parcelas, lembrete no WhatsApp), categorias de custo | `/financeiro/pagar`, `/financeiro/receber`, `/financeiro/categorias` |
 | — | Nota fiscal (Versão 3) | ⬜ falta escolher a API (Focus NFe, NFe.io) |
-| — | Painel do Vitra (criar ótica, adicionais) | ⬜ hoje é SQL |
+| Vitra | Painel: óticas (criar com o login do dono, situação, adicionais), lista de espera com WhatsApp | `/painel`, `/painel/espera` |
 
 **Consultas conferidas:** `supabase/tests/conferir_consultas.mjs` lê todo o `src/` e confere, contra o banco com as migrações aplicadas, cada `.from(...).select(...)`, filtro, ordem, insert/update, relação embutida (inclusive ambígua) e `rpc(...)`. Hoje: 128 consultas e 10 chamadas, nenhum problema. Roda no CI.
 
@@ -84,8 +85,8 @@ Marque com `[x]` quando terminar e anote no Histórico.
 
 - [x] `npm install`, `npm run typecheck`, corrigir os erros. Commitar `package-lock.json`.
 - [ ] `npm audit` aponta o `postcss` embutido no Next 15 (só afeta o build, não o site no ar); a correção só vem no Next 16. Avaliar a migração depois da Versão 1.
-- [ ] Criar o projeto no Supabase **na região São Paulo (sa-east-1)**, na conta do dono do produto, e rodar as migrações 0001 → 0013 no SQL Editor.
-- [ ] Criar a Ótica Ômega, a loja e o usuário dono (SQL na seção 4).
+- [ ] Criar o projeto no Supabase **na região São Paulo (sa-east-1)**, na conta do dono do produto, e rodar as migrações 0001 → 0014 no SQL Editor.
+- [ ] Cadastrar você em `vitra_admins` e criar a Ótica Ômega pelo painel (`/painel`, seção 4).
 - [ ] Rodar `supabase/seed_catalogo.sql` (ajustar os preços antes).
 - [x] Conferir as consultas das telas contra o banco sem o Supabase (`conferir_consultas.mjs`, no CI).
 - [ ] `.env.local` com as chaves e `npm run dev`. Abrir cada tela da tabela acima e trocar 🟡 por ✅.
@@ -104,7 +105,7 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - [x] Versão 2: importação de planilha (clientes e produtos) e site do Vitra com lista de espera.
 - [ ] Importar a planilha de clientes da Ômega (pedir o arquivo do sistema antigo) e conferir o relatório de erros.
 - [ ] Planilha `.xlsx` direto (hoje pede salvar como CSV; precisaria de uma biblioteca de leitura de Excel).
-- [ ] Ler a lista de espera: hoje só pelo SQL Editor (`select * from lista_espera order by criado_em desc`), até existir o painel do Vitra.
+- [x] Ler a lista de espera: `/painel/espera`, com o botão de chamar no WhatsApp.
 - [x] Versão 3 (sem nota fiscal): estoque por loja e comissões.
 - [ ] Contagem inicial do estoque da Ômega (tela Estoque → Contagem, produto a produto) e cadastrar as regras de comissão.
 - [ ] Nota fiscal: escolher a API (Focus NFe, NFe.io), contratar na conta do dono e ligar ao adicional `nota_fiscal`.
@@ -113,7 +114,8 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - [ ] Combinar com o contador da Ômega se o CSV do mês (`/financeiro/exportar`) atende ou se ele precisa de outro layout.
 - [x] Cupom não fiscal da venda do PDV (`/cupom/[id]`).
 - [ ] Testar o cupom numa impressora térmica de verdade (escolher a bobina de 80 mm e margem zero nas opções de impressão) e, com o adicional, a NFC-e.
-- [ ] Depois: painel do Vitra (criar ótica, adicionais, ler a lista de espera).
+- [x] Painel do Vitra (criar ótica com o dono, situação, adicionais, lista de espera).
+- [ ] Cobrança da mensalidade (hoje o painel só mostra quantas óticas estão ativas): escolher Asaas, Mercado Pago ou Stripe.
 
 ---
 
@@ -153,15 +155,19 @@ Marque com `[x]` quando terminar e anote no Histórico.
   - as telas atualizam sozinhas;
   - aparece um esqueleto na troca de tela;
   - toda regra de segurança nova usa `(select função())`, para não ficar lenta com muitas óticas.
-- **Service role** só no servidor e só para o Auth (criar login).
+- **Service role** só no servidor e só para o Auth (criar login). O painel do Vitra também segue isso: os dados passam pelas funções `painel_*`, que conferem `vitra_admins` no banco.
 - Código, domínio, Supabase e Vercel ficam no nome do dono do produto.
 
 ---
 
 ## 4. Como rodar
 
-1. Supabase (região São Paulo) → SQL Editor: rode `supabase/migrations/0001` a `0013`, em ordem.
-2. Primeira ótica e usuário dono (Authentication → Users → criar usuário; depois no SQL Editor):
+1. Supabase (região São Paulo) → SQL Editor: rode `supabase/migrations/0001` a `0014`, em ordem.
+2. Primeira ótica e usuário dono, pelo **painel do Vitra**:
+   - Authentication → Users → crie o seu login (o da equipe do Vitra) e, no SQL Editor:
+     `insert into vitra_admins (usuario_id, email) values ('<id do seu usuário no Auth>', 'voce@exemplo.com');`
+   - Entre no sistema: você cai em `/painel`. Em **Nova ótica**, informe a Ótica Ômega, o endereço do site (`omega`) e o nome e e-mail do dono. O painel cria o login do dono e mostra a senha temporária.
+   - Sem o painel (só SQL), o caminho antigo continua valendo:
 
 ```sql
 insert into oticas (nome, status, slug) values ('Ótica Ômega', 'ativa', 'omega') returning id;
@@ -169,7 +175,6 @@ insert into lojas (otica_id, nome) values ('<id da ótica>', 'Loja Centro');
 insert into usuarios (id, otica_id, perfil_id, nome, email)
 select '<id do usuário no Auth>', '<id da ótica>', id, 'Nome do dono', 'email@exemplo.com'
 from perfis where otica_id = '<id da ótica>' and chave = 'dono';
--- adicional contratado (exemplo): insert into otica_adicionais (otica_id, recurso) values ('<id>', 'nota_fiscal');
 ```
 
 3. `supabase/seed_catalogo.sql` para o catálogo de exemplo.
@@ -211,6 +216,8 @@ src/app/producao/      tela do laboratório
 src/app/pdv/           tela do caixa (PDV)
 src/app/financeiro/    tela do financeiro e do contador
 src/app/_vitra/        site do Vitra (lista de espera), servido em /
+src/app/painel/        painel do Vitra (equipe do produto: óticas, adicionais, lista de espera)
+src/app/cupom/         cupom da venda do PDV (impressão)
 src/app/site/[slug]/   site público da ótica e agendamento online (sem login)
 src/app/conta/         minha conta (qualquer área)
 ```
@@ -221,6 +228,8 @@ src/app/conta/         minha conta (qualquer área)
 
 Mais recente em cima. Uma linha por sessão: data, o que mudou, o que ficou pendente.
 
+- **2026-10-29 (12)** — Painel do Vitra: migração 0014 (`vitra_admins`, `sou_admin_vitra()`, `painel_oticas()`, `painel_criar_otica()`, `painel_definir_adicional()`, `painel_mudar_status()`, `painel_lista_espera()`), teste `painel_smoke.sql` no CI, telas `/painel` e `/painel/espera`. Admin sem ótica que entra no sistema vai direto para o painel. A seção 4 agora cria a Ômega pelo painel.
+  - Pendente: cobrança da mensalidade.
 - **2026-10-29 (11)** — Cupom sem valor fiscal da venda do PDV (`/cupom/[id]`, 80 mm, abre a impressão sozinho depois de finalizar a venda; link também na lista de vendas).
   - Pendente: testar numa impressora térmica.
 - **2026-10-29 (10)** — Tipos do banco gerados das migrações (`supabase/gerar_tipos.mjs`, `npm run tipos`, conferido no CI) e ligados a todos os clientes do Supabase. Para isso, `@supabase/ssr` subiu de 0.6.1 para 0.12.7 (a 0.6 não casava com o supabase-js 2.118 e deixava tudo `never`). Os tipos acharam o cadastro de horários sem `otica_id`, que falharia no banco: migração 0013 e teste novo no `versao4_smoke.sql`.
