@@ -1,4 +1,4 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 /** Cliente do Supabase para Server Components e Server Actions (usa o login do usuário). */
@@ -13,7 +13,7 @@ export async function criarClienteServidor() {
         getAll() {
           return cookieStore.getAll();
         },
-        setAll(lista) {
+        setAll(lista: { name: string; value: string; options: CookieOptions }[]) {
           try {
             lista.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
           } catch {

@@ -42,7 +42,7 @@ Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Stora
 
 ## Estado atual e próximos passos
 
-Ficam no `README.md` (seções 1 e 2), para não ter duas versões. Resumo: banco testado (0001 a 0009); todo o `src/` foi escrito sem npm e ainda não foi compilado nem executado, então o primeiro passo é `npm install` + `npm run typecheck` + `npm run dev`.
+Ficam no `README.md` (seções 1 e 2), para não ter duas versões. Resumo: banco testado (0001 a 0009); o `src/` já compila (`npm run typecheck` e `npm run build` passam), mas as telas ainda não foram abertas com um Supabase real; o próximo passo é criar o projeto no Supabase, `.env.local` e `npm run dev`.
 
 ## Telas de referência
 

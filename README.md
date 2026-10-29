@@ -33,7 +33,7 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 | 0008 | Desempenho: RLS com `(select ...)`, índices, busca por pedaço do nome | ✅ (teste de carga: `docs/ESCALA.md`) |
 | 0009 | Foto do produto: quem cadastrou na venda põe a primeira | ✅ |
 
-### Telas (`src/`): todas 🟡, escritas sem npm e nunca executadas
+### Telas (`src/`): todas 🟡, compilam (`typecheck` e `build` passam) mas ainda não foram abertas com um Supabase de verdade
 
 | Área | Tela | Rota |
 |---|---|---|
@@ -56,7 +56,7 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 | — | Nota fiscal, estoque, comissões (Versão 3) | ⬜ |
 | — | Painel do Vitra (criar ótica, adicionais) | ⬜ hoje é SQL |
 
-**Por que tudo 🟡:** o código foi escrito num ambiente sem acesso ao npm. A sintaxe, os caminhos de import e os nomes exportados foram conferidos em todos os arquivos, mas nunca rodou `npm install`, `typecheck` nem o navegador. Espere erros de tipo pequenos no primeiro `npm run typecheck`, principalmente nos retornos do Supabase, que ainda não têm tipos gerados.
+**Por que tudo 🟡:** `npm install`, `npm run typecheck` e `npm run build` já passam (Next 15.5, 32 rotas), e o servidor sobe: `/login` abre e as rotas protegidas mandam para o login. Falta abrir cada tela ligada a um projeto Supabase real. Os retornos do Supabase ainda não têm tipos gerados (vêm como `any`), então erros de nome de coluna só aparecem rodando.
 
 ---
 
@@ -64,7 +64,8 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 
 Marque com `[x]` quando terminar e anote no Histórico.
 
-- [ ] `npm install`, `npm run typecheck`, corrigir os erros. Commitar `package-lock.json`.
+- [x] `npm install`, `npm run typecheck`, corrigir os erros. Commitar `package-lock.json`.
+- [ ] `npm audit` aponta o `postcss` embutido no Next 15 (só afeta o build, não o site no ar); a correção só vem no Next 16. Avaliar a migração depois da Versão 1.
 - [ ] Criar o projeto no Supabase **na região São Paulo (sa-east-1)**, na conta do dono do produto, e rodar as migrações 0001 → 0009 no SQL Editor.
 - [ ] Criar a Ótica Ômega, a loja e o usuário dono (SQL na seção 4).
 - [ ] Rodar `supabase/seed_catalogo.sql` (ajustar os preços antes).
@@ -176,6 +177,8 @@ src/app/conta/         minha conta (qualquer área)
 
 Mais recente em cima. Uma linha por sessão: data, o que mudou, o que ficou pendente.
 
+- **2026-10-29 (5)** — Primeiro `npm install` (Next 15.5.28, React 19.3, supabase-js 2.118, @supabase/ssr 0.6.1); `package-lock.json` commitado. Typecheck tinha só 10 erros (parâmetro `setAll` sem tipo em `servidor.ts` e `middleware.ts`), corrigidos. `npm run build` passa e `next start` responde. CI do aplicativo agora usa `npm ci` e roda também o build.
+  - Pendente: Supabase real, `.env.local` e abrir cada tela; tipos gerados do banco.
 - **2026-10-29 (4)** — Novo posicionamento: consultório + loja + laboratório num fluxo só; plano único de R$ 99 com adicionais (nota fiscal, lojas extras).
   - Migrações 0005 a 0009: consultório (exame que gera receita), ficha técnica e produção da OS, áreas por perfil, quem move cada etapa, cards que conversam, recados, Realtime, gerente de laboratório, produto cadastrado na venda com foto, desempenho.
   - Teste de carga com 1.000 óticas: funil de 366 ms para 2 ms; cerca de 1.100 telas por segundo com 100 conexões. Resultados em `docs/ESCALA.md`.

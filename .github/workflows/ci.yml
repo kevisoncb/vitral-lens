@@ -86,12 +86,19 @@ jobs:
           grep -q "Seu perfil não pode trocar a foto" areas.txt
 
   web:
-    name: Aplicativo (tipos)
+    name: Aplicativo (tipos e build)
     runs-on: ubuntu-latest
+    env:
+      # chaves falsas: o build não fala com o Supabase, só precisa que existam
+      NEXT_PUBLIC_SUPABASE_URL: https://exemplo.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: chave-falsa
+      NEXT_TELEMETRY_DISABLED: 1
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install
+          cache: npm
+      - run: npm ci
       - run: npm run typecheck
+      - run: npm run build
