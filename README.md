@@ -64,6 +64,7 @@ A venda do PDV (`src/app/pdv/venda.tsx`) foi aberta no navegador com produtos de
 | Público | Site do Vitra com preço e lista de espera (quem está logado vai para o sistema) | `/` |
 | PDV | Caixa: abrir, venda rápida (código de barras, várias formas, crediário, troco), sangria/suprimento, fechar com conferência | `/pdv` |
 | PDV | Vendas do dia (gerente cancela e devolve ao estoque), caixas fechados com diferença | `/pdv/vendas`, `/pdv/caixas` |
+| PDV | Cupom sem valor fiscal (impressora térmica de 80 mm), aberto ao finalizar a venda | `/cupom/[id]` |
 | Financeiro | Visão do mês (entradas, saídas, a pagar, a receber, impostos, comissões), exportação CSV para o contador | `/financeiro`, `/financeiro/exportar` |
 | Financeiro | Contas a pagar (repetir por meses), contas a receber (parcelas, lembrete no WhatsApp), categorias de custo | `/financeiro/pagar`, `/financeiro/receber`, `/financeiro/categorias` |
 | — | Nota fiscal (Versão 3) | ⬜ falta escolher a API (Focus NFe, NFe.io) |
@@ -110,7 +111,8 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - [x] Versão 4: PDV e financeiro, com áreas e menus próprios.
 - [ ] Testar o PDV com um leitor de código de barras de verdade (ele "digita" o código e aperta Enter) e cadastrar os códigos das armações.
 - [ ] Combinar com o contador da Ômega se o CSV do mês (`/financeiro/exportar`) atende ou se ele precisa de outro layout.
-- [ ] Impressão do cupom/recibo da venda do PDV (não fiscal) e, com o adicional, a NFC-e.
+- [x] Cupom não fiscal da venda do PDV (`/cupom/[id]`).
+- [ ] Testar o cupom numa impressora térmica de verdade (escolher a bobina de 80 mm e margem zero nas opções de impressão) e, com o adicional, a NFC-e.
 - [ ] Depois: painel do Vitra (criar ótica, adicionais, ler a lista de espera).
 
 ---
@@ -219,6 +221,8 @@ src/app/conta/         minha conta (qualquer área)
 
 Mais recente em cima. Uma linha por sessão: data, o que mudou, o que ficou pendente.
 
+- **2026-10-29 (11)** — Cupom sem valor fiscal da venda do PDV (`/cupom/[id]`, 80 mm, abre a impressão sozinho depois de finalizar a venda; link também na lista de vendas).
+  - Pendente: testar numa impressora térmica.
 - **2026-10-29 (10)** — Tipos do banco gerados das migrações (`supabase/gerar_tipos.mjs`, `npm run tipos`, conferido no CI) e ligados a todos os clientes do Supabase. Para isso, `@supabase/ssr` subiu de 0.6.1 para 0.12.7 (a 0.6 não casava com o supabase-js 2.118 e deixava tudo `never`). Os tipos acharam o cadastro de horários sem `otica_id`, que falharia no banco: migração 0013 e teste novo no `versao4_smoke.sql`.
   - Pendente: abrir as telas no Supabase real.
 - **2026-10-29 (9)** — Versão 4: migração 0012 (áreas `pdv` e `financeiro`, perfil Contador, `venda_itens`, `caixa_movimentos`, `abrir_caixa()`, `registrar_venda()`, `cancelar_venda()`, `fechar_caixa()`, categorias de custo padrão, alíquota), teste `versao4_smoke.sql` no CI. Telas `/pdv` (+ vendas, caixas) e `/financeiro` (+ pagar, receber, categorias, exportar CSV). Saiu a página provisória `(app)/[modulo]`. Teste de carga refeito com as Versões 3 e 4 (`docs/ESCALA.md`): tudo abaixo de 6 ms. Tirados do repositório os `.txt` de saída dos testes que tinham entrado nos commits anteriores.

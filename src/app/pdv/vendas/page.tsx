@@ -82,6 +82,7 @@ export default async function VendasPdv({ searchParams }: { searchParams: Promis
             </table>
           </div>
           {v.cancelada && v.motivo_cancelamento && <p className="vazio">Motivo do cancelamento: {v.motivo_cancelamento}</p>}
+          <a href={`/cupom/${v.id}`} target="_blank" rel="noopener">Ver e imprimir o cupom</a>
           {gerente && !v.cancelada && (
             <form action={cancelarVenda.bind(null, v.id)} className="linha">
               <input className="campo" name="motivo" placeholder="Motivo do cancelamento" aria-label="Motivo do cancelamento" required minLength={3} />

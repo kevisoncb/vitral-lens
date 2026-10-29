@@ -487,3 +487,23 @@ a.linha-valor { text-decoration: none; color: inherit; }
 .pdv-grade > * { min-width: 0; }
 @media (max-width: 640px) { .area-conteudo { padding: 16px; } .barra-area { padding: 12px 16px; } }
 @media (max-width: 640px) { .so-largo { display: none; } .tabela td, .tabela th { padding: 8px 6px; } }
+
+/* Cupom do PDV (impressora térmica de 80 mm) */
+.cupom { width: 80mm; max-width: 100%; margin: 16px auto; padding: 4mm; background: #fff; color: #000; font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 12px; line-height: 1.35; display: flex; flex-direction: column; gap: 6px; }
+.cupom header, .cupom footer { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1px; }
+.cupom header strong { font-size: 15px; }
+.cupom-titulo { margin: 4px 0 0; text-align: center; font-weight: 700; border-block: 1px dashed #000; padding: 3px 0; }
+.cupom-linha { display: flex; justify-content: space-between; gap: 8px; }
+.cupom-total { font-size: 15px; font-weight: 700; border-top: 1px dashed #000; padding-top: 4px; }
+.cupom table { width: 100%; border-collapse: collapse; border-top: 1px dashed #000; font: inherit; }
+.cupom td small { font-size: 11px; }
+.cupom td { padding: 3px 0; vertical-align: top; }
+.cupom td:last-child { text-align: right; white-space: nowrap; padding-left: 8px; }
+.cupom-acoes { display: flex; gap: 8px; justify-content: center; margin-bottom: 8px; font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
+@media print {
+  /* o tamanho do papel (bobina de 80 mm) vem da impressora; o Chrome não aceita altura automática */
+  @page { margin: 0; }
+  html, body { background: #fff !important; }
+  .cupom { margin: 0; width: 80mm; }
+  .cupom-acoes { display: none; }
+}

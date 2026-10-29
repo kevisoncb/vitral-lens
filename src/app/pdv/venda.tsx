@@ -272,7 +272,12 @@ export function Venda({ caixaId, produtos }: { caixaId: string; produtos: Produt
         {precisaCliente && <p className="erro">Escolha o cliente para vender no crediário.</p>}
       </fieldset>
 
-      {resultado && <p className={resultado.ok ? "ok" : "erro"} role="status">{resultado.mensagem}</p>}
+      {resultado && (
+        <p className={resultado.ok ? "ok" : "erro"} role="status">
+          {resultado.mensagem}
+          {resultado.vendaId && <> <a href={`/cupom/${resultado.vendaId}?imprimir=1`} target="_blank" rel="noopener">Imprimir cupom</a></>}
+        </p>
+      )}
       <div className="janela-botoes">
         <button type="button" className="botao-secundario" onClick={() => { setLinhas([]); setResultado(null); }} disabled={linhas.length === 0 || enviando}>Limpar</button>
         <button type="button" className="botao pdv-finalizar" onClick={finalizar} disabled={!podeFinalizar}>
