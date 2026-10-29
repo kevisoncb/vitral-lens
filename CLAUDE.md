@@ -29,21 +29,24 @@ Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Stora
 
 ## Estado atual
 
-Pronto e testado: `supabase/migrations/0001_base_multiempresa.sql` (testado em Postgres 16 com `supabase/tests`, também rodado no CI).
+Banco, pronto e testado (Postgres 16, `supabase/tests`, também no CI):
+- `0001_base_multiempresa.sql`: estrutura, RLS, regras do funil e do laboratório.
+- `0002_pagamento_e_atalhos.sql`: `otica_id` preenchido pelo banco, total do orçamento recalculado, `registrar_pagamento()` (primeiro pagamento move o atendimento para a etapa ganha e cria a OS uma única vez).
+- `0003_storage_receitas.sql`: pasta privada `receitas` no Storage (só roda no Supabase; no teste local avisa e pula).
+- `supabase/seed_catalogo.sql`: catálogo de exemplo para a Ótica Ômega.
 
-Escrito mas **nunca compilado nem executado** (foi feito sem acesso ao npm): `src/` com login, middleware, menu por permissão e plano, funil de vendas em Kanban com arrastar e soltar. O primeiro passo é `npm install`, `npm run typecheck` e `npm run dev`, corrigindo o que aparecer.
+Código em `src/`, escrito **sem acesso ao npm e nunca compilado nem executado** (só checada a sintaxe): login, middleware, menu por permissão e plano, funil Kanban (`/vendas`), novo atendimento com orçamento (`/vendas/novo`), detalhe com pagamento sinal/saldo (`/vendas/[id]`), clientes com busca, ficha, anotações e receitas com anexo (`/clientes`), Kanban do laboratório com WhatsApp em "Chegou na loja" (`/laboratorio`), agenda interna por dia com confirmação manual por WhatsApp (`/agenda`). O primeiro passo é `npm install`, `npm run typecheck` e `npm run dev`, corrigindo o que aparecer (esperar erros de tipo do Supabase: ainda não há tipos gerados; rode `supabase gen types` se quiser).
 
-Ainda não existem telas de: clientes e receitas, laboratório, agenda, configurações, relatórios, PDV, financeiro. O menu já aponta para elas e hoje mostra "em construção" (`src/app/(app)/[modulo]/page.tsx`).
+Ainda não existem telas de: catálogo (cadastro de itens), configurações (usuários, perfis, horários), relatórios, PDV, financeiro, site institucional. O menu mostra "em construção" para o que falta (`src/app/(app)/[modulo]/page.tsx`).
 
 ## Próximos passos, em ordem
 
 1. Instalar, rodar e corrigir o que o TypeScript e o navegador apontarem. Commitar `package-lock.json`.
-2. Criar o projeto no Supabase, rodar a migração e criar a ótica Ômega e o usuário dono (passo a passo no `README.md`).
-3. Clientes e ficha de receita (OD/OE, esférico, cilíndrico, eixo, adição, DNP, altura, prisma, base; lente de contato; anexo da foto da receita).
-4. Kanban do laboratório, com botão de WhatsApp em "Chegou na loja".
-5. Cadastro de atendimento novo, orçamento com catálogo e registro de pagamento (sinal e saldo) no funil.
-6. Agenda interna.
-7. Site institucional da Ótica Ômega, com formulário de orçamento que vira card em Atendimento.
+2. Criar o projeto no Supabase, rodar as migrações 0001 a 0003, `seed_catalogo.sql` e criar a ótica Ômega e o usuário dono (passo a passo no `README.md`).
+3. Testar o fluxo inteiro à mão: cliente, receita, atendimento, pagamento, OS no laboratório, agenda.
+4. Tela de catálogo e de configurações (usuários e perfis, horários de trabalho, bloqueios).
+5. Site institucional da Ótica Ômega, com formulário de orçamento que vira card em Atendimento.
+6. Versão 2: agendamento online (usa `horarios_ocupados()`), relatórios, multiloja.
 
 ## Telas de referência
 

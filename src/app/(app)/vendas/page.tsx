@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { QuadroVendas, type Cartao, type Etapa, type Motivo } from "./quadro-vendas";
 
@@ -38,11 +39,16 @@ export default async function PaginaVendas() {
 
   return (
     <>
-      <div>
-        <h1>Funil de vendas</h1>
-        <p className="subtitulo">
-          Arraste o card para mudar de etapa. Ao mover para Perdido, o sistema pede o motivo.
-        </p>
+      <div className="topo">
+        <div>
+          <h1>Funil de vendas</h1>
+          <p className="subtitulo">
+            Arraste o card para mudar de etapa. Ao mover para Perdido, o sistema pede o motivo.
+          </p>
+        </div>
+        <Link className="botao" href="/vendas/novo">
+          + Novo atendimento
+        </Link>
       </div>
       <QuadroVendas
         etapas={etapas}

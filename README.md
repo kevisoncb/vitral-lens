@@ -12,7 +12,7 @@ Stack: Next.js (React + TypeScript) e Supabase (Postgres, login e permissões).
 
 ## Como rodar
 
-1. Crie um projeto no Supabase e rode `supabase/migrations/0001_base_multiempresa.sql` no SQL Editor.
+1. Crie um projeto no Supabase e rode no SQL Editor, nesta ordem: `supabase/migrations/0001_base_multiempresa.sql`, `0002_pagamento_e_atalhos.sql` e `0003_storage_receitas.sql`. Depois de criar a ótica Ômega, rode `supabase/seed_catalogo.sql` para ter um catálogo de exemplo.
 2. Copie `.env.example` para `.env.local` e preencha as chaves.
 3. `npm install` e `npm run dev`.
 4. Crie a primeira ótica e o usuário dono pelo painel do Supabase (service role). Exemplo:
@@ -31,6 +31,9 @@ from perfis where otica_id = '<id da ótica>' and chave = 'dono';
 ```bash
 psql -f supabase/tests/stub_supabase.sql
 psql -f supabase/migrations/0001_base_multiempresa.sql
+psql -f supabase/migrations/0002_pagamento_e_atalhos.sql
+psql -f supabase/migrations/0003_storage_receitas.sql
+# opcional, em banco limpo: psql -f supabase/tests/pagamento_smoke.sql
 psql -f supabase/tests/rls_smoke.sql   # os erros "row-level security" são esperados
 ```
 

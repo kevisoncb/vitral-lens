@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { linkWhatsApp, mensagemCobrarRetorno } from "@/lib/whatsapp";
 import { moverAtendimento } from "./actions";
@@ -133,7 +134,11 @@ export function QuadroVendas({
                       setAlvo(null);
                     }}
                   >
-                    <strong>{c.cliente}</strong>
+                    <strong>
+                      <Link href={`/vendas/${c.id}`} draggable={false} style={{ color: "inherit", textDecoration: "none" }}>
+                        {c.cliente}
+                      </Link>
+                    </strong>
                     {c.descricao && <small>{c.descricao}</small>}
                     <div className="cartao-rodape">
                       <strong style={{ fontSize: 13 }}>{moeda.format(c.valor)}</strong>
