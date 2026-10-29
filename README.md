@@ -33,6 +33,7 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 | 0008 | Desempenho: RLS com `(select ...)`, índices, busca por pedaço do nome | ✅ (teste de carga: `docs/ESCALA.md`) |
 | 0009 | Foto do produto: quem cadastrou na venda põe a primeira | ✅ |
 | 0010 | Versão 2: importar clientes e produtos de planilha (pula repetidos), lista de espera do Vitra | ✅ |
+| 0011 | Versão 3: estoque por loja (livro de movimentos, baixa na venda, contagem, transferência) e comissões (regras, cálculo no pagamento, pagamento) | ✅ |
 
 ### Telas (`src/`): todas 🟡, compilam (`typecheck` e `build` passam) mas ainda não foram abertas com um Supabase de verdade
 
@@ -47,6 +48,8 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 | Loja e gestão | Ordens de serviço: acompanha, avisa e entrega; recados com o laboratório | `/laboratorio`, `/laboratorio/[id]` |
 | Loja e gestão | Agenda interna | `/agenda` |
 | Loja e gestão | Catálogo com fotos; foto da armação depois da venda | `/catalogo`, `/catalogo/fotos` |
+| Loja e gestão | Estoque por loja: saldo, abaixo do mínimo, entrada, contagem, perda, transferência, histórico | `/estoque`, `/estoque/[id]` |
+| Loja e gestão | Comissões do mês (vendedor vê as dele; gestão vê todas, regras e pagamento) | `/comissoes` |
 | Gestão | Relatórios do mês | `/relatorios` |
 | Gestão | Configurações: ótica e site, lojas, usuários, perfis (área + permissões), horários e bloqueios, funil e motivos | `/configuracoes/...` |
 | Consultório | Fila do dia, exame (anamnese, AV, refração, conduta), histórico do paciente | `/consultorio`, `/consultorio/exame/[id]`, `/consultorio/paciente/[id]` |
@@ -56,7 +59,7 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 | Público | Site da ótica + pedido de orçamento; agendamento online | `/site/[slug]`, `/site/[slug]/agendar` |
 | Público | Site do Vitra com preço e lista de espera (quem está logado vai para o sistema) | `/` |
 | — | PDV e financeiro (Versão 4) | ⬜ só as tabelas |
-| — | Nota fiscal, estoque, comissões (Versão 3) | ⬜ |
+| — | Nota fiscal (Versão 3) | ⬜ falta escolher a API (Focus NFe, NFe.io) |
 | — | Painel do Vitra (criar ótica, adicionais) | ⬜ hoje é SQL |
 
 **Consultas conferidas:** `supabase/tests/conferir_consultas.mjs` lê todo o `src/` e confere, contra o banco com as migrações aplicadas, cada `.from(...).select(...)`, filtro, ordem, insert/update, relação embutida (inclusive ambígua) e `rpc(...)`. Hoje: 128 consultas e 10 chamadas, nenhum problema. Roda no CI.
@@ -92,7 +95,10 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - [ ] Importar a planilha de clientes da Ômega (pedir o arquivo do sistema antigo) e conferir o relatório de erros.
 - [ ] Planilha `.xlsx` direto (hoje pede salvar como CSV; precisaria de uma biblioteca de leitura de Excel).
 - [ ] Ler a lista de espera: hoje só pelo SQL Editor (`select * from lista_espera order by criado_em desc`), até existir o painel do Vitra.
-- [ ] Depois: painel do Vitra, PDV e financeiro, nota fiscal via API (Focus NFe, NFe.io).
+- [x] Versão 3 (sem nota fiscal): estoque por loja e comissões.
+- [ ] Contagem inicial do estoque da Ômega (tela Estoque → Contagem, produto a produto) e cadastrar as regras de comissão.
+- [ ] Nota fiscal: escolher a API (Focus NFe, NFe.io), contratar na conta do dono e ligar ao adicional `nota_fiscal`.
+- [ ] Depois: painel do Vitra, PDV e financeiro.
 
 ---
 
@@ -122,6 +128,8 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - **Pagamento:** o primeiro pagamento move o card para a etapa ganha e cria a OS uma única vez.
 - **Agenda:** o mesmo horário nunca é marcado duas vezes. O site só vê horários livres.
 - **Site público:** só funções `security definer` liberadas para `anon`, com limite de uso e aceite LGPD.
+- **Estoque:** por loja, só dos produtos com `controla_estoque` (padrão: armação, lente de contato, acessório; lente sob medida não). O livro `estoque_movimentos` nunca se altera; entrada, saída, contagem e transferência só pelas funções do banco. O primeiro pagamento da venda dá baixa uma vez. A venda nunca é bloqueada por falta de estoque (o saldo pode ficar negativo e aparece em vermelho).
+- **Comissões:** regra mais específica vale (vendedor + categoria > vendedor > categoria > todos). Calculadas no primeiro pagamento, para o responsável do atendimento. O vendedor vê só as dele; `comissoes:editar` vê todas e marca como pagas.
 - **Importação de planilha:** nunca apaga nem sobrescreve; cliente repetido (mesmo telefone ou CPF) e produto repetido (mesmo código, ou mesmo nome na categoria) são pulados. O banco confere a permissão de quem importa.
 - **Agilidade:**
   - o card muda na tela antes de o banco confirmar;
@@ -162,6 +170,7 @@ psql -f supabase/tests/site_smoke.sql         # site, agendamento online, Sem re
 psql -f supabase/tests/consultorio_smoke.sql  # exame → receita → OS com ficha → produção
 psql -f supabase/tests/areas_smoke.sql        # áreas, cards que conversam, plano, produto na venda
 psql -f supabase/tests/versao2_smoke.sql      # importação de planilhas, lista de espera
+psql -f supabase/tests/versao3_smoke.sql      # estoque e comissões
 node supabase/tests/conferir_consultas.mjs    # as consultas das telas batem com o banco (precisa do npm install)
 ```
 
@@ -190,6 +199,8 @@ src/app/conta/         minha conta (qualquer área)
 
 Mais recente em cima. Uma linha por sessão: data, o que mudou, o que ficou pendente.
 
+- **2026-10-29 (8)** — Versão 3: migração 0011 (módulos `estoque` e `comissoes`, `estoque_saldos`/`estoque_movimentos`, `movimentar_estoque()`, `transferir_estoque()`, `comissao_regras`/`comissoes`, `marcar_comissoes_pagas()`, trigger `venda_fechada` no primeiro pagamento), teste `versao3_smoke.sql` no CI. Telas `/estoque`, `/estoque/[id]`, `/comissoes`. Funções de mês passaram para `src/lib/formatar.ts`.
+  - Pendente: nota fiscal (escolher a API); devolução de venda ao estoque hoje é uma entrada manual.
 - **2026-10-29 (7)** — Versão 2: migração 0010 (importar_clientes, importar_produtos, lista_espera + entrar_lista_espera, índices por telefone/CPF só com números), teste `versao2_smoke.sql` no CI. Telas: importar planilha (`/configuracoes/importar`, leitura do CSV no navegador em `src/lib/planilha.ts`) e site do Vitra em `/`.
   - Pendente: `.xlsx` direto; tela para ler a lista de espera (painel do Vitra).
 - **2026-10-29 (6)** — Conferidor das consultas (`supabase/tests/conferir_consultas.mjs`, no CI): 128 consultas e 10 rpc das telas batem com o banco. Não deu para subir o Supabase local (registros de imagem Docker bloqueados e download do PostgREST/GoTrue barrado neste ambiente).

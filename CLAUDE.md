@@ -31,6 +31,7 @@ Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Stora
 - **PDV e financeiro (Versão 4):** módulos separados no mesmo projeto, com login e menu próprios. O PDV mostra só vendas; o financeiro (gerente) tem contas a pagar e a receber, custos, impostos e acesso do contador. As tabelas já existem; as telas ainda não.
 - **Pagamento:** o primeiro pagamento move o card para a etapa ganha e cria a OS uma única vez (`registrar_pagamento()`).
 - **Site público:** só funções liberadas para `anon` (`site_da_otica`, `pedido_orcamento_site`, `horarios_livres`, `agendar_pelo_site`, e `entrar_lista_espera` do site do Vitra em `/`), com limite de uso e aceite LGPD. O perfil Dono não perde acesso e a ótica nunca fica sem Dono ativo.
+- **Estoque e comissões (Versão 3):** o primeiro pagamento do atendimento dá baixa no estoque (só itens com `controla_estoque`) e gera a comissão (trigger `venda_fechada`). O livro `estoque_movimentos` e `comissoes` só mudam por funções do banco. A venda nunca é bloqueada por falta de estoque.
 - **Importação de planilha:** nunca apaga nem sobrescreve; repetidos (telefone/CPF do cliente, código ou nome do produto) são pulados (`importar_clientes()`, `importar_produtos()`).
 - Código, domínio, Supabase e Vercel ficam no nome do dono do produto, nunca do freelancer.
 
@@ -38,12 +39,12 @@ Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Stora
 
 1. **Versão 1 (Ótica Ômega):** contas e permissões, clientes e receitas, funil, laboratório, agenda interna, site institucional da ótica.
 2. **Versão 2:** agendamento online pelo site, relatórios, multiloja, importação de planilhas, site e lista de espera do Vitra.
-3. **Versão 3:** nota fiscal, estoque, comissões.
+3. **Versão 3:** nota fiscal, estoque, comissões (estoque e comissões prontos; nota fiscal espera a escolha da API).
 4. **Versão 4:** PDV e financeiro.
 
 ## Estado atual e próximos passos
 
-Ficam no `README.md` (seções 1 e 2), para não ter duas versões. Resumo: banco testado (0001 a 0010); o `src/` já compila (`npm run typecheck` e `npm run build` passam), mas as telas ainda não foram abertas com um Supabase real; o próximo passo é criar o projeto no Supabase, `.env.local` e `npm run dev`.
+Ficam no `README.md` (seções 1 e 2), para não ter duas versões. Resumo: banco testado (0001 a 0011); o `src/` já compila (`npm run typecheck` e `npm run build` passam), mas as telas ainda não foram abertas com um Supabase real; o próximo passo é criar o projeto no Supabase, `.env.local` e `npm run dev`.
 
 ## Telas de referência
 

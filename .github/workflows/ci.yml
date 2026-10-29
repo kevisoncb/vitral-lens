@@ -96,6 +96,22 @@ jobs:
           grep -q "É preciso aceitar o uso dos dados para entrar na lista" versao2.txt
           grep -q "permission denied for function importar_clientes" versao2.txt
           grep -q "inscritos (esperado 1) *| *1 | ES" versao2.txt
+      - name: Teste da Versão 3 (estoque e comissões)
+        run: |
+          psql -q -f supabase/tests/versao3_smoke.sql 2>&1 | tee versao3.txt
+          grep -q "controla estoque | armacao=true,lente=false" versao3.txt
+          grep -q "perda (esperado 3) *| *3" versao3.txt
+          grep -q "saldos por loja | Bairro=1,Centro=2" versao3.txt
+          grep -q "permission denied for table estoque_movimentos" versao3.txt
+          grep -q "Informe o motivo da saída" versao3.txt
+          grep -q "Seu perfil não pode dar entrada no estoque" versao3.txt
+          grep -q 'new row violates row-level security policy for table "comissao_regras"' versao3.txt
+          grep -q "vitor ve so a dele (esperado 1) | *1 | 40.00" versao3.txt
+          grep -q "baixa uma vez por venda (esperado Centro=0) | Bairro=1,Centro=0" versao3.txt
+          grep -q "comissoes | Vera=47.00/700.00,Vitor=40.00/400.00" versao3.txt
+          grep -q "Seu perfil não pode pagar comissões" versao3.txt
+          grep -q "dono ve todas e paga (esperado 2) | *2" versao3.txt
+          grep -q "lab nao ve estoque nem comissoes (esperado 0 0) | *0 | *0" versao3.txt
       - uses: actions/setup-node@v4
         with:
           node-version: 22

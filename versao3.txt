@@ -1,0 +1,99 @@
+     teste     |                                                        string_agg                                                         
+---------------+---------------------------------------------------------------------------------------------------------------------------
+ permissoes v3 | dono=["ver", "criar", "editar", "excluir"]/["ver", "criar", "editar", "excluir"] laboratorio=-/- vendedor=["ver"]/["ver"]
+(1 row)
+
+      teste       |        string_agg        
+------------------+--------------------------
+ controla estoque | armacao=true,lente=false
+(1 row)
+
+        teste         | movimentar_estoque 
+----------------------+--------------------
+ entrada (esperado 5) |                  5
+(1 row)
+
+     teste     | custo  
+---------------+--------
+ custo gravado | 150.00
+(1 row)
+
+            teste             | movimentar_estoque 
+------------------------------+--------------------
+ ajuste contagem (esperado 4) |                  4
+(1 row)
+
+psql:supabase/tests/versao3_smoke.sql:25: ERROR:  Informe o motivo da saída (perda, quebra, uso interno…)
+CONTEXT:  PL/pgSQL function movimentar_estoque(uuid,uuid,text,integer,numeric,text) line 36 at RAISE
+       teste        | movimentar_estoque 
+--------------------+--------------------
+ perda (esperado 3) |                  3
+(1 row)
+
+   teste    | transferir_estoque 
+------------+--------------------
+ transferiu | t
+(1 row)
+
+      teste      |    string_agg     
+-----------------+-------------------
+ saldos por loja | Bairro=1,Centro=2
+(1 row)
+
+psql:supabase/tests/versao3_smoke.sql:32: ERROR:  permission denied for table estoque_movimentos
+psql:supabase/tests/versao3_smoke.sql:33: ERROR:  permission denied for table estoque_movimentos
+psql:supabase/tests/versao3_smoke.sql:42: ERROR:  Seu perfil não pode dar entrada no estoque
+CONTEXT:  PL/pgSQL function movimentar_estoque(uuid,uuid,text,integer,numeric,text) line 24 at RAISE
+       teste       | sum 
+-------------------+-----
+ vendedor ve saldo |   3
+(1 row)
+
+psql:supabase/tests/versao3_smoke.sql:44: ERROR:  new row violates row-level security policy for table "comissao_regras"
+ sinal 
+-------
+ t
+(1 row)
+
+ saldo 
+-------
+ t
+(1 row)
+
+ pago 
+------
+ t
+(1 row)
+
+              teste              | count |  sum  
+---------------------------------+-------+-------
+ vitor ve so a dele (esperado 1) |     1 | 40.00
+(1 row)
+
+                    teste                    |    string_agg     
+---------------------------------------------+-------------------
+ baixa uma vez por venda (esperado Centro=0) | Bairro=1,Centro=0
+(1 row)
+
+              teste               | count 
+----------------------------------+-------
+ movimentos de venda (esperado 2) |     2
+(1 row)
+
+   teste   |              string_agg              
+-----------+--------------------------------------
+ comissoes | Vera=47.00/700.00,Vitor=40.00/400.00
+(1 row)
+
+psql:supabase/tests/versao3_smoke.sql:78: ERROR:  Seu perfil não pode pagar comissões
+CONTEXT:  PL/pgSQL function marcar_comissoes_pagas(uuid[]) line 6 at RAISE
+               teste               | marcar_comissoes_pagas 
+-----------------------------------+------------------------
+ dono ve todas e paga (esperado 2) |                      2
+(1 row)
+
+                      teste                      | count | count 
+-------------------------------------------------+-------+-------
+ lab nao ve estoque nem comissoes (esperado 0 0) |     0 |     0
+(1 row)
+
