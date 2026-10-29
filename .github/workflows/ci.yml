@@ -84,6 +84,14 @@ jobs:
           grep -q "preco intacto | 450.00" areas.txt
           grep -q "balcao poe primeira foto | t" areas.txt
           grep -q "Seu perfil não pode trocar a foto" areas.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Consultas das telas batem com o banco (tabelas, colunas, relações, rpc)
+        run: |
+          npm ci
+          node supabase/tests/conferir_consultas.mjs
 
   web:
     name: Aplicativo (tipos e build)

@@ -56,6 +56,8 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 | — | Nota fiscal, estoque, comissões (Versão 3) | ⬜ |
 | — | Painel do Vitra (criar ótica, adicionais) | ⬜ hoje é SQL |
 
+**Consultas conferidas:** `supabase/tests/conferir_consultas.mjs` lê todo o `src/` e confere, contra o banco com as migrações aplicadas, cada `.from(...).select(...)`, filtro, ordem, insert/update, relação embutida (inclusive ambígua) e `rpc(...)`. Hoje: 128 consultas e 10 chamadas, nenhum problema. Roda no CI.
+
 **Por que tudo 🟡:** `npm install`, `npm run typecheck` e `npm run build` já passam (Next 15.5, 32 rotas), e o servidor sobe: `/login` abre e as rotas protegidas mandam para o login. Falta abrir cada tela ligada a um projeto Supabase real. Os retornos do Supabase ainda não têm tipos gerados (vêm como `any`), então erros de nome de coluna só aparecem rodando.
 
 ---
@@ -69,6 +71,7 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - [ ] Criar o projeto no Supabase **na região São Paulo (sa-east-1)**, na conta do dono do produto, e rodar as migrações 0001 → 0009 no SQL Editor.
 - [ ] Criar a Ótica Ômega, a loja e o usuário dono (SQL na seção 4).
 - [ ] Rodar `supabase/seed_catalogo.sql` (ajustar os preços antes).
+- [x] Conferir as consultas das telas contra o banco sem o Supabase (`conferir_consultas.mjs`, no CI).
 - [ ] `.env.local` com as chaves e `npm run dev`. Abrir cada tela da tabela acima e trocar 🟡 por ✅.
 - [ ] Testar o fluxo das três áreas com três logins (consultório, balcão, laboratório) em três abas:
   - [ ] exame → concluir → card aparece no funil da loja;
@@ -150,6 +153,7 @@ psql -f supabase/tests/pagamento_smoke.sql    # sinal, saldo, OS automática
 psql -f supabase/tests/site_smoke.sql         # site, agendamento online, Sem retorno, Dono
 psql -f supabase/tests/consultorio_smoke.sql  # exame → receita → OS com ficha → produção
 psql -f supabase/tests/areas_smoke.sql        # áreas, cards que conversam, plano, produto na venda
+node supabase/tests/conferir_consultas.mjs    # as consultas das telas batem com o banco (precisa do npm install)
 ```
 
 Cada teste imprime as linhas esperadas e alguns erros de propósito: eles provam que o bloqueio funciona. O GitHub Actions (`.github/workflows/ci.yml`) roda tudo a cada push e confere as linhas. O teste de carga (1.000 óticas) está em `supabase/carga/` e os resultados em `docs/ESCALA.md`.
@@ -177,6 +181,8 @@ src/app/conta/         minha conta (qualquer área)
 
 Mais recente em cima. Uma linha por sessão: data, o que mudou, o que ficou pendente.
 
+- **2026-10-29 (6)** — Conferidor das consultas (`supabase/tests/conferir_consultas.mjs`, no CI): 128 consultas e 10 rpc das telas batem com o banco. Não deu para subir o Supabase local (registros de imagem Docker bloqueados e download do PostgREST/GoTrue barrado neste ambiente).
+  - Pendente: abrir as telas com um Supabase de verdade.
 - **2026-10-29 (5)** — Primeiro `npm install` (Next 15.5.28, React 19.3, supabase-js 2.118, @supabase/ssr 0.6.1); `package-lock.json` commitado. Typecheck tinha só 10 erros (parâmetro `setAll` sem tipo em `servidor.ts` e `middleware.ts`), corrigidos. `npm run build` passa e `next start` responde. CI do aplicativo agora usa `npm ci` e roda também o build.
   - Pendente: Supabase real, `.env.local` e abrir cada tela; tipos gerados do banco.
 - **2026-10-29 (4)** — Novo posicionamento: consultório + loja + laboratório num fluxo só; plano único de R$ 99 com adicionais (nota fiscal, lojas extras).
