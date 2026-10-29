@@ -1,8 +1,32 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-/** Renova a sessão e manda quem não está logado para /login. */
+/**
+ * Domínio próprio da ótica -> site público. Ex.: SITE_DOMINIOS="oticaomega.com.br=omega,www.oticaomega.com.br=omega"
+ * Cada domínio também precisa ser adicionado no projeto da Vercel.
+ */
+function slugDoDominio(host: string | null): string | null {
+  if (!host) return null;
+  const limpo = host.split(":")[0].toLowerCase();
+  for (const par of (process.env.SITE_DOMINIOS ?? "").split(",")) {
+    const [dominio, slug] = par.split("=").map((t) => t?.trim().toLowerCase());
+    if (dominio && slug && dominio === limpo) return slug;
+  }
+  return null;
+}
+
+/** Renova a sessão e manda quem não está logado para /login. O site público não exige login. */
 export async function middleware(request: NextRequest) {
+  const slug = slugDoDominio(request.headers.get("host"));
+  if (slug) {
+    const url = request.nextUrl.clone();
+    if (!url.pathname.startsWith("/site/")) {
+      url.pathname = `/site/${slug}${url.pathname === "/" ? "" : url.pathname}`;
+    }
+    return NextResponse.rewrite(url);
+  }
+  if (request.nextUrl.pathname.startsWith("/site/")) return NextResponse.next();
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -38,7 +62,7 @@ export async function middleware(request: NextRequest) {
 
   if (user && publica) {
     const url = request.nextUrl.clone();
-    url.pathname = "/vendas";
+    url.pathname = "/inicio";
     url.search = "";
     return NextResponse.redirect(url);
   }

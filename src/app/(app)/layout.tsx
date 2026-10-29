@@ -49,8 +49,9 @@ export default async function LayoutDoSistema({ children }: { children: React.Re
 
   const itens = MENU.filter(
     (item) =>
-      pode(usuario.perfis!.permissoes, item.modulo, "ver") &&
-      moduloLiberado(item.modulo, doPlano, controlados),
+      item.modulo === null ||
+      (pode(usuario.perfis!.permissoes, item.modulo, "ver") &&
+        moduloLiberado(item.modulo, doPlano, controlados)),
   ).map(({ rotulo, href }) => ({ rotulo, href }));
 
   return (
@@ -62,6 +63,8 @@ export default async function LayoutDoSistema({ children }: { children: React.Re
           {usuario.oticas.nome}
           <br />
           {usuario.nome} ({usuario.perfis.nome})
+          <br />
+          <a href="/conta" style={{ color: "#b5ccc7" }}>Minha conta</a>
           <form action={sair} style={{ marginTop: 10 }}>
             <button
               type="submit"

@@ -18,7 +18,7 @@ export async function entrar(formData: FormData) {
     redirect("/login?erro=credenciais");
   }
 
-  redirect("/vendas");
+  redirect("/inicio");
 }
 
 export async function sair() {

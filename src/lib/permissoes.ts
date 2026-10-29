@@ -33,14 +33,17 @@ export function moduloLiberado(
   return recursosDoPlano.has(modulo);
 }
 
-export type ItemMenu = { modulo: Modulo; rotulo: string; href: string };
+/** modulo null = sempre visível para quem está logado. */
+export type ItemMenu = { modulo: Modulo | null; rotulo: string; href: string };
 
 /** Ordem do menu lateral. Telas de PDV e financeiro entram na Versão 4. */
 export const MENU: ItemMenu[] = [
+  { modulo: null, rotulo: "Início", href: "/inicio" },
   { modulo: "vendas", rotulo: "Vendas", href: "/vendas" },
   { modulo: "laboratorio", rotulo: "Laboratório", href: "/laboratorio" },
   { modulo: "clientes", rotulo: "Clientes", href: "/clientes" },
   { modulo: "agenda", rotulo: "Agenda", href: "/agenda" },
+  { modulo: "catalogo", rotulo: "Catálogo", href: "/catalogo" },
   { modulo: "financeiro", rotulo: "Financeiro", href: "/financeiro" },
   { modulo: "relatorios", rotulo: "Relatórios", href: "/relatorios" },
   { modulo: "configuracoes", rotulo: "Configurações", href: "/configuracoes" },

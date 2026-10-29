@@ -13,6 +13,8 @@ type LinhaAtendimento = {
 
 export default async function PaginaVendas() {
   const supabase = await criarClienteServidor();
+  // cards parados há mais dias que o configurado vão para "Sem retorno" (função no banco)
+  await supabase.rpc("mover_sem_retorno");
 
   const [etapasResp, motivosResp, atendimentosResp, oticaResp] = await Promise.all([
     supabase.from("funil_etapas").select("id, nome, tipo").eq("visivel", true).order("ordem"),

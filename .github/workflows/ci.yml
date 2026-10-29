@@ -32,6 +32,7 @@ jobs:
           psql -v ON_ERROR_STOP=1 -q -f supabase/migrations/0001_base_multiempresa.sql
           psql -v ON_ERROR_STOP=1 -q -f supabase/migrations/0002_pagamento_e_atalhos.sql
           psql -v ON_ERROR_STOP=1 -q -f supabase/migrations/0003_storage_receitas.sql
+          psql -v ON_ERROR_STOP=1 -q -f supabase/migrations/0004_site_e_agendamento.sql
       - name: Teste de permissões
         run: |
           psql -q -f supabase/tests/rls_smoke.sql 2>&1 | tee saida.txt
@@ -48,6 +49,20 @@ jobs:
           grep -q "pago (esperado 1361.00) *| *1361.00" pagamento.txt
           grep -q "Informe um valor maior que zero" pagamento.txt
           grep -q "Sem permissão" pagamento.txt
+      - name: Teste do site público (orçamento, agendamento online, Sem retorno, proteções)
+        run: |
+          psql -q -f supabase/tests/site_smoke.sql 2>&1 | tee site.txt
+          grep -q "anon nao le clientes" site.txt || grep -q "permission denied for table clientes" site.txt
+          grep -q "vagas amanha (esperado 3) *| *3" site.txt
+          grep -q "vagas depois (esperado 2) *| *2" site.txt
+          grep -q "Esse horário não está mais disponível" site.txt
+          grep -q "Recebemos muitos pedidos agora" site.txt
+          grep -q "cards do site (esperado 3) *| *3" site.txt
+          grep -q "sem retorno movidos (esperado 3) *| *3" site.txt
+          grep -q "permission denied for function mover_sem_retorno" site.txt
+          grep -q "O perfil Dono sempre tem acesso total" site.txt
+          grep -q "A ótica precisa de pelo menos um Dono ativo" site.txt
+          grep -q "otica apagada em cascata *| *t" site.txt
 
   web:
     name: Aplicativo (tipos)
