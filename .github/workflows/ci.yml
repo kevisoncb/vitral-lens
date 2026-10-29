@@ -133,6 +133,7 @@ jobs:
           grep -q "contador le | *1 | 2030-11-19" versao4.txt
           grep -q 'new row violates row-level security policy for table "contas_pagar"' versao4.txt
           grep -q "valor intacto | 320.00" versao4.txt
+          grep -q "horario sem otica_id (esperado 1) | *1" versao4.txt
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -141,6 +142,8 @@ jobs:
         run: |
           npm ci
           node supabase/tests/conferir_consultas.mjs
+      - name: Tipos do banco em dia (src/lib/supabase/tipos.ts)
+        run: node supabase/gerar_tipos.mjs --conferir
 
   web:
     name: Aplicativo (tipos e build)

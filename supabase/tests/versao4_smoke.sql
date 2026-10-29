@@ -80,3 +80,10 @@ insert into contas_pagar (descricao, valor, vencimento) values ('Não pode', 1, 
 update contas_pagar set valor = 1;
 select 'valor intacto' as teste, valor from contas_pagar;
 reset role;
+
+-- 0013: horário de atendimento cadastrado sem otica_id (como a tela faz) entra na ótica de quem cadastra
+set role authenticated; set request.jwt.claim.sub = 'a9200000-0000-0000-0000-000000000001';
+insert into horarios_trabalho (loja_id, dia_semana, inicio, fim) values ('a9100000-0000-0000-0000-000000000001', 1, '09:00', '12:00');
+insert into motivos_perda (nome) values ('Sem dinheiro agora');
+reset role;
+select 'horario sem otica_id (esperado 1)' as teste, count(*) from horarios_trabalho where otica_id = 'a9000000-0000-0000-0000-000000000001';

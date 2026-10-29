@@ -35,6 +35,7 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 | 0010 | Versão 2: importar clientes e produtos de planilha (pula repetidos), lista de espera do Vitra | ✅ |
 | 0011 | Versão 3: estoque por loja (livro de movimentos, baixa na venda, contagem, transferência) e comissões (regras, cálculo no pagamento, pagamento) | ✅ |
 | 0012 | Versão 4: áreas `pdv` e `financeiro`, perfil Contador, caixa, venda no PDV (crediário, estoque, comissão, cancelamento), categorias de custo, alíquota | ✅ |
+| 0013 | `otica_id` automático em horários, lojas, perfis, motivos e etapas (o cadastro de horários falhava) | ✅ |
 
 ### Telas (`src/`): todas 🟡, compilam (`typecheck` e `build` passam) mas ainda não foram abertas com um Supabase de verdade
 
@@ -70,7 +71,9 @@ A venda do PDV (`src/app/pdv/venda.tsx`) foi aberta no navegador com produtos de
 
 **Consultas conferidas:** `supabase/tests/conferir_consultas.mjs` lê todo o `src/` e confere, contra o banco com as migrações aplicadas, cada `.from(...).select(...)`, filtro, ordem, insert/update, relação embutida (inclusive ambígua) e `rpc(...)`. Hoje: 128 consultas e 10 chamadas, nenhum problema. Roda no CI.
 
-**Por que tudo 🟡:** `npm install`, `npm run typecheck` e `npm run build` já passam (Next 15.5, 32 rotas), e o servidor sobe: `/login` abre e as rotas protegidas mandam para o login. Falta abrir cada tela ligada a um projeto Supabase real. Os retornos do Supabase ainda não têm tipos gerados (vêm como `any`), então erros de nome de coluna só aparecem rodando.
+**Tipos do banco:** `src/lib/supabase/tipos.ts` é gerado das migrações por `npm run tipos` (`supabase/gerar_tipos.mjs`, mesmo formato do `supabase gen types`, sem precisar de Docker) e todos os clientes do Supabase usam esses tipos. O CI falha se o arquivo estiver desatualizado. Mudou o banco? Rode `npm run tipos` com o Postgres local e commite.
+
+**Por que tudo 🟡:** `npm install`, `npm run typecheck` e `npm run build` passam, e o servidor sobe: `/login` abre e as rotas protegidas mandam para o login. Falta abrir cada tela ligada a um projeto Supabase real.
 
 ---
 
@@ -80,7 +83,7 @@ Marque com `[x]` quando terminar e anote no Histórico.
 
 - [x] `npm install`, `npm run typecheck`, corrigir os erros. Commitar `package-lock.json`.
 - [ ] `npm audit` aponta o `postcss` embutido no Next 15 (só afeta o build, não o site no ar); a correção só vem no Next 16. Avaliar a migração depois da Versão 1.
-- [ ] Criar o projeto no Supabase **na região São Paulo (sa-east-1)**, na conta do dono do produto, e rodar as migrações 0001 → 0012 no SQL Editor.
+- [ ] Criar o projeto no Supabase **na região São Paulo (sa-east-1)**, na conta do dono do produto, e rodar as migrações 0001 → 0013 no SQL Editor.
 - [ ] Criar a Ótica Ômega, a loja e o usuário dono (SQL na seção 4).
 - [ ] Rodar `supabase/seed_catalogo.sql` (ajustar os preços antes).
 - [x] Conferir as consultas das telas contra o banco sem o Supabase (`conferir_consultas.mjs`, no CI).
@@ -94,7 +97,7 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - [ ] Testar no celular e no tablet: mover cards pelo botão "Mover para" (arrastar não funciona no toque).
 - [ ] (Opcional) pg_cron: `select cron.schedule('sem-retorno', '0 * * * *', 'select mover_sem_retorno()');`
 - [ ] Deploy na Vercel (conta do dono, região `gru1`), variáveis de ambiente, domínio da Ômega em `SITE_DOMINIOS`.
-- [ ] Gerar tipos: `npx supabase gen types typescript --project-id <id> > src/lib/supabase/tipos.ts` e usar nos clientes.
+- [x] Gerar os tipos do banco e usar nos clientes (`npm run tipos`; achou o bug do cadastro de horários, corrigido na 0013).
 - [ ] Definir o preço dos adicionais: nota fiscal (sugestão: +R$ 50) e loja extra.
 - [ ] Ideias da concorrência para depois: assinatura digital da OS pelo link, medida de DNP pela câmera, entrada de produtos por XML, etiqueta com código de barras.
 - [x] Versão 2: importação de planilha (clientes e produtos) e site do Vitra com lista de espera.
@@ -155,7 +158,7 @@ Marque com `[x]` quando terminar e anote no Histórico.
 
 ## 4. Como rodar
 
-1. Supabase (região São Paulo) → SQL Editor: rode `supabase/migrations/0001` a `0012`, em ordem.
+1. Supabase (região São Paulo) → SQL Editor: rode `supabase/migrations/0001` a `0013`, em ordem.
 2. Primeira ótica e usuário dono (Authentication → Users → criar usuário; depois no SQL Editor):
 
 ```sql
@@ -185,6 +188,7 @@ psql -f supabase/tests/versao2_smoke.sql      # importação de planilhas, lista
 psql -f supabase/tests/versao3_smoke.sql      # estoque e comissões
 psql -f supabase/tests/versao4_smoke.sql      # PDV e financeiro
 node supabase/tests/conferir_consultas.mjs    # as consultas das telas batem com o banco (precisa do npm install)
+node supabase/gerar_tipos.mjs --conferir      # src/lib/supabase/tipos.ts em dia com as migrações
 ```
 
 Cada teste imprime as linhas esperadas e alguns erros de propósito: eles provam que o bloqueio funciona. O GitHub Actions (`.github/workflows/ci.yml`) roda tudo a cada push e confere as linhas. O teste de carga (1.000 óticas) está em `supabase/carga/` e os resultados em `docs/ESCALA.md`.
@@ -215,6 +219,8 @@ src/app/conta/         minha conta (qualquer área)
 
 Mais recente em cima. Uma linha por sessão: data, o que mudou, o que ficou pendente.
 
+- **2026-10-29 (10)** — Tipos do banco gerados das migrações (`supabase/gerar_tipos.mjs`, `npm run tipos`, conferido no CI) e ligados a todos os clientes do Supabase. Para isso, `@supabase/ssr` subiu de 0.6.1 para 0.12.7 (a 0.6 não casava com o supabase-js 2.118 e deixava tudo `never`). Os tipos acharam o cadastro de horários sem `otica_id`, que falharia no banco: migração 0013 e teste novo no `versao4_smoke.sql`.
+  - Pendente: abrir as telas no Supabase real.
 - **2026-10-29 (9)** — Versão 4: migração 0012 (áreas `pdv` e `financeiro`, perfil Contador, `venda_itens`, `caixa_movimentos`, `abrir_caixa()`, `registrar_venda()`, `cancelar_venda()`, `fechar_caixa()`, categorias de custo padrão, alíquota), teste `versao4_smoke.sql` no CI. Telas `/pdv` (+ vendas, caixas) e `/financeiro` (+ pagar, receber, categorias, exportar CSV). Saiu a página provisória `(app)/[modulo]`. Teste de carga refeito com as Versões 3 e 4 (`docs/ESCALA.md`): tudo abaixo de 6 ms. Tirados do repositório os `.txt` de saída dos testes que tinham entrado nos commits anteriores.
   - Pendente: cupom não fiscal da venda; NFC-e com o adicional; painel do Vitra.
 - **2026-10-29 (8)** — Versão 3: migração 0011 (módulos `estoque` e `comissoes`, `estoque_saldos`/`estoque_movimentos`, `movimentar_estoque()`, `transferir_estoque()`, `comissao_regras`/`comissoes`, `marcar_comissoes_pagas()`, trigger `venda_fechada` no primeiro pagamento), teste `versao3_smoke.sql` no CI. Telas `/estoque`, `/estoque/[id]`, `/comissoes`. Funções de mês passaram para `src/lib/formatar.ts`.

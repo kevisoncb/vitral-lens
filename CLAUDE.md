@@ -44,7 +44,7 @@ Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Stora
 
 ## Estado atual e próximos passos
 
-Ficam no `README.md` (seções 1 e 2), para não ter duas versões. Resumo: banco testado (0001 a 0012); o `src/` já compila (`npm run typecheck` e `npm run build` passam), mas as telas ainda não foram abertas com um Supabase real; o próximo passo é criar o projeto no Supabase, `.env.local` e `npm run dev`.
+Ficam no `README.md` (seções 1 e 2), para não ter duas versões. Resumo: banco testado (0001 a 0013); o `src/` já compila (`npm run typecheck` e `npm run build` passam), mas as telas ainda não foram abertas com um Supabase real; o próximo passo é criar o projeto no Supabase, `.env.local` e `npm run dev`.
 
 ## Telas de referência
 
@@ -52,7 +52,7 @@ O desenho das telas (login, funil, laboratório, ficha do cliente, agenda, agend
 
 ## Como trabalhar aqui
 
-- Mudou o banco? Crie uma nova migração em `supabase/migrations/` (nunca edite a antiga depois de aplicada em produção) e rode os testes da seção 5 do README e acrescente um teste novo em `supabase/tests/` (e no CI) para a regra que criou.
+- Mudou o banco? Crie uma nova migração em `supabase/migrations/` (nunca edite a antiga depois de aplicada em produção), rode os testes da seção 5 do README, acrescente um teste novo em `supabase/tests/` (e no CI) para a regra que criou e rode `npm run tipos` para atualizar `src/lib/supabase/tipos.ts` (o CI confere).
 - Toda tabela nova de negócio: `otica_id`, RLS e entrada na lista do bloco `do $$` do final da migração (ou política própria).
 - Nunca expor `SUPABASE_SERVICE_ROLE_KEY` no navegador. Nunca commitar `.env*` (só `.env.example`).
 - **Desempenho:** em política de RLS, sempre `(select minha_otica())`, `(select acesso(...))`, `(select auth.uid())` (a 0008 converteu as existentes). Índice para toda coluna usada em filtro de tela. Depois de mudança grande no banco, rode `supabase/carga/` e atualize `docs/ESCALA.md`.
