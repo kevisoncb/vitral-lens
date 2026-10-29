@@ -4,6 +4,7 @@ import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { dataBR, dataHoraBR, grau, moeda } from "@/lib/formatar";
 import { linkWhatsApp } from "@/lib/whatsapp";
 import { adicionarAnotacao } from "./actions";
+import { LinhaDoTempo } from "@/components/linha-do-tempo";
 
 type Olho = {
   olho: "OD" | "OE";
@@ -73,6 +74,8 @@ export default async function FichaCliente({ params }: { params: Promise<{ id: s
           <Link className="botao" href={`/clientes/${id}/receita/nova`}>+ Nova receita</Link>
         </div>
       </div>
+
+      <LinhaDoTempo clienteId={id} />
 
       <section className="bloco">
         <h2>Receitas</h2>

@@ -64,3 +64,9 @@ select 'produto criado na venda' as teste, nome, criado_na_venda, criado_por is 
 update catalogo_itens set preco = 1;   -- balcão não edita preço (sem catalogo:editar): 0 linhas
 select 'preco intacto' as teste, preco from catalogo_itens;
 reset role;
+
+-- foto do produto: quem cadastrou na venda põe a primeira; trocar depois é do gerente
+set role authenticated; set request.jwt.claim.sub = 'a6200000-0000-0000-0000-000000000002';
+select 'balcao poe primeira foto' as teste, definir_foto_produto((select id from catalogo_itens where nome = 'Armação Ray-X preta'), 'a6000000-0000-0000-0000-000000000001/x/foto.jpg');
+select definir_foto_produto((select id from catalogo_itens where nome = 'Armação Ray-X preta'), 'a6000000-0000-0000-0000-000000000001/x/outra.jpg');
+reset role;

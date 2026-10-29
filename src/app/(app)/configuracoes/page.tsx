@@ -26,7 +26,7 @@ export default async function ConfigOtica({ searchParams }: { searchParams: Prom
           <label className="rotulo">CNPJ<input className="campo" name="cnpj" defaultValue={o.cnpj ?? ""} /></label>
           <label className="rotulo">Telefone<input className="campo" name="telefone" defaultValue={o.telefone ?? ""} /></label>
         </div>
-        <p className="vazio">Plano: <strong>{o.plano}</strong> · situação: {o.status}. Mudança de plano é feita pelo suporte do Vitra.</p>
+        <p className="vazio">Plano Vitra (tudo incluído) · situação: {o.status}. Adicionais (nota fiscal, lojas extras) são contratados com o suporte do Vitra.</p>
 
         <h2>Site institucional</h2>
         <p className="vazio">
@@ -63,7 +63,7 @@ export default async function ConfigOtica({ searchParams }: { searchParams: Prom
           <input className="campo" name="endereco" placeholder="Endereço" aria-label="Endereço" />
           <button className="botao-secundario" type="submit">Adicionar loja</button>
         </form>
-        <small className="vazio">Mais de uma loja é recurso do plano Rede (multiloja chega na Versão 2).</small>
+        <small className="vazio">O plano inclui uma loja. Cada loja extra é um adicional.</small>
       </section>
     </>
   );

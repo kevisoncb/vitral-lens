@@ -1,5 +1,6 @@
 export type Modulo =
   | "clientes"
+  | "consultorio"
   | "receitas"
   | "vendas"
   | "laboratorio"
@@ -21,29 +22,21 @@ export function pode(permissoes: Permissoes, modulo: Modulo, acao: Acao = "ver")
 }
 
 /**
- * Módulos que dependem do plano. A lista real vem da tabela plano_recursos;
- * aqui só calculamos o que o plano da ótica libera.
+ * modulo null = sempre visível para quem está logado.
+ * soGestao = atalho para a tela de outra área (consultório, produção), só para a gestão.
  */
-export function moduloLiberado(
-  modulo: Modulo,
-  recursosDoPlano: Set<string>,
-  recursosControlados: Set<string>,
-): boolean {
-  if (!recursosControlados.has(modulo)) return true;
-  return recursosDoPlano.has(modulo);
-}
+export type ItemMenu = { modulo: Modulo | null; rotulo: string; href: string; soGestao?: boolean };
 
-/** modulo null = sempre visível para quem está logado. */
-export type ItemMenu = { modulo: Modulo | null; rotulo: string; href: string };
-
-/** Ordem do menu lateral. Telas de PDV e financeiro entram na Versão 4. */
+/** Menu lateral da loja e da gestão. Consultório e laboratório têm telas próprias. */
 export const MENU: ItemMenu[] = [
   { modulo: null, rotulo: "Início", href: "/inicio" },
   { modulo: "vendas", rotulo: "Vendas", href: "/vendas" },
-  { modulo: "laboratorio", rotulo: "Laboratório", href: "/laboratorio" },
+  { modulo: "laboratorio", rotulo: "Ordens de serviço", href: "/laboratorio" },
   { modulo: "clientes", rotulo: "Clientes", href: "/clientes" },
   { modulo: "agenda", rotulo: "Agenda", href: "/agenda" },
   { modulo: "catalogo", rotulo: "Catálogo", href: "/catalogo" },
+  { modulo: "consultorio", rotulo: "Consultório", href: "/consultorio", soGestao: true },
+  { modulo: "laboratorio", rotulo: "Produção (laboratório)", href: "/producao", soGestao: true },
   { modulo: "financeiro", rotulo: "Financeiro", href: "/financeiro" },
   { modulo: "relatorios", rotulo: "Relatórios", href: "/relatorios" },
   { modulo: "configuracoes", rotulo: "Configurações", href: "/configuracoes" },

@@ -6,6 +6,8 @@
 - **Ao terminar**, atualize o `README.md` no mesmo commit: a tabela de Estado (✅ testado, 🟡 escrito sem rodar, ⬜ não existe), o Checklist (marque o que fez, acrescente o que descobriu) e uma linha nova no topo do Histórico com data, o que mudou e o que ficou pendente.
 - Se uma regra do produto mudar, mude nos dois lugares (README e aqui).
 
+**Diferencial:** consultório (exame → receita) + loja (orçamento → pagamento) + laboratório (construção do óculos → entrega) num fluxo só, cada área com tela própria e os cards conversando entre elas em tempo real. Plano único de R$ 99 com adicionais (nota fiscal, lojas extras). Foco: óticas pequenas do interior, depois cidade grande.
+
 Sistema web (SaaS) para óticas, criado por um freelancer para o cliente piloto **Ótica Ômega** e depois vendido a outras óticas. Nome do produto: **Vitra**. Repositório: `vitral-lens` ("lens" é só diferencial do nome do repositório).
 
 Idioma: português do Brasil em tudo (interface, tabelas, colunas, nomes de variáveis do domínio, commits).
@@ -17,12 +19,15 @@ Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Stora
 ## Regras do produto (não mudar sem combinar)
 
 - **Multiempresa:** toda tabela de negócio tem `otica_id` e RLS. Uma ótica nunca vê dados de outra. Receita é dado de saúde (LGPD).
-- **Permissões:** por perfil e por módulo (`ver`, `criar`, `editar`, `excluir`) em `perfis.permissoes`, mais liberação por plano em `plano_recursos`. A checagem real é no banco (`acesso()`); o menu só esconde o que não pode.
+- **Áreas:** todo perfil tem `area` (loja, consultorio, laboratorio, gestao). Consultório e laboratório têm telas próprias (`/consultorio`, `/producao`) e não abrem a da loja; gestão entra em todas. Use `exigirArea()` em toda tela de área. Laboratório não vê valores nem a tabela de clientes (nome vem em `ordens_servico.cliente_nome`).
+- **Cards que conversam:** exame concluído → card na loja (`card_do_exame`); pagamento → OS em "Pago" no lab; lab até "Chegou na loja" → loja avisa e entrega; recados em `os_mensagens`. Etapa da OS tem `area` e o banco confere quem move (`os_etapa_permitida`). Telas com cards usam `<AoVivo tabelas={[...]}/>`.
+- **Permissões:** por perfil e por módulo (`ver`, `criar`, `editar`, `excluir`) em `perfis.permissoes`; adicionais pagos em `otica_adicionais`. A checagem real é no banco (`acesso()`); o menu só esconde o que não pode.
 - **WhatsApp:** nunca automático. Só link `wa.me` com mensagem pronta (`src/lib/whatsapp.ts`). Confirmação de consulta também é manual.
 - **Funil de vendas:** Atendimento → Orçamento enviado → Sem retorno → Recuperado / Perdido. Mover para Perdido exige motivo (regra no banco, trigger `atendimento_mudou`).
-- **Laboratório:** Pago → No laboratório → Em montagem → Chegou na loja → Cliente avisado → Entregue. Ao marcar o atendimento como pago, a OS é criada por `criar_os_do_atendimento()`. O laboratório não vê valores.
+- **Laboratório:** Pago → No laboratório → Em montagem → Chegou na loja → Cliente avisado → Entregue. Ao registrar o pagamento, a OS é criada (`registrar_pagamento()` → `criar_os_do_atendimento()`) com a ficha técnica preenchida pela receita e pelo orçamento. Pago, Cliente avisado e Entregue são da loja; No laboratório, Em montagem e Chegou na loja são do laboratório. Exame concluído não muda mais (prontuário).
 - **Agenda:** o mesmo horário nunca é marcado duas vezes (constraint `consulta_sem_conflito`). O site de agendamento usa `horarios_ocupados()`, que expõe só os horários.
-- **Planos:** Essencial (clientes, receitas, funil, laboratório), Profissional (+ agenda, agendamento online, relatórios, PDV e financeiro) e Rede (sob orçamento, versão aprimorada de PDV e financeiro, multiloja, comissões, nota fiscal).
+- **Plano único (R$ 99):** tudo incluído. Adicionais em `recursos_adicionais`/`otica_adicionais` (nota fiscal, lojas extras); `recurso_ativo()` só bloqueia o que é adicional. `oticas.plano` e `plano_recursos` ficaram só por compatibilidade.
+- **Produto na venda:** não achou no catálogo, cadastra na hora (`criado_na_venda`); armação pede foto (`/catalogo/fotos`, reduzida no navegador); lente não.
 - **PDV e financeiro (Versão 4):** módulos separados no mesmo projeto, com login e menu próprios. O PDV mostra só vendas; o financeiro (gerente) tem contas a pagar e a receber, custos, impostos e acesso do contador. As tabelas já existem; as telas ainda não.
 - **Pagamento:** o primeiro pagamento move o card para a etapa ganha e cria a OS uma única vez (`registrar_pagamento()`).
 - **Site público:** só funções liberadas para `anon` (`site_da_otica`, `pedido_orcamento_site`, `horarios_livres`, `agendar_pelo_site`), com limite de uso e aceite LGPD. O perfil Dono não perde acesso e a ótica nunca fica sem Dono ativo.
@@ -37,7 +42,7 @@ Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Stora
 
 ## Estado atual e próximos passos
 
-Ficam no `README.md` (seções 1 e 2), para não ter duas versões. Resumo: banco testado (0001 a 0004); todo o `src/` foi escrito sem npm e ainda não foi compilado nem executado, então o primeiro passo é `npm install` + `npm run typecheck` + `npm run dev`.
+Ficam no `README.md` (seções 1 e 2), para não ter duas versões. Resumo: banco testado (0001 a 0009); todo o `src/` foi escrito sem npm e ainda não foi compilado nem executado, então o primeiro passo é `npm install` + `npm run typecheck` + `npm run dev`.
 
 ## Telas de referência
 
@@ -48,5 +53,7 @@ O desenho das telas (login, funil, laboratório, ficha do cliente, agenda, agend
 - Mudou o banco? Crie uma nova migração em `supabase/migrations/` (nunca edite a antiga depois de aplicada em produção) e rode os testes da seção 5 do README e acrescente um teste novo em `supabase/tests/` (e no CI) para a regra que criou.
 - Toda tabela nova de negócio: `otica_id`, RLS e entrada na lista do bloco `do $$` do final da migração (ou política própria).
 - Nunca expor `SUPABASE_SERVICE_ROLE_KEY` no navegador. Nunca commitar `.env*` (só `.env.example`).
+- **Desempenho:** em política de RLS, sempre `(select minha_otica())`, `(select acesso(...))`, `(select auth.uid())` (a 0008 converteu as existentes). Índice para toda coluna usada em filtro de tela. Depois de mudança grande no banco, rode `supabase/carga/` e atualize `docs/ESCALA.md`.
+- **Agilidade:** card muda na tela antes de o banco confirmar (atualização otimista), `loading.tsx` em cada área, e botão "Mover para" além de arrastar (toque não arrasta).
 - Funções para o público (site): `security definer`, `grant execute ... to anon`, validação e limite de uso dentro da função. Funções internas: `revoke execute ... from anon` (no Supabase, funções novas nascem executáveis por anon).
 - Commits e comentários em português.

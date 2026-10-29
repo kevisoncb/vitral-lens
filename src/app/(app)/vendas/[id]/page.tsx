@@ -4,6 +4,7 @@ import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { dataHoraBR, moeda } from "@/lib/formatar";
 import { linkWhatsApp, mensagemCobrarRetorno } from "@/lib/whatsapp";
 import { pagar } from "./actions";
+import { moverAtendimentoFormulario } from "../actions";
 
 type Atendimento = {
   id: string;
@@ -24,7 +25,7 @@ export default async function DetalheAtendimento({
   const { erro } = await searchParams;
   const supabase = await criarClienteServidor();
 
-  const [aR, itensR, pagR, osR, oticaR] = await Promise.all([
+  const [aR, itensR, pagR, osR, oticaR, etapasR, motivosR] = await Promise.all([
     supabase
       .from("atendimentos")
       .select("id, descricao, valor_total, clientes(id, nome, telefone), funil_etapas(nome)")
@@ -34,6 +35,8 @@ export default async function DetalheAtendimento({
     supabase.from("pagamentos").select("id, forma, valor, parcelas, sinal, pago_em").eq("atendimento_id", id).order("pago_em"),
     supabase.from("ordens_servico").select("id, numero").eq("atendimento_id", id).maybeSingle(),
     supabase.from("oticas").select("nome").maybeSingle(),
+    supabase.from("funil_etapas").select("id, nome, tipo").eq("visivel", true).order("ordem"),
+    supabase.from("motivos_perda").select("id, nome").eq("ativo", true).order("nome"),
   ]);
 
   const a = aR.data;
@@ -61,6 +64,23 @@ export default async function DetalheAtendimento({
           <Link className="botao-secundario" href="/vendas">Voltar ao funil</Link>
         </div>
       </div>
+
+      <form action={moverAtendimentoFormulario.bind(null, id)} className="bloco linha">
+        <label className="rotulo">Mover para
+          <select className="campo" name="etapa_id" defaultValue="">
+            <option value="" disabled>Escolha a etapa</option>
+            {(etapasR.data ?? []).map((e) => <option key={e.id} value={e.id}>{e.nome}</option>)}
+          </select>
+        </label>
+        <label className="rotulo">Motivo (se for perdido)
+          <select className="campo" name="motivo_perda_id" defaultValue="">
+            <option value="">—</option>
+            {(motivosR.data ?? []).map((m) => <option key={m.id} value={m.id}>{m.nome}</option>)}
+          </select>
+        </label>
+        <label className="rotulo">Observação<input className="campo" name="observacao" /></label>
+        <button className="botao-secundario" type="submit">Mover</button>
+      </form>
 
       <section className="bloco">
         <h2>Orçamento</h2>

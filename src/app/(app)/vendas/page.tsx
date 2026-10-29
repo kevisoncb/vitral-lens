@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AoVivo } from "@/components/ao-vivo";
 import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { QuadroVendas, type Cartao, type Etapa, type Motivo } from "./quadro-vendas";
 
@@ -52,6 +53,7 @@ export default async function PaginaVendas() {
           + Novo atendimento
         </Link>
       </div>
+      <AoVivo tabelas={["atendimentos"]} />
       <QuadroVendas
         etapas={etapas}
         motivos={motivos}

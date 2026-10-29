@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { linkWhatsApp, mensagemOculosPronto } from "@/lib/whatsapp";
 import { dataBR } from "@/lib/formatar";
-import { moverOS } from "./actions";
+import type { Area } from "@/lib/areas";
+import { moverOS } from "@/app/acoes/os";
 
-export type EtapaOS = { id: string; nome: string; final: boolean; avisaCliente: boolean };
+export type EtapaOS = { id: string; nome: string; final: boolean; avisaCliente: boolean; area: "loja" | "laboratorio" };
 export type CartaoOS = {
   id: string;
   numero: number;
@@ -13,9 +15,13 @@ export type CartaoOS = {
   cliente: string;
   telefone: string | null;
   descricao: string;
+  lente: string | null;
   laboratorio: string | null;
+  responsavelLab: string | null;
   prometida: string | null;
   garantiaAte: string | null;
+  retrabalho: boolean;
+  recados: number;
   desde: string;
 };
 
@@ -27,14 +33,22 @@ function diasAte(data: string): number {
   return Math.round((alvo.getTime() - hoje.getTime()) / 86_400_000);
 }
 
-export function QuadroLab({
+/**
+ * Quadro de OS compartilhado: a loja usa em /laboratorio e o laboratório em /producao.
+ * Cada um só arrasta para as etapas da própria área (o banco confere de novo).
+ */
+export function QuadroOS({
   etapas,
   cartoesIniciais,
   nomeOtica,
+  area,
+  linkBase,
 }: {
   etapas: EtapaOS[];
   cartoesIniciais: CartaoOS[];
   nomeOtica: string;
+  area: Area;
+  linkBase: string;
 }) {
   const [cartoes, setCartoes] = useState(cartoesIniciais);
   const [arrastando, setArrastando] = useState<string | null>(null);
@@ -44,6 +58,7 @@ export function QuadroLab({
 
   useEffect(() => setCartoes(cartoesIniciais), [cartoesIniciais]);
 
+  const podeMoverPara = (e: EtapaOS) => area === "gestao" || e.area === area;
   const finais = new Set(etapas.filter((e) => e.final).map((e) => e.id));
   const abertas = cartoes.filter((c) => !finais.has(c.etapaId));
   const vencemAmanha = abertas.filter((c) => c.prometida && diasAte(c.prometida) === 1).length;
@@ -66,7 +81,7 @@ export function QuadroLab({
     const id = arrastando;
     setArrastando(null);
     setAlvo(null);
-    if (!id) return;
+    if (!id || !podeMoverPara(etapa)) return;
     const c = cartoes.find((x) => x.id === id);
     if (!c || c.etapaId === etapa.id) return;
     mover(id, etapa.id);
@@ -82,15 +97,18 @@ export function QuadroLab({
       )}
       {erro && <p className="erro" role="alert">{erro}</p>}
 
-      <section className="quadro" aria-label="Etapas do laboratório">
+      <section className="quadro" aria-label="Etapas das ordens de serviço">
         {etapas.map((etapa) => {
           const daEtapa = cartoes.filter((c) => c.etapaId === etapa.id);
+          const bloqueada = !podeMoverPara(etapa);
           return (
             <div
               key={etapa.id}
               className="coluna"
-              data-alvo={alvo === etapa.id}
+              data-alvo={alvo === etapa.id && !bloqueada}
+              data-bloqueada={bloqueada}
               onDragOver={(e) => {
+                if (bloqueada) return;
                 e.preventDefault();
                 setAlvo(etapa.id);
               }}
@@ -104,7 +122,10 @@ export function QuadroLab({
 
               {daEtapa.map((c) => {
                 const d = c.prometida && !etapa.final ? diasAte(c.prometida) : null;
-                const zap = etapa.avisaCliente ? linkWhatsApp(c.telefone, mensagemOculosPronto(c.cliente, nomeOtica)) : null;
+                const zap =
+                  etapa.avisaCliente && area !== "laboratorio"
+                    ? linkWhatsApp(c.telefone, mensagemOculosPronto(c.cliente, nomeOtica))
+                    : null;
                 return (
                   <article
                     key={c.id}
@@ -120,14 +141,20 @@ export function QuadroLab({
                       setAlvo(null);
                     }}
                   >
-                    <small>OS {c.numero}{c.prometida && !etapa.final ? ` · entrega ${dataBR(c.prometida)}` : ""}</small>
-                    <strong>{c.cliente}</strong>
-                    <small>{c.descricao}</small>
+                    <Link href={`${linkBase}/${c.id}`} className="cartao-link" draggable={false}>
+                      <small>OS {c.numero}{c.prometida && !etapa.final ? ` · entrega ${dataBR(c.prometida)}` : ""}</small>
+                      <br />
+                      <strong>{c.cliente}</strong>
+                    </Link>
+                    <small>{c.lente ?? c.descricao}</small>
+                    {c.responsavelLab && <small>Com {c.responsavelLab}</small>}
                     {c.laboratorio && <small>Lab: {c.laboratorio}</small>}
+                    {c.retrabalho && <span className="etiqueta etiqueta-erro">Retrabalho</span>}
                     {d !== null && d < 0 && <span className="etiqueta etiqueta-erro">Atrasada {-d} {-d === 1 ? "dia" : "dias"}</span>}
                     {d === 0 && <span className="etiqueta etiqueta-erro">Vence hoje</span>}
                     {d === 1 && <span className="etiqueta">Vence amanhã</span>}
                     {etapa.final && c.garantiaAte && <span className="etiqueta etiqueta-ok">Garantia até {dataBR(c.garantiaAte)}</span>}
+                    {c.recados > 0 && <span className="etiqueta">💬 {c.recados} {c.recados === 1 ? "recado" : "recados"}</span>}
                     {zap && (
                       <div className="cartao-acoes">
                         <a href={zap} target="_blank" rel="noopener noreferrer">Avisar no WhatsApp</a>

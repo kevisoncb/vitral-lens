@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { criarClienteServidor } from "@/lib/supabase/servidor";
 
 export type Resultado = { ok: true } | { ok: false; erro: string };
@@ -34,4 +35,13 @@ export async function moverAtendimento(
 
   revalidatePath("/vendas");
   return { ok: true };
+}
+
+/** Versão em formulário (celular e tablet, onde não dá para arrastar). */
+export async function moverAtendimentoFormulario(id: string, formulario: FormData) {
+  const etapaId = String(formulario.get("etapa_id") ?? "");
+  const motivo = String(formulario.get("motivo_perda_id") ?? "") || null;
+  const obs = String(formulario.get("observacao") ?? "").trim() || null;
+  const r = await moverAtendimento(id, etapaId, motivo, obs);
+  redirect(r.ok ? `/vendas/${id}` : `/vendas/${id}?erro=${encodeURIComponent(r.erro)}`);
 }

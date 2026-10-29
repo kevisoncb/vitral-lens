@@ -2,6 +2,7 @@ import Link from "next/link";
 import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { obterSessao } from "@/lib/sessao";
 import { linkWhatsApp, mensagemOculosPronto } from "@/lib/whatsapp";
+import { AoVivo } from "@/components/ao-vivo";
 
 const FUSO = "-03:00";
 
@@ -22,6 +23,10 @@ export default async function Inicio() {
   const verLab = sessao?.pode("laboratorio") ?? false;
   const verAgenda = sessao?.pode("agenda") ?? false;
 
+  const consultorioR = verVendas
+    ? await supabase.from("atendimentos").select("id, descricao, clientes(nome), funil_etapas!inner(ordem)").eq("origem", "consultorio").eq("funil_etapas.ordem", 1).limit(8)
+        .returns<{ id: string; descricao: string | null; clientes: { nome: string } | null }[]>()
+    : null;
   const [semRetornoR, siteR, avisarR, atrasadasR, consultasR, oticaR] = await Promise.all([
     verVendas
       ? supabase.from("atendimentos").select("id, descricao, clientes(nome), funil_etapas!inner(nome)").eq("funil_etapas.nome", "Sem retorno").limit(8)
@@ -54,6 +59,7 @@ export default async function Inicio() {
         <h1>Olá, {sessao?.nome.split(" ")[0]}</h1>
         <p className="subtitulo">O que precisa de atenção hoje.</p>
       </div>
+      <AoVivo tabelas={["atendimentos", "ordens_servico", "consultas"]} />
 
       <div className="duas-colunas">
         {verAgenda && (
@@ -89,6 +95,11 @@ export default async function Inicio() {
 
         {verVendas && (
           <section className="bloco">
+            <h2>Saíram do consultório (receita pronta)</h2>
+            {(consultorioR?.data ?? []).length === 0 && <p className="vazio">Ninguém esperando atendimento.</p>}
+            {(consultorioR?.data ?? []).map((a) => (
+              <Link key={a.id} href={`/vendas/${a.id}`} className="linha-valor"><span>{a.clientes?.nome}</span><small>montar orçamento</small></Link>
+            ))}
             <h2>Pedidos novos pelo site</h2>
             {(siteR?.data ?? []).length === 0 && <p className="vazio">Nenhum pedido novo.</p>}
             {(siteR?.data ?? []).map((a) => (

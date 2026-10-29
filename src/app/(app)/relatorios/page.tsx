@@ -26,13 +26,13 @@ export default async function Relatorios({ searchParams }: { searchParams: Promi
   const ate = `${proximoMes(mes)}-01T00:00:00${FUSO}`;
   const supabase = await criarClienteServidor();
 
-  // relatórios dependem do perfil e do plano (Profissional ou Rede): quem decide é o banco
+  // relatórios dependem do perfil: quem decide é o banco
   const { data: liberado } = await supabase.rpc("acesso", { modulo: "relatorios", acao: "ver" });
   if (!liberado) {
     return (
       <>
         <h1>Relatórios</h1>
-        <p className="subtitulo">Relatórios fazem parte do plano Profissional. Fale com o responsável pela ótica.</p>
+        <p className="subtitulo">Seu perfil não tem acesso aos relatórios. Fale com o responsável pela ótica.</p>
       </>
     );
   }

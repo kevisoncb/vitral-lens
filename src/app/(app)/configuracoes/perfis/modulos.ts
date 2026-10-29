@@ -5,8 +5,9 @@ export const ACOES: Acao[] = ["ver", "criar", "editar", "excluir"];
 export const MODULOS_CONFIGURAVEIS: { modulo: Modulo; rotulo: string }[] = [
   { modulo: "clientes", rotulo: "Clientes" },
   { modulo: "receitas", rotulo: "Receitas" },
+  { modulo: "consultorio", rotulo: "Consultório (exames)" },
   { modulo: "vendas", rotulo: "Vendas (funil e valores)" },
-  { modulo: "laboratorio", rotulo: "Laboratório" },
+  { modulo: "laboratorio", rotulo: "Laboratório (excluir = gerente do lab)" },
   { modulo: "agenda", rotulo: "Agenda" },
   { modulo: "catalogo", rotulo: "Catálogo" },
   { modulo: "relatorios", rotulo: "Relatórios" },

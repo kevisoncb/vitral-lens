@@ -5,9 +5,13 @@
 > Toda sessão (sua ou do Claude) começa aqui e termina atualizando as seções
 > **Estado**, **Checklist** e **Histórico**.
 
-Sistema web para óticas: funil de vendas, laboratório, clientes com receitas, agenda e site institucional com pedido de orçamento e agendamento online. Multiempresa (uma instalação atende várias óticas), responsivo (computador, tablet, celular). Cliente piloto: **Ótica Ômega**.
+**Vitra é o sistema que une as três partes de uma ótica num fluxo só:**
+**consultório** (exame → receita) → **loja** (orçamento → pagamento) → **laboratório** (ficha técnica → construção do óculos → entrega).
+Tudo ligado ao mesmo cliente, sem redigitar nada, com os cards passando de uma área para outra em tempo real.
 
-Stack: Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Storage), Vercel. CSS puro em `src/app/globals.css`.
+Plano único de **R$ 99/mês** com tudo incluído. Adicionais pagos: nota fiscal e lojas extras. Foco inicial: óticas pequenas do interior; depois, cidades grandes.
+
+Stack: Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Storage, Realtime), Vercel. CSS puro em `src/app/globals.css`.
 
 ---
 
@@ -15,36 +19,44 @@ Stack: Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth
 
 Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 
-| Parte | Situação | Onde |
-|---|---|---|
-| Banco: estrutura, RLS, perfis, planos, funil, OS, agenda | ✅ | `supabase/migrations/0001_base_multiempresa.sql` |
-| Banco: pagamento sinal/saldo, OS automática, total do orçamento | ✅ | `0002_pagamento_e_atalhos.sql` |
-| Banco: pasta privada das receitas (Storage) | 🟡 só roda no Supabase | `0003_storage_receitas.sql` |
-| Banco: site, orçamento pelo site, agendamento online, Sem retorno automático, proteção do Dono | ✅ | `0004_site_e_agendamento.sql` |
-| Login, middleware, menu por perfil e plano | 🟡 | `src/middleware.ts`, `src/app/login`, `src/app/(app)/layout.tsx` |
-| Início (o que fazer hoje) | 🟡 | `/inicio` |
-| Funil de vendas (Kanban, motivo de perda, WhatsApp) | 🟡 | `/vendas` |
-| Novo atendimento com orçamento por catálogo | 🟡 | `/vendas/novo` |
-| Detalhe do atendimento, sinal e saldo | 🟡 | `/vendas/[id]` |
-| Clientes, ficha, anotações | 🟡 | `/clientes`, `/clientes/[id]` |
-| Receita (OD/OE, lente de contato, anexo) | 🟡 | `/clientes/[id]/receita/nova` |
-| Laboratório (Kanban de OS, prazos, WhatsApp em "Chegou na loja") | 🟡 | `/laboratorio` |
-| Agenda interna (dia, status, confirmação manual) | 🟡 | `/agenda` |
-| Catálogo | 🟡 | `/catalogo` |
-| Configurações: ótica e site, lojas | 🟡 | `/configuracoes` |
-| Configurações: usuários (cria login com senha temporária) | 🟡 | `/configuracoes/usuarios` |
-| Configurações: perfis e permissões (matriz) | 🟡 | `/configuracoes/perfis` |
-| Configurações: horários de atendimento e bloqueios | 🟡 | `/configuracoes/agenda` |
-| Configurações: etapas do funil e motivos de perda | 🟡 | `/configuracoes/funil` |
-| Relatórios do mês | 🟡 | `/relatorios` |
-| Minha conta (trocar senha) | 🟡 | `/conta` |
-| Site público da ótica + pedido de orçamento | 🟡 | `/site/[slug]` |
-| Agendamento online pelo site | 🟡 | `/site/[slug]/agendar` |
-| PDV e financeiro (Versão 4) | ⬜ só as tabelas | `[modulo]` mostra "em construção" |
-| Nota fiscal, estoque, comissões (Versão 3) | ⬜ | |
-| Painel do Vitra (super admin: criar ótica, mudar plano) | ⬜ | hoje é SQL na mão |
+### Banco (`supabase/migrations/`), testado em Postgres 16 e no CI
 
-**Por que tanta coisa 🟡:** o código de `src/` foi escrito num ambiente sem acesso ao npm. A sintaxe de todos os arquivos foi conferida, mas nunca rodou `npm install`, `typecheck` nem o navegador. Espere erros de tipo pequenos no primeiro `npm run typecheck` (principalmente nos retornos do Supabase, que ainda não têm tipos gerados).
+| Migração | O que faz | Situação |
+|---|---|---|
+| 0001 | Estrutura multiempresa, RLS, perfis, funil, OS, agenda, tabelas de PDV e financeiro | ✅ |
+| 0002 | `otica_id` automático, total do orçamento, `registrar_pagamento()` (sinal/saldo → OS) | ✅ |
+| 0003 | Pasta privada das receitas (Storage) | 🟡 só roda no Supabase |
+| 0004 | Site, orçamento pelo site, agendamento online, "Sem retorno" automático, proteção do Dono | ✅ |
+| 0005 | Consultório (exame → receita), ficha técnica da OS, etapas de produção | ✅ |
+| 0006 | Áreas por perfil, quem move cada etapa, cards que conversam, recados, Realtime, plano único + adicionais, produto cadastrado na venda | ✅ |
+| 0007 | Fotos de produtos (Storage público) | 🟡 só roda no Supabase |
+| 0008 | Desempenho: RLS com `(select ...)`, índices, busca por pedaço do nome | ✅ (teste de carga: `docs/ESCALA.md`) |
+| 0009 | Foto do produto: quem cadastrou na venda põe a primeira | ✅ |
+
+### Telas (`src/`): todas 🟡, escritas sem npm e nunca executadas
+
+| Área | Tela | Rota |
+|---|---|---|
+| Todas | Login, Minha conta | `/login`, `/conta` |
+| Loja e gestão | Início (consultas de hoje, saídos do consultório, pedidos do site, óculos para avisar, sem retorno) | `/inicio` |
+| Loja e gestão | Funil de vendas (Kanban ao vivo, motivo de perda, WhatsApp) | `/vendas` |
+| Loja e gestão | Novo atendimento (catálogo ou **produto novo na hora**, receita do cliente) | `/vendas/novo` |
+| Loja e gestão | Atendimento: orçamento, sinal/saldo, mover etapa (para celular) | `/vendas/[id]` |
+| Loja e gestão | Clientes, ficha com **linha do tempo**, receitas, anotações | `/clientes`, `/clientes/[id]` |
+| Loja e gestão | Ordens de serviço: acompanha, avisa e entrega; recados com o laboratório | `/laboratorio`, `/laboratorio/[id]` |
+| Loja e gestão | Agenda interna | `/agenda` |
+| Loja e gestão | Catálogo com fotos; foto da armação depois da venda | `/catalogo`, `/catalogo/fotos` |
+| Gestão | Relatórios do mês | `/relatorios` |
+| Gestão | Configurações: ótica e site, lojas, usuários, perfis (área + permissões), horários e bloqueios, funil e motivos | `/configuracoes/...` |
+| Consultório | Fila do dia, exame (anamnese, AV, refração, conduta), histórico do paciente | `/consultorio`, `/consultorio/exame/[id]`, `/consultorio/paciente/[id]` |
+| Laboratório | Quadro de produção (ao vivo), OS com ficha técnica editável, etapas da construção, recados | `/producao`, `/producao/os/[id]` |
+| Laboratório (gerente) | Indicadores: prazo, retrabalho, espera, produção por pessoa | `/producao/indicadores` |
+| Público | Site da ótica + pedido de orçamento; agendamento online | `/site/[slug]`, `/site/[slug]/agendar` |
+| — | PDV e financeiro (Versão 4) | ⬜ só as tabelas |
+| — | Nota fiscal, estoque, comissões (Versão 3) | ⬜ |
+| — | Painel do Vitra (criar ótica, adicionais) | ⬜ hoje é SQL |
+
+**Por que tudo 🟡:** o código foi escrito num ambiente sem acesso ao npm. A sintaxe, os caminhos de import e os nomes exportados foram conferidos em todos os arquivos, mas nunca rodou `npm install`, `typecheck` nem o navegador. Espere erros de tipo pequenos no primeiro `npm run typecheck`, principalmente nos retornos do Supabase, que ainda não têm tipos gerados.
 
 ---
 
@@ -53,74 +65,109 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 Marque com `[x]` quando terminar e anote no Histórico.
 
 - [ ] `npm install`, `npm run typecheck`, corrigir os erros. Commitar `package-lock.json`.
-- [ ] Criar o projeto no Supabase (conta do dono do produto) e rodar as migrações 0001 → 0004 no SQL Editor.
-- [ ] Criar a Ótica Ômega, a loja e o usuário dono (SQL na seção 4). Definir o slug: `update oticas set slug = 'omega' where nome = 'Ótica Ômega';`
+- [ ] Criar o projeto no Supabase **na região São Paulo (sa-east-1)**, na conta do dono do produto, e rodar as migrações 0001 → 0009 no SQL Editor.
+- [ ] Criar a Ótica Ômega, a loja e o usuário dono (SQL na seção 4).
 - [ ] Rodar `supabase/seed_catalogo.sql` (ajustar os preços antes).
 - [ ] `.env.local` com as chaves e `npm run dev`. Abrir cada tela da tabela acima e trocar 🟡 por ✅.
-- [ ] Testar o fluxo inteiro: cliente → receita → atendimento → orçamento → sinal → OS no laboratório → "Chegou na loja" → WhatsApp → Entregue.
-- [ ] Testar o site: `/site/omega` publicado, pedido de orçamento vira card em Atendimento; cadastrar horários e testar `/site/omega/agendar`.
-- [ ] (Opcional) Ativar o pg_cron no Supabase: `select cron.schedule('sem-retorno', '0 * * * *', 'select mover_sem_retorno()');` (sem ele, o "Sem retorno" é aplicado quando alguém abre o funil).
-- [ ] Deploy na Vercel (conta do dono), variáveis de ambiente, domínio da Ômega em `SITE_DOMINIOS`.
+- [ ] Testar o fluxo das três áreas com três logins (consultório, balcão, laboratório) em três abas:
+  - [ ] exame → concluir → card aparece no funil da loja;
+  - [ ] orçamento (com um produto novo e foto da armação) → sinal → OS aparece em "Pago" na produção, ao vivo;
+  - [ ] laboratório puxa, registra etapas, manda recado, move para "Chegou na loja";
+  - [ ] loja vê o recado, avisa pelo WhatsApp, entrega.
+- [ ] Testar o site: `/site/omega` publicado, pedido de orçamento vira card; cadastrar horários e testar `/site/omega/agendar`.
+- [ ] Testar no celular e no tablet: mover cards pelo botão "Mover para" (arrastar não funciona no toque).
+- [ ] (Opcional) pg_cron: `select cron.schedule('sem-retorno', '0 * * * *', 'select mover_sem_retorno()');`
+- [ ] Deploy na Vercel (conta do dono, região `gru1`), variáveis de ambiente, domínio da Ômega em `SITE_DOMINIOS`.
 - [ ] Gerar tipos: `npx supabase gen types typescript --project-id <id> > src/lib/supabase/tipos.ts` e usar nos clientes.
-- [ ] Depois: painel do Vitra (super admin), importação de planilha, multiloja, PDV e financeiro.
+- [ ] Definir o preço dos adicionais: nota fiscal (sugestão: +R$ 50) e loja extra.
+- [ ] Ideias da concorrência para depois: assinatura digital da OS pelo link, medida de DNP pela câmera, entrada de produtos por XML, etiqueta com código de barras.
+- [ ] Depois: painel do Vitra, importação de planilha, PDV e financeiro, nota fiscal via API (Focus NFe, NFe.io).
 
 ---
 
 ## 3. Regras do produto (não mudar sem combinar)
 
-- **Multiempresa:** toda tabela de negócio tem `otica_id` e RLS. Receita é dado de saúde (LGPD).
-- **Permissões:** perfil × módulo × ação (`ver`, `criar`, `editar`, `excluir`) em `perfis.permissoes`, e o plano libera módulos em `plano_recursos`. Quem decide é o banco (`acesso()`); a tela só esconde botões. O perfil Dono não pode perder acesso e a ótica nunca fica sem Dono ativo (triggers da 0004).
+- **Diferencial:** consultório, loja e laboratório num fluxo só. Cada parte com tela própria; os cards passam de uma para outra.
+- **Áreas:** todo perfil tem uma área (`perfis.area`).
+  - **Loja:** balcão. Agenda, vendas, clientes, catálogo, acompanhar e entregar a OS.
+  - **Consultório:** só exames e histórico do paciente.
+  - **Laboratório:** só produção. Não vê valores nem o cadastro de clientes; o nome vem na OS.
+  - **Gestão:** tudo, e entra em qualquer área.
+  - Quem é do consultório ou do laboratório cai direto na sua tela e não abre a da loja. O **gerente de laboratório** é da área laboratório, com `laboratorio:excluir`, e vê os indicadores.
+- **Cards que conversam:**
+  - exame concluído → receita → card em "Atendimento" na loja;
+  - pagamento → OS em "Pago" no laboratório;
+  - laboratório move até "Chegou na loja" → a loja avisa e entrega;
+  - recados no card (`os_mensagens`);
+  - tudo ao vivo (Supabase Realtime).
+- **Quem move cada etapa da OS:** "Pago", "Cliente avisado" e "Entregue" são da loja; "No laboratório", "Em montagem" e "Chegou na loja" são do laboratório; a gestão move qualquer uma. Quem confere é o banco (`os_etapa_permitida`).
+- **Exame concluído não muda mais** (é prontuário). Correção = novo exame.
+- **Multiempresa:** toda tabela de negócio tem `otica_id` e RLS. Receita e exame são dados de saúde (LGPD).
+- **Permissões:** perfil × módulo × ação (`ver`, `criar`, `editar`, `excluir`). Quem decide é o banco (`acesso()`); a tela só esconde botões. O perfil Dono não perde acesso e a ótica nunca fica sem Dono ativo.
+- **Plano único:** tudo incluído. Adicionais em `recursos_adicionais` / `otica_adicionais`: nota fiscal e lojas extras (o banco bloqueia a 2ª loja sem o adicional).
+- **Produto na venda:** se não estiver no catálogo, o balcão cadastra ali mesmo e ele entra no catálogo. Armação pede foto (reduzida no aparelho antes de enviar); lente não.
 - **WhatsApp:** nunca automático. Só link `wa.me` com mensagem pronta (`src/lib/whatsapp.ts`).
-- **Funil:** Atendimento → Orçamento enviado → Sem retorno → Recuperado / Perdido. Perdido exige motivo. Card parado além de "dias parado" vai sozinho para a etapa seguinte.
-- **Pagamento:** o primeiro pagamento (sinal ou total) move o card para a etapa ganha e cria a OS uma única vez (`registrar_pagamento()`).
-- **Laboratório:** Pago → No laboratório → Em montagem → Chegou na loja → Cliente avisado → Entregue. O laboratório não vê valores. Entregue grava a data e a garantia de 6 meses.
-- **Agenda:** o mesmo horário nunca é marcado duas vezes. O site só vê horários livres, nunca nomes.
-- **Site público:** só funções `security definer` liberadas para `anon` (`site_da_otica`, `pedido_orcamento_site`, `horarios_livres`, `agendar_pelo_site`), com limite de pedidos por telefone e por hora, e aceite LGPD obrigatório.
-- **Planos:** Essencial (clientes, receitas, funil, laboratório), Profissional (+ agenda, agendamento online, relatórios, PDV e financeiro), Rede (sob orçamento: multiloja, comissões, nota fiscal, PDV e financeiro aprimorados).
-- **Service role** (`SUPABASE_SERVICE_ROLE_KEY`) só no servidor e só para o Auth (criar login). Nunca no navegador, nunca em commit.
+- **Funil:** Atendimento → Orçamento enviado → Sem retorno → Recuperado / Perdido. Perdido exige motivo. Card parado vai sozinho para a etapa seguinte.
+- **Pagamento:** o primeiro pagamento move o card para a etapa ganha e cria a OS uma única vez.
+- **Agenda:** o mesmo horário nunca é marcado duas vezes. O site só vê horários livres.
+- **Site público:** só funções `security definer` liberadas para `anon`, com limite de uso e aceite LGPD.
+- **Agilidade:**
+  - o card muda na tela antes de o banco confirmar;
+  - as telas atualizam sozinhas;
+  - aparece um esqueleto na troca de tela;
+  - toda regra de segurança nova usa `(select função())`, para não ficar lenta com muitas óticas.
+- **Service role** só no servidor e só para o Auth (criar login).
 - Código, domínio, Supabase e Vercel ficam no nome do dono do produto.
 
 ---
 
 ## 4. Como rodar
 
-1. Supabase → SQL Editor, nesta ordem: `0001_base_multiempresa.sql`, `0002_pagamento_e_atalhos.sql`, `0003_storage_receitas.sql`, `0004_site_e_agendamento.sql`.
+1. Supabase (região São Paulo) → SQL Editor: rode `supabase/migrations/0001` a `0009`, em ordem.
 2. Primeira ótica e usuário dono (Authentication → Users → criar usuário; depois no SQL Editor):
 
 ```sql
-insert into oticas (nome, plano, status, slug) values ('Ótica Ômega', 'profissional', 'ativa', 'omega') returning id;
+insert into oticas (nome, status, slug) values ('Ótica Ômega', 'ativa', 'omega') returning id;
 insert into lojas (otica_id, nome) values ('<id da ótica>', 'Loja Centro');
 insert into usuarios (id, otica_id, perfil_id, nome, email)
 select '<id do usuário no Auth>', '<id da ótica>', id, 'Nome do dono', 'email@exemplo.com'
 from perfis where otica_id = '<id da ótica>' and chave = 'dono';
+-- adicional contratado (exemplo): insert into otica_adicionais (otica_id, recurso) values ('<id>', 'nota_fiscal');
 ```
 
 3. `supabase/seed_catalogo.sql` para o catálogo de exemplo.
 4. `cp .env.example .env.local`, preencher as chaves, `npm install`, `npm run dev`.
-5. Funcionários: o dono cria em **Configurações → Usuários** (gera senha temporária; a pessoa troca em **Minha conta**).
+5. Funcionários: o dono cria em **Configurações → Usuários** e escolhe o perfil. A área do perfil decide a tela da pessoa. O sistema gera uma senha temporária; a pessoa troca em **Minha conta**.
 
 ## 5. Testar o banco sem Supabase
 
 ```bash
 psql -f supabase/tests/stub_supabase.sql
-for m in supabase/migrations/000*.sql; do psql -v ON_ERROR_STOP=1 -f "$m"; done
-psql -f supabase/tests/rls_smoke.sql        # erros "row-level security" e "Informe o motivo da perda" são esperados
-psql -f supabase/tests/pagamento_smoke.sql  # erros "valor maior que zero" e "Sem permissão" são esperados
-psql -f supabase/tests/site_smoke.sql       # erros de limite, horário ocupado e proteções do Dono são esperados
+for m in supabase/migrations/0*.sql; do psql -v ON_ERROR_STOP=1 -f "$m"; done
+psql -f supabase/tests/rls_smoke.sql          # permissões e isolamento
+psql -f supabase/tests/pagamento_smoke.sql    # sinal, saldo, OS automática
+psql -f supabase/tests/site_smoke.sql         # site, agendamento online, Sem retorno, Dono
+psql -f supabase/tests/consultorio_smoke.sql  # exame → receita → OS com ficha → produção
+psql -f supabase/tests/areas_smoke.sql        # áreas, cards que conversam, plano, produto na venda
 ```
 
-O GitHub Actions (`.github/workflows/ci.yml`) roda tudo isso a cada push e confere as linhas esperadas.
+Cada teste imprime as linhas esperadas e alguns erros de propósito: eles provam que o bloqueio funciona. O GitHub Actions (`.github/workflows/ci.yml`) roda tudo a cada push e confere as linhas. O teste de carga (1.000 óticas) está em `supabase/carga/` e os resultados em `docs/ESCALA.md`.
 
 ## 6. Mapa do código
 
 ```
 supabase/migrations/   uma migração por mudança; nunca editar uma já aplicada em produção
 supabase/tests/        testes do banco (stub do Supabase + testes de fumaça)
-src/lib/               supabase (servidor, público, admin), permissões, sessão, formatação, WhatsApp
-src/app/login/         tela de login
-src/app/(app)/         sistema logado (menu lateral): inicio, vendas, clientes, laboratorio, agenda,
-                       catalogo, relatorios, configuracoes, conta, [modulo] = "em construção"
+supabase/carga/        teste de carga (gerar dados, medir telas, usuários simultâneos)
+docs/ESCALA.md         capacidade medida, custo por fase, plano de crescimento
+src/lib/               supabase (servidor, navegador, público, admin), sessão e áreas, permissões, OS, formatação, WhatsApp
+src/components/        barra das áreas, tempo real (AoVivo), linha do tempo, OS (quadro, ficha, recados, painel)
+src/app/acoes/         Server Actions compartilhadas (OS)
+src/app/(app)/         tela da loja e da gestão (menu lateral)
+src/app/consultorio/   tela do consultório
+src/app/producao/      tela do laboratório
 src/app/site/[slug]/   site público da ótica e agendamento online (sem login)
+src/app/conta/         minha conta (qualquer área)
 ```
 
 ---
@@ -129,6 +176,11 @@ src/app/site/[slug]/   site público da ótica e agendamento online (sem login)
 
 Mais recente em cima. Uma linha por sessão: data, o que mudou, o que ficou pendente.
 
-- **2026-10-29 (3)** — Migração 0004 (site, orçamento pelo site, agendamento online, Sem retorno automático, proteção do Dono, revoke de funções para anon) com `site_smoke.sql` no CI. Telas: Início, Catálogo, Configurações (ótica/site, lojas, usuários, perfis, horários, bloqueios, funil, motivos), Relatórios, Minha conta, site público e agendamento. README virou este documento vivo. Pendente: compilar e rodar (sem npm no ambiente).
-- **2026-10-29 (2)** — Migrações 0002 (pagamento, OS automática, otica_id automático) e 0003 (Storage). Telas de clientes, receitas, novo atendimento, pagamento, laboratório e agenda.
+- **2026-10-29 (4)** — Novo posicionamento: consultório + loja + laboratório num fluxo só; plano único de R$ 99 com adicionais (nota fiscal, lojas extras).
+  - Migrações 0005 a 0009: consultório (exame que gera receita), ficha técnica e produção da OS, áreas por perfil, quem move cada etapa, cards que conversam, recados, Realtime, gerente de laboratório, produto cadastrado na venda com foto, desempenho.
+  - Teste de carga com 1.000 óticas: funil de 366 ms para 2 ms; cerca de 1.100 telas por segundo com 100 conexões. Resultados em `docs/ESCALA.md`.
+  - Telas novas: consultório, produção, indicadores do lab, OS com recados, linha do tempo do cliente, foto da armação, mover etapa pelo celular, esqueleto de carregamento.
+  - Pendente: compilar e rodar (sem npm no ambiente).
+- **2026-10-29 (3)** — Migração 0004 (site, orçamento pelo site, agendamento online, Sem retorno automático, proteção do Dono). Telas: Início, Catálogo, Configurações, Relatórios, Minha conta, site público e agendamento. README virou documento vivo.
+- **2026-10-29 (2)** — Migrações 0002 (pagamento, OS automática) e 0003 (Storage). Telas de clientes, receitas, novo atendimento, pagamento, laboratório e agenda.
 - **2026-10-29 (1)** — Base: migração 0001 testada, login, menu, funil Kanban, CI, CLAUDE.md.

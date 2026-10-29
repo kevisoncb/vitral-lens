@@ -1,30 +1,16 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { criarClienteServidor } from "@/lib/supabase/servidor";
-import { MENU, moduloLiberado, pode, type Permissoes } from "@/lib/permissoes";
+import { MENU } from "@/lib/permissoes";
+import { INICIO_DA_AREA, ROTULO_AREA } from "@/lib/areas";
+import { obterSessao } from "@/lib/sessao";
 import { sair } from "../login/actions";
 import { Navegacao } from "./navegacao";
 
-type LinhaUsuario = {
-  nome: string;
-  perfis: { nome: string; permissoes: Permissoes } | null;
-  oticas: { nome: string; plano: string } | null;
-};
+/** Tela da loja (balcão) e da gestão. Consultório e laboratório vão para as telas deles. */
+export default async function LayoutDaLoja({ children }: { children: React.ReactNode }) {
+  const sessao = await obterSessao();
 
-export default async function LayoutDoSistema({ children }: { children: React.ReactNode }) {
-  const supabase = await criarClienteServidor();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: usuario } = await supabase
-    .from("usuarios")
-    .select("nome, perfis(nome, permissoes), oticas(nome, plano)")
-    .eq("id", user.id)
-    .maybeSingle<LinhaUsuario>();
-
-  if (!usuario || !usuario.perfis || !usuario.oticas) {
+  if (!sessao) {
     return (
       <main className="conteudo">
         <h1>Acesso não liberado</h1>
@@ -33,25 +19,20 @@ export default async function LayoutDoSistema({ children }: { children: React.Re
           pela sua ótica.
         </p>
         <form action={sair}>
-          <button className="botao-secundario" type="submit">
-            Sair
-          </button>
+          <button className="botao-secundario" type="submit">Sair</button>
         </form>
       </main>
     );
   }
 
-  const { data: recursos } = await supabase.from("plano_recursos").select("plano, recurso");
-  const controlados = new Set((recursos ?? []).map((r) => r.recurso as string));
-  const doPlano = new Set(
-    (recursos ?? []).filter((r) => r.plano === usuario.oticas!.plano).map((r) => r.recurso as string),
-  );
+  if (sessao.area === "consultorio" || sessao.area === "laboratorio") {
+    redirect(INICIO_DA_AREA[sessao.area]);
+  }
 
+  const gestao = sessao.area === "gestao";
   const itens = MENU.filter(
     (item) =>
-      item.modulo === null ||
-      (pode(usuario.perfis!.permissoes, item.modulo, "ver") &&
-        moduloLiberado(item.modulo, doPlano, controlados)),
+      (!item.soGestao || gestao) && (item.modulo === null || sessao.pode(item.modulo, "ver")),
   ).map(({ rotulo, href }) => ({ rotulo, href }));
 
   return (
@@ -60,11 +41,11 @@ export default async function LayoutDoSistema({ children }: { children: React.Re
         <strong style={{ padding: "0 10px 24px", fontSize: 20, color: "#fff" }}>Vitra</strong>
         <Navegacao itens={itens} />
         <div className="menu-rodape">
-          {usuario.oticas.nome}
+          {sessao.oticaNome} · {ROTULO_AREA[sessao.area]}
           <br />
-          {usuario.nome} ({usuario.perfis.nome})
+          {sessao.nome} ({sessao.perfilNome})
           <br />
-          <a href="/conta" style={{ color: "#b5ccc7" }}>Minha conta</a>
+          <Link href="/conta" style={{ color: "#b5ccc7" }}>Minha conta</Link>
           <form action={sair} style={{ marginTop: 10 }}>
             <button
               type="submit"

@@ -6,6 +6,9 @@ import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { MODULOS_CONFIGURAVEIS, ACOES } from "./modulos";
 import { textoOuNulo } from "@/lib/formatar";
 
+const AREAS = ["loja", "consultorio", "laboratorio", "gestao"];
+const areaValida = (v: FormDataEntryValue | null) => (AREAS.includes(String(v)) ? String(v) : "loja");
+
 export async function salvarPerfil(id: string, formulario: FormData) {
   const supabase = await criarClienteServidor();
   const { data: perfil } = await supabase.from("perfis").select("chave").eq("id", id).maybeSingle();
@@ -21,7 +24,7 @@ export async function salvarPerfil(id: string, formulario: FormData) {
   }
   const { error } = await supabase
     .from("perfis")
-    .update({ permissoes, nome: textoOuNulo(formulario.get("nome")) ?? undefined })
+    .update({ permissoes, area: areaValida(formulario.get("area")), nome: textoOuNulo(formulario.get("nome")) ?? undefined })
     .eq("id", id);
   if (error) redirect(`/configuracoes/perfis?erro=${encodeURIComponent(error.message)}`);
   revalidatePath("/", "layout");
@@ -34,7 +37,7 @@ export async function criarPerfil(formulario: FormData) {
   const supabase = await criarClienteServidor();
   const { data: otica } = await supabase.from("oticas").select("id").maybeSingle();
   const chave = nome.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "_").slice(0, 30) + "_" + Date.now().toString(36);
-  const { error } = await supabase.from("perfis").insert({ otica_id: otica?.id, chave, nome, permissoes: {} });
+  const { error } = await supabase.from("perfis").insert({ otica_id: otica?.id, chave, nome, area: areaValida(formulario.get("area")), permissoes: {} });
   if (error) redirect(`/configuracoes/perfis?erro=${encodeURIComponent(error.message)}`);
   revalidatePath("/configuracoes/perfis");
 }

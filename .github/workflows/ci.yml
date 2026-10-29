@@ -82,6 +82,8 @@ jobs:
           grep -q "Para abrir outra, contrate o adicional" areas.txt
           grep -q "lojas com adicional (esperado 2) | *2" areas.txt
           grep -q "preco intacto | 450.00" areas.txt
+          grep -q "balcao poe primeira foto | t" areas.txt
+          grep -q "Seu perfil não pode trocar a foto" areas.txt
 
   web:
     name: Aplicativo (tipos)
