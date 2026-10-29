@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  banco:
+    name: Banco de dados (migração e permissões)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - name: Aplicar o schema
+        run: |
+          psql -v ON_ERROR_STOP=1 -q -f supabase/tests/stub_supabase.sql
+          psql -v ON_ERROR_STOP=1 -q -f supabase/migrations/0001_base_multiempresa.sql
+      - name: Teste de permissões
+        run: |
+          psql -q -f supabase/tests/rls_smoke.sql 2>&1 | tee saida.txt
+          # Cada linha abaixo prova um bloqueio ou uma regra do banco
+          grep -q "new row violates row-level security policy" saida.txt
+          grep -q "Informe o motivo da perda" saida.txt
+          grep -q "consulta_sem_conflito" saida.txt
+          grep -q "lab criou OS direto (esperado numeros 1,2) | 1,2" saida.txt
+
+  web:
+    name: Aplicativo (tipos)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run typecheck
