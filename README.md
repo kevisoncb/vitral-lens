@@ -69,6 +69,7 @@ A venda do PDV (`src/app/pdv/venda.tsx`) foi aberta no navegador com produtos de
 | Gestão | Importar planilha (Excel `.xlsx` ou CSV): clientes e produtos, com prévia e relatório de erros | `/configuracoes/importar` |
 | Público | Site da ótica + pedido de orçamento; agendamento online | `/site/[slug]`, `/site/[slug]/agendar` |
 | Público | Site do Vitral com preço e lista de espera (quem está logado vai para o sistema) | `/` |
+| Público | Guia da reforma tributária para óticas (linha do tempo, Simples híbrido e prazos, nota fiscal, checklist, fontes); link no site, no financeiro e no cadastro do produto | `/reforma-tributaria` |
 | Todas | Instalar como app (PWA): ícone na tela inicial, tela cheia, atalhos para Vendas, Caixa e Produção | `/manifest.webmanifest` |
 | PDV | Caixa: abrir, venda rápida (código de barras, várias formas, crediário, troco), sangria/suprimento, fechar com conferência | `/pdv` |
 | PDV | Vendas do dia (gerente cancela e devolve ao estoque), caixas fechados com diferença | `/pdv/vendas`, `/pdv/caixas` |
@@ -112,6 +113,8 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - [ ] Testar as etiquetas numa impressora de etiquetas de verdade e ler com o leitor do PDV.
 - [x] Entrada de produtos pelo XML da NF-e do fornecedor (`/estoque/nota`, leitor em `src/lib/nfe.ts`).
 - [x] Impostos e formação de custo no cadastro do produto (`/catalogo/[id]`).
+- [x] Guia da reforma tributária (`/reforma-tributaria`, atualizado em 04/11/2026).
+- [ ] Revisar o guia quando o Senado confirmar a alíquota da CBS de 2027 (até dezembro) e se o prazo de desistência do híbrido (30/11) for adiado.
 - [ ] Preencher NCM e CSOSN dos produtos das Óticas Nery com o contador (sem eles o produto não sai na nota fiscal).
 - [ ] Ideias da concorrência para depois: assinatura digital da OS pelo link, medida de DNP pela câmera.
 - [x] Versão 2: importação de planilha (clientes e produtos) e site do Vitral com lista de espera.
@@ -243,6 +246,8 @@ src/app/conta/         minha conta (qualquer área)
 
 Mais recente em cima. Uma linha por sessão: data, o que mudou, o que ficou pendente.
 
+- **2026-11-04 (19)** — Guia da reforma tributária para óticas em `/reforma-tributaria` (público, aberto também para quem está logado): linha do tempo 2026–2033, Simples Nacional e Simples híbrido com os prazos de 2027, o que muda na nota fiscal, checklist e fontes oficiais com data. Links no site do Vitral, no financeiro e no cadastro do produto.
+  - Pendente: atualizar com a alíquota da CBS confirmada (dezembro).
 - **2026-11-04 (18)** — Impostos e custo no produto: migração 0017 (campos fiscais, custo em partes, `custo_final`; `registrar_entrada_nfe()` grava NCM/CEST/origem só onde estão vazios), leitor do XML traz insumos e impostos por unidade, tela `/catalogo/[id]` com precificação ao vivo, entrada pela nota com as colunas de custo, valor do estoque pelo custo final. Testes no `nfe_smoke.sql` e em `testes/nfe.test.mjs`.
   - Pendente: guia da reforma tributária e emissão da NFC-e (em andamento).
 - **2026-11-04 (17)** — Entrada de mercadoria pelo XML da NF-e do fornecedor: leitor `src/lib/nfe.ts` (itens, EAN, NCM → categoria, duplicatas; testes com uma nota de exemplo em `testes/notas/`), migração 0016 (`notas_entrada`, `registrar_entrada_nfe()`), teste `nfe_smoke.sql` no CI e tela `/estoque/nota`.

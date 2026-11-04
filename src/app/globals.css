@@ -533,3 +533,16 @@ a.linha-valor { text-decoration: none; color: inherit; }
   .etiquetas-rolo .etiqueta-produto:last-child { break-after: auto; }
   .etiquetas-a4 { page: etiqueta-a4; display: grid; grid-template-columns: repeat(3, 66.7mm); grid-auto-rows: 25.4mm; column-gap: 3.1mm; }
 }
+
+/* Guia da reforma tributária (/reforma-tributaria) */
+.guia .site-bloco h2 { font-size: 24px; letter-spacing: -0.01em; }
+.guia .site-bloco h3 { margin: 0; font-size: 17px; }
+.guia-selo { margin: 0; align-self: flex-start; padding: 4px 10px; border-radius: 999px; background: #fff; color: var(--site-cor); font-size: 13px; font-weight: 700; }
+.guia-lista { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; line-height: 1.6; max-width: 760px; }
+.guia-tempo { list-style: none; margin: 0; padding: 0 0 0 18px; border-left: 3px solid color-mix(in srgb, var(--site-cor) 35%, #fff); display: flex; flex-direction: column; gap: 14px; max-width: 760px; }
+.guia-tempo li { display: flex; flex-direction: column; gap: 2px; position: relative; line-height: 1.55; }
+.guia-tempo li::before { content: ""; position: absolute; left: -26px; top: 6px; width: 13px; height: 13px; border-radius: 50%; background: var(--site-cor); border: 2px solid #fff; }
+.guia-tempo strong { font-size: 18px; }
+.guia-pendente { background: #fdecd3; color: #7a4105; border-radius: 12px; padding: 14px 16px; max-width: 760px; line-height: 1.55; }
+.guia-prazos { background: color-mix(in srgb, var(--site-cor) 8%, #fff); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; max-width: 760px; }
+.guia-fontes { font-size: 15px; }

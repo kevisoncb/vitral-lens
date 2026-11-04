@@ -52,6 +52,8 @@ export async function middleware(request: NextRequest) {
 
   const caminho = request.nextUrl.pathname;
   // "/" é o site do Vitral (lista de espera); quem está logado vai direto para o sistema
+  // páginas públicas que também abrem para quem está logado: o guia da reforma
+  if (caminho === "/reforma-tributaria") return response;
   const publica = caminho === "/login" || caminho === "/";
 
   if (!user && !publica) {

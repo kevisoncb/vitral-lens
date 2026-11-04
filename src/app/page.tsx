@@ -41,6 +41,7 @@ export default function SiteDoVitral() {
           <a href="#como-funciona">Como funciona</a>
           <a href="#preco">Preço</a>
           <a href="#lista">Lista de espera</a>
+          <Link href="/reforma-tributaria">Reforma tributária</Link>
           <Link href="/login">Entrar</Link>
         </nav>
       </header>
@@ -89,6 +90,12 @@ export default function SiteDoVitral() {
         <h2>Lista de espera</h2>
         <p>Estamos abrindo aos poucos, uma ótica de cada vez, com a implantação feita junto com você. Deixe seu contato.</p>
         <FormularioLista />
+      </section>
+
+      <section className="site-bloco">
+        <h2>Reforma tributária: o que muda em janeiro</h2>
+        <p>CBS no lugar de PIS e Cofins, nota fiscal com os novos impostos e a escolha do Simples híbrido. Fizemos um guia curto, com datas e fontes, para o dono de ótica.</p>
+        <p><Link href="/reforma-tributaria">Ler o guia da reforma para óticas</Link></p>
       </section>
 
       <footer className="site-rodape">Vitral · sistema para óticas</footer>

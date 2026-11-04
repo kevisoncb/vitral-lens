@@ -128,7 +128,7 @@ export default async function VisaoDoMes({ searchParams }: { searchParams: Promi
           ) : (
             <small className="vazio">A alíquota é definida por quem edita as configurações da ótica.</small>
           )}
-          <small className="vazio">Estimativa para planejar; o valor oficial vem do contador.</small>
+          <small className="vazio">Estimativa para planejar; o valor oficial vem do contador. <Link href="/reforma-tributaria">O que muda com a reforma tributária em 2027</Link>.</small>
         </section>
 
         <section className="bloco">
