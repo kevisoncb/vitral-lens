@@ -4,6 +4,7 @@ import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { moeda } from "@/lib/formatar";
 import { buscarClientes, registrarVenda, type PagamentoVenda, type ResultadoVenda } from "./actions";
+import { BotaoNota } from "./botao-nota";
 
 export type ProdutoPdv = { id: string; nome: string; codigo: string | null; preco: number; saldo: number | null };
 
@@ -25,7 +26,7 @@ const numero = (t: string) => {
 const texto = (n: number) => n.toFixed(2).replace(".", ",");
 
 /** Venda rápida: busca por nome ou leitor de código de barras (digita o código e Enter). */
-export function Venda({ caixaId, produtos }: { caixaId: string; produtos: ProdutoPdv[] }) {
+export function Venda({ caixaId, produtos, notaFiscal = false }: { caixaId: string; produtos: ProdutoPdv[]; notaFiscal?: boolean }) {
   const router = useRouter();
   const [busca, setBusca] = useState("");
   const [linhas, setLinhas] = useState<Linha[]>([]);
@@ -273,10 +274,13 @@ export function Venda({ caixaId, produtos }: { caixaId: string; produtos: Produt
       </fieldset>
 
       {resultado && (
-        <p className={resultado.ok ? "ok" : "erro"} role="status">
-          {resultado.mensagem}
-          {resultado.vendaId && <> <a href={`/cupom/${resultado.vendaId}?imprimir=1`} target="_blank" rel="noopener">Imprimir cupom</a></>}
-        </p>
+        <div className={resultado.ok ? "ok" : "erro"} role="status" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <span>
+            {resultado.mensagem}
+            {resultado.vendaId && <> <a href={`/cupom/${resultado.vendaId}?imprimir=1`} target="_blank" rel="noopener">Imprimir cupom</a></>}
+          </span>
+          {resultado.vendaId && notaFiscal && <BotaoNota key={resultado.vendaId} vendaId={resultado.vendaId} nota={null} />}
+        </div>
       )}
       <div className="janela-botoes">
         <button type="button" className="botao-secundario" onClick={() => { setLinhas([]); setResultado(null); }} disabled={linhas.length === 0 || enviando}>Limpar</button>

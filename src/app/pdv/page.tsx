@@ -55,7 +55,7 @@ export default async function PaginaCaixa({ searchParams }: { searchParams: Prom
     );
   }
 
-  const [produtosR, saldosR, vendasR, movR] = await Promise.all([
+  const [produtosR, saldosR, vendasR, movR, notaR] = await Promise.all([
     supabase.from("catalogo_itens").select("id, nome, codigo, preco, controla_estoque").eq("ativo", true).order("nome").limit(3000),
     supabase.from("estoque_saldos").select("item_id, quantidade").eq("loja_id", caixa.loja_id),
     supabase
@@ -65,7 +65,9 @@ export default async function PaginaCaixa({ searchParams }: { searchParams: Prom
       .order("criado_em", { ascending: false })
       .returns<VendaCaixa[]>(),
     supabase.from("caixa_movimentos").select("id, tipo, valor, motivo, criado_em").eq("caixa_id", caixa.id).order("criado_em"),
+    supabase.rpc("recurso_ativo", { r: "nota_fiscal" }),
   ]);
+  const notaFiscal = notaR.data === true;
 
   const saldo = new Map((saldosR.data ?? []).map((s) => [s.item_id, s.quantidade]));
   const produtos: ProdutoPdv[] = (produtosR.data ?? []).map((p) => ({
@@ -102,7 +104,7 @@ export default async function PaginaCaixa({ searchParams }: { searchParams: Prom
       {ok && <p className="ok" role="status">{ok}</p>}
 
       <div className="pdv-grade">
-        <Venda caixaId={caixa.id} produtos={produtos} />
+        <Venda caixaId={caixa.id} produtos={produtos} notaFiscal={notaFiscal} />
 
         <aside className="pdv-lado">
           <section className="bloco">

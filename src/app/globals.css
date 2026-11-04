@@ -546,3 +546,7 @@ a.linha-valor { text-decoration: none; color: inherit; }
 .guia-pendente { background: #fdecd3; color: #7a4105; border-radius: 12px; padding: 14px 16px; max-width: 760px; line-height: 1.55; }
 .guia-prazos { background: color-mix(in srgb, var(--site-cor) 8%, #fff); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; max-width: 760px; }
 .guia-fontes { font-size: 15px; }
+
+/* NFC-e no PDV */
+.nota-fiscal { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.ok-texto { color: var(--ok-texto); font-weight: 600; }

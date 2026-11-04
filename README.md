@@ -40,6 +40,7 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 | 0015 | Código interno para etiqueta (`gerar_codigos_catalogo()`: 2 + 9 dígitos, pula os já usados) | ✅ |
 | 0016 | Entrada pelo XML da NF-e do fornecedor (`notas_entrada`, `registrar_entrada_nfe()`): catálogo, estoque com custo e parcelas a pagar numa transação; a mesma nota não entra duas vezes | ✅ |
 | 0017 | Impostos e custo no produto: NCM, CEST, origem, CFOP, CSOSN/CST, alíquota ICMS, cClassTrib (IBS/CBS), unidade; custo em partes (compra + insumos + impostos = `custo_final`); entrada pela nota grava tudo e não sobrescreve o fiscal já corrigido | ✅ |
+| 0018 | NFC-e pelo caixa via Focus NFe: configuração fiscal da ótica, `nfe_credenciais` (token por ótica, só o servidor usa), `notas_fiscais`, `preparar_nfce()` (confere adicional, cadastro fiscal, rateia o desconto, retoma nota sem resposta), `registrar_retorno_nfce()`, cancelamento em 30 min só pelo gerente | ✅ |
 
 ### Telas (`src/`): todas 🟡, compilam (`typecheck` e `build` passam) mas ainda não foram abertas com um Supabase de verdade
 
@@ -73,10 +74,11 @@ A venda do PDV (`src/app/pdv/venda.tsx`) foi aberta no navegador com produtos de
 | Todas | Instalar como app (PWA): ícone na tela inicial, tela cheia, atalhos para Vendas, Caixa e Produção | `/manifest.webmanifest` |
 | PDV | Caixa: abrir, venda rápida (código de barras, várias formas, crediário, troco), sangria/suprimento, fechar com conferência | `/pdv` |
 | PDV | Vendas do dia (gerente cancela e devolve ao estoque), caixas fechados com diferença | `/pdv/vendas`, `/pdv/caixas` |
+| PDV | NFC-e: emitir depois de finalizar a venda ou na lista de vendas, DANFCe, cancelamento pelo gerente em até 30 min (com o adicional `nota_fiscal`; só Simples Nacional nesta versão) | `/pdv`, `/pdv/vendas` |
 | PDV | Cupom sem valor fiscal (impressora térmica de 80 mm), aberto ao finalizar a venda | `/cupom/[id]` |
 | Financeiro | Visão do mês (entradas, saídas, a pagar, a receber, impostos, comissões), exportação CSV para o contador | `/financeiro`, `/financeiro/exportar` |
 | Financeiro | Contas a pagar (repetir por meses), contas a receber (parcelas, lembrete no WhatsApp), categorias de custo | `/financeiro/pagar`, `/financeiro/receber`, `/financeiro/categorias` |
-| — | Nota fiscal (Versão 3) | ⬜ falta escolher a API (Focus NFe, NFe.io) |
+| — | NF-e modelo 55 (venda para empresa, devolução) e NFC-e no regime normal | ⬜ |
 | Vitral | Painel: óticas (criar com o login do dono, situação, adicionais), lista de espera com WhatsApp | `/painel`, `/painel/espera` |
 
 **Consultas conferidas:** `supabase/tests/conferir_consultas.mjs` lê todo o `src/` e confere, contra o banco com as migrações aplicadas, cada `.from(...).select(...)`, filtro, ordem, insert/update, relação embutida (inclusive ambígua) e `rpc(...)`. Hoje: 128 consultas e 10 chamadas, nenhum problema. Roda no CI.
@@ -93,7 +95,7 @@ Marque com `[x]` quando terminar e anote no Histórico.
 
 - [x] `npm install`, `npm run typecheck`, corrigir os erros. Commitar `package-lock.json`.
 - [ ] `npm audit` aponta o `postcss` embutido no Next 15 (só afeta o build, não o site no ar); a correção só vem no Next 16. Avaliar a migração depois da Versão 1.
-- [ ] Criar o projeto no Supabase **na região São Paulo (sa-east-1)**, na conta do dono do produto, e rodar as migrações 0001 → 0017 no SQL Editor.
+- [ ] Criar o projeto no Supabase **na região São Paulo (sa-east-1)**, na conta do dono do produto, e rodar as migrações 0001 → 0018 no SQL Editor.
 - [ ] Cadastrar você em `vitral_admins` e criar as Óticas Nery pelo painel (`/painel`, seção 4).
 - [ ] Rodar `supabase/seed_catalogo.sql` (ajustar os preços antes).
 - [x] Conferir as consultas das telas contra o banco sem o Supabase (`conferir_consultas.mjs`, no CI).
@@ -123,7 +125,11 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - [x] Ler a lista de espera: `/painel/espera`, com o botão de chamar no WhatsApp.
 - [x] Versão 3 (sem nota fiscal): estoque por loja e comissões.
 - [ ] Contagem inicial do estoque das Óticas Nery (tela Estoque → Contagem, produto a produto) e cadastrar as regras de comissão.
-- [ ] Nota fiscal: escolher a API (Focus NFe, NFe.io), contratar na conta do dono e ligar ao adicional `nota_fiscal`.
+- [x] Emissão de NFC-e pelo caixa (Focus NFe), ligada ao adicional `nota_fiscal`.
+- [ ] Contratar a Focus NFe na conta do dono do produto, cadastrar a empresa das Óticas Nery (certificado A1, CSC com o suporte da Focus), pôr os tokens no painel e testar em homologação.
+- [ ] Decidir se a nota fiscal entra no plano de R$ 99 ou fica como adicional (hoje é adicional; basta ligar `nota_fiscal` para todas no painel ou mudar `recursos_adicionais`).
+- [ ] Conferir na documentação da Focus os campos de IBS/CBS da NFC-e para 2027 (o leitor da documentação não achou) e o código do Pix (hoje "17").
+- [ ] NF-e modelo 55 (venda para CNPJ, devolução ao fornecedor) e NFC-e no regime normal (CST com base de cálculo).
 - [x] Versão 4: PDV e financeiro, com áreas e menus próprios.
 - [ ] Testar o PDV com um leitor de código de barras de verdade (ele "digita" o código e aperta Enter) e cadastrar os códigos das armações.
 - [ ] Combinar com o contador das Óticas Nery se o CSV do mês (`/financeiro/exportar`) atende ou se ele precisa de outro layout.
@@ -171,6 +177,7 @@ Marque com `[x]` quando terminar e anote no Histórico.
   - as telas atualizam sozinhas;
   - aparece um esqueleto na troca de tela;
   - toda regra de segurança nova usa `(select função())`, para não ficar lenta com muitas óticas.
+- **Nota fiscal (NFC-e):** só pelo adicional `nota_fiscal`; produto sem NCM, origem e CSOSN não sai na nota. O token da Focus é por ótica, cadastrado pela equipe do Vitral no painel; `preparar_nfce()` o entrega a quem tem `pdv:criar` daquela ótica, para o servidor chamar a Focus (quem tem esse acesso já pode emitir pela tela; o token não serve para outra ótica). Nota sem resposta é retomada com a mesma referência, sem duplicar. Cancelamento só pelo gerente, em até 30 minutos.
 - **Service role** só no servidor e só para o Auth (criar login). O painel do Vitral também segue isso: os dados passam pelas funções `painel_*`, que conferem `vitral_admins` no banco.
 - Código, domínio, Supabase e Vercel ficam no nome do dono do produto.
 
@@ -213,7 +220,8 @@ psql -f supabase/tests/versao4_smoke.sql      # PDV e financeiro
 node supabase/tests/conferir_consultas.mjs    # as consultas das telas batem com o banco (precisa do npm install)
 node supabase/gerar_tipos.mjs --conferir      # src/lib/supabase/tipos.ts em dia com as migrações
 psql -f supabase/tests/nfe_smoke.sql         # entrada pelo XML da NF-e do fornecedor
-npm test                                      # testes do código (planilhas, código de barras, XML da NF-e)
+psql -f supabase/tests/nfce_smoke.sql        # emissão de NFC-e: preparação, retorno, cancelamento
+npm test                                      # testes do código (planilhas, código de barras, XML da NF-e, Focus NFe)
 ```
 
 Cada teste imprime as linhas esperadas e alguns erros de propósito: eles provam que o bloqueio funciona. O GitHub Actions (`.github/workflows/ci.yml`) roda tudo a cada push e confere as linhas. O teste de carga (1.000 óticas) está em `supabase/carga/` e os resultados em `docs/ESCALA.md`.
@@ -246,6 +254,8 @@ src/app/conta/         minha conta (qualquer área)
 
 Mais recente em cima. Uma linha por sessão: data, o que mudou, o que ficou pendente.
 
+- **2026-11-04 (20)** — Emissão de NFC-e pelo caixa via Focus NFe: migração 0018, `src/lib/focus-nfe.ts` (emitir, consultar, cancelar; testes com uma Focus falsa), ações `src/app/pdv/nota-fiscal.ts`, botão da nota no PDV e na lista de vendas, dados fiscais da ótica em Configurações, tokens por ótica no painel. Teste `nfce_smoke.sql` no CI.
+  - Pendente: conta na Focus NFe e teste em homologação; campos de IBS/CBS da NFC-e para 2027; NF-e modelo 55.
 - **2026-11-04 (19)** — Guia da reforma tributária para óticas em `/reforma-tributaria` (público, aberto também para quem está logado): linha do tempo 2026–2033, Simples Nacional e Simples híbrido com os prazos de 2027, o que muda na nota fiscal, checklist e fontes oficiais com data. Links no site do Vitral, no financeiro e no cadastro do produto.
   - Pendente: atualizar com a alíquota da CBS confirmada (dezembro).
 - **2026-11-04 (18)** — Impostos e custo no produto: migração 0017 (campos fiscais, custo em partes, `custo_final`; `registrar_entrada_nfe()` grava NCM/CEST/origem só onde estão vazios), leitor do XML traz insumos e impostos por unidade, tela `/catalogo/[id]` com precificação ao vivo, entrada pela nota com as colunas de custo, valor do estoque pelo custo final. Testes no `nfe_smoke.sql` e em `testes/nfe.test.mjs`.

@@ -81,3 +81,18 @@ export async function salvarAdicionais(oticaId: string, formulario: FormData) {
   revalidatePath("/painel");
   voltar("Adicionais salvos", false);
 }
+
+/** Tokens da Focus NFe da ótica (homologação e produção) e o ambiente em uso. Campo vazio mantém o que já estava. */
+export async function salvarCredenciaisNfce(oticaId: string, formulario: FormData) {
+  const ambiente = formulario.get("ambiente") === "producao" ? "producao" : "homologacao";
+  const supabase = await criarClienteServidor();
+  const { error } = await supabase.rpc("painel_definir_credenciais_nfce", {
+    p_otica: oticaId,
+    p_ambiente: ambiente,
+    p_token_homologacao: textoOuNulo(formulario.get("token_homologacao")),
+    p_token_producao: textoOuNulo(formulario.get("token_producao")),
+  });
+  if (error) voltar(error.message);
+  revalidatePath("/painel");
+  voltar(ambiente === "producao" ? "Nota fiscal em produção" : "Nota fiscal em teste (homologação)", false);
+}

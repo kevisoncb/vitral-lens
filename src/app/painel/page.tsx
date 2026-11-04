@@ -1,6 +1,6 @@
 import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { dataBR, moeda } from "@/lib/formatar";
-import { mudarStatus, salvarAdicionais } from "./actions";
+import { mudarStatus, salvarAdicionais, salvarCredenciaisNfce } from "./actions";
 import { NovaOtica } from "./nova-otica";
 
 const STATUS: Record<string, string> = { teste: "Em teste", ativa: "Ativa", suspensa: "Suspensa", cancelada: "Cancelada" };
@@ -70,6 +70,20 @@ export default async function PainelOticas({ searchParams }: { searchParams: Pro
                           </label>
                           <button className="botao-secundario" type="submit">Salvar</button>
                         </form>
+                        {adicionais.nota_fiscal ? (
+                          <details>
+                            <summary style={{ cursor: "pointer" }}>Nota fiscal (Focus NFe)</summary>
+                            <form action={salvarCredenciaisNfce.bind(null, o.id)} className="formulario" style={{ marginTop: 8 }}>
+                              <select className="campo" name="ambiente" defaultValue="homologacao" aria-label="Ambiente">
+                                <option value="homologacao">Teste (homologação)</option>
+                                <option value="producao">Produção (vale como nota)</option>
+                              </select>
+                              <input className="campo" name="token_homologacao" type="password" autoComplete="off" placeholder="Token de homologação (vazio mantém)" aria-label="Token de homologação" />
+                              <input className="campo" name="token_producao" type="password" autoComplete="off" placeholder="Token de produção (vazio mantém)" aria-label="Token de produção" />
+                              <button className="botao-secundario" type="submit">Salvar</button>
+                            </form>
+                          </details>
+                        ) : null}
                       </td>
                     </tr>
                   );

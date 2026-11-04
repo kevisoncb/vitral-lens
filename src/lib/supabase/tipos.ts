@@ -1456,6 +1456,35 @@ export type Database = {
           },
         ];
       };
+      nfe_credenciais: {
+        Row: {
+          otica_id: string;
+          token_homologacao: string | null;
+          token_producao: string | null;
+          atualizado_em: string;
+        };
+        Insert: {
+          otica_id: string;
+          token_homologacao?: string | null;
+          token_producao?: string | null;
+          atualizado_em?: string;
+        };
+        Update: {
+          otica_id?: string;
+          token_homologacao?: string | null;
+          token_producao?: string | null;
+          atualizado_em?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "nfe_credenciais_otica_id_fkey";
+            columns: ["otica_id"];
+            isOneToOne: true;
+            referencedRelation: "oticas";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       notas_entrada: {
         Row: {
           id: string;
@@ -1522,6 +1551,97 @@ export type Database = {
             columns: ["usuario_id"];
             isOneToOne: false;
             referencedRelation: "usuarios";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      notas_fiscais: {
+        Row: {
+          id: string;
+          otica_id: string;
+          venda_id: string | null;
+          modelo: string;
+          ambiente: string;
+          referencia: string;
+          status: string;
+          valor: number;
+          numero: string | null;
+          serie: string | null;
+          chave: string | null;
+          mensagem: string | null;
+          caminho_xml: string | null;
+          caminho_danfe: string | null;
+          qrcode_url: string | null;
+          autorizada_em: string | null;
+          cancelada_em: string | null;
+          justificativa: string | null;
+          criado_por: string | null;
+          criado_em: string;
+        };
+        Insert: {
+          id?: string;
+          otica_id: string;
+          venda_id?: string | null;
+          modelo?: string;
+          ambiente: string;
+          referencia: string;
+          status?: string;
+          valor: number;
+          numero?: string | null;
+          serie?: string | null;
+          chave?: string | null;
+          mensagem?: string | null;
+          caminho_xml?: string | null;
+          caminho_danfe?: string | null;
+          qrcode_url?: string | null;
+          autorizada_em?: string | null;
+          cancelada_em?: string | null;
+          justificativa?: string | null;
+          criado_por?: string | null;
+          criado_em?: string;
+        };
+        Update: {
+          id?: string;
+          otica_id?: string;
+          venda_id?: string | null;
+          modelo?: string;
+          ambiente?: string;
+          referencia?: string;
+          status?: string;
+          valor?: number;
+          numero?: string | null;
+          serie?: string | null;
+          chave?: string | null;
+          mensagem?: string | null;
+          caminho_xml?: string | null;
+          caminho_danfe?: string | null;
+          qrcode_url?: string | null;
+          autorizada_em?: string | null;
+          cancelada_em?: string | null;
+          justificativa?: string | null;
+          criado_por?: string | null;
+          criado_em?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notas_fiscais_criado_por_fkey";
+            columns: ["criado_por"];
+            isOneToOne: false;
+            referencedRelation: "usuarios";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notas_fiscais_otica_id_fkey";
+            columns: ["otica_id"];
+            isOneToOne: false;
+            referencedRelation: "oticas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notas_fiscais_venda_id_fkey";
+            columns: ["venda_id"];
+            isOneToOne: false;
+            referencedRelation: "vendas";
             referencedColumns: ["id"];
           },
         ];
@@ -1948,6 +2068,10 @@ export type Database = {
           site_instagram: string | null;
           site_cor: string | null;
           aliquota_imposto: number | null;
+          regime_tributario: string;
+          inscricao_estadual: string | null;
+          nfce_ambiente: string;
+          nfce_serie: number;
         };
         Insert: {
           id?: string;
@@ -1968,6 +2092,10 @@ export type Database = {
           site_instagram?: string | null;
           site_cor?: string | null;
           aliquota_imposto?: number | null;
+          regime_tributario?: string;
+          inscricao_estadual?: string | null;
+          nfce_ambiente?: string;
+          nfce_serie?: number;
         };
         Update: {
           id?: string;
@@ -1988,6 +2116,10 @@ export type Database = {
           site_instagram?: string | null;
           site_cor?: string | null;
           aliquota_imposto?: number | null;
+          regime_tributario?: string;
+          inscricao_estadual?: string | null;
+          nfce_ambiente?: string;
+          nfce_serie?: number;
         };
         Relationships: [
         ];
@@ -2548,6 +2680,7 @@ export type Database = {
       movimentar_estoque: { Args: { p_item: string | null; p_loja: string | null; p_tipo: string | null; p_quantidade: number | null; p_custo?: number | null; p_motivo?: string | null }; Returns: number };
       painel_criar_otica: { Args: { p_nome: string | null; p_slug: string | null; p_dono_id: string | null; p_dono_nome: string | null; p_dono_email: string | null }; Returns: string };
       painel_definir_adicional: { Args: { p_otica: string | null; p_recurso: string | null; p_quantidade: number | null }; Returns: boolean };
+      painel_definir_credenciais_nfce: { Args: { p_otica: string | null; p_ambiente: string | null; p_token_homologacao: string | null; p_token_producao: string | null }; Returns: boolean };
       painel_lista_espera: { Args: Record<PropertyKey, never>; Returns: Database["public"]["Tables"]["lista_espera"]["Row"][] };
       painel_mudar_status: { Args: { p_otica: string | null; p_status: Database["public"]["Enums"]["otica_status"] | null }; Returns: boolean };
       painel_oticas: { Args: Record<PropertyKey, never>; Returns: { id: string; nome: string; slug: string; status: Database["public"]["Enums"]["otica_status"]; criado_em: string; usuarios: number; lojas: number; clientes: number; adicionais: Json; dono_email: string }[] };
@@ -2557,10 +2690,14 @@ export type Database = {
       perfis_v4: { Args: { p_otica: string | null }; Returns: undefined };
       permissoes_consultorio: { Args: { p_otica: string | null }; Returns: undefined };
       permissoes_v3: { Args: { p_otica: string | null }; Returns: undefined };
+      preparar_cancelamento_nfce: { Args: { p_nota: string | null; p_justificativa: string | null }; Returns: Json };
+      preparar_nfce: { Args: { p_venda: string | null }; Returns: Json };
       proximo_numero: { Args: { p_otica: string | null; p_nome: string | null }; Returns: number };
       recurso_ativo: { Args: { r: string | null }; Returns: boolean };
+      registrar_cancelamento_nfce: { Args: { p_nota: string | null; p_justificativa: string | null; p_cancelado: boolean | null; p_mensagem: string | null }; Returns: boolean };
       registrar_entrada_nfe: { Args: { p_nota: Json | null; p_loja: string | null; p_itens: Json | null; p_duplicatas: Json | null; p_categoria_custo?: string | null }; Returns: Json };
       registrar_pagamento: { Args: { p_atendimento: string | null; p_valor: number | null; p_forma: string | null; p_parcelas?: number | null; p_sinal?: boolean | null; p_data_prometida?: string | null }; Returns: string };
+      registrar_retorno_nfce: { Args: { p_nota: string | null; p_retorno: Json | null }; Returns: string };
       registrar_venda: { Args: { p_caixa: string | null; p_cliente: string | null; p_itens: Json | null; p_desconto: number | null; p_pagamentos: Json | null; p_observacao?: string | null }; Returns: string };
       site_da_otica: { Args: { p_slug: string | null }; Returns: { nome: string; titulo: string; sobre: string; endereco: string; whatsapp: string; horario: string; instagram: string; cor: string; logo_url: string; agendamento_online: boolean }[] };
       sou_admin_vitral: { Args: Record<PropertyKey, never>; Returns: boolean };

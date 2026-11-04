@@ -160,6 +160,23 @@ jobs:
           grep -q "Armação acetato preta ncm=90031900 cest=2805400 orig=0 un=UN final=162.50" nfe.txt
           grep -q "Óculos sol aviador ncm=90041000 cest=- orig=2 un=UN final=91.20" nfe.txt
           grep -q "custo do movimento | 62.50,91.20,162.50" nfe.txt
+      - name: Teste da emissão de NFC-e (preparação, retorno e cancelamento)
+        run: |
+          psql -q -f supabase/tests/nfce_smoke.sql 2>&1 | tee nfce.txt
+          grep -q "A emissão de nota fiscal não está ativa para esta ótica" nfce.txt
+          grep -q "A emissão ainda não foi configurada para esta ótica" nfce.txt
+          grep -q "Só a equipe do Vitral acessa o painel" nfce.txt
+          grep -q "Complete NCM, origem e CSOSN no cadastro de: Estojo" nfce.txt
+          grep -q "preparada | homologacao | tok-h | 12345678000190 | 12345678901" nfce.txt
+          grep -q "itens | 1:90031100/102/300.00-7.50 2:42029200/102/100.00-2.50" nfce.txt
+          grep -q "desconto rateado | 10.00" nfce.txt
+          grep -q "pagamentos | 03=200.00/integ2 17=190.00" nfce.txt
+          grep -q "retoma a mesma | t" nfce.txt
+          grep -q "notas da venda (esperado 1) | *1" nfce.txt
+          grep -q "Esta venda já tem nota fiscal" nfce.txt
+          grep -q "Só o gerente cancela nota fiscal" nfce.txt
+          grep -q "A justificativa precisa ter de 15 a 255 letras" nfce.txt
+          grep -q "nota depois | cancelada | Cliente desistiu da compra na hora" nfce.txt
       - uses: actions/setup-node@v4
         with:
           node-version: 22

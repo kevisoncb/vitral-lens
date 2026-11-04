@@ -26,6 +26,22 @@ export default async function ConfigOtica({ searchParams }: { searchParams: Prom
           <label className="rotulo">CNPJ<input className="campo" name="cnpj" defaultValue={o.cnpj ?? ""} /></label>
           <label className="rotulo">Telefone<input className="campo" name="telefone" defaultValue={o.telefone ?? ""} /></label>
         </div>
+        <h2>Dados fiscais (nota fiscal)</h2>
+        <div className="linha">
+          <label className="rotulo">Regime tributário
+            <select className="campo" name="regime_tributario" defaultValue={o.regime_tributario}>
+              <option value="simples">Simples Nacional</option>
+              <option value="simples_excesso">Simples Nacional, acima do sublimite</option>
+              <option value="normal">Regime normal (Lucro Presumido ou Real)</option>
+            </select>
+          </label>
+          <label className="rotulo">Inscrição estadual<input className="campo" name="inscricao_estadual" defaultValue={o.inscricao_estadual ?? ""} inputMode="numeric" /></label>
+          <label className="rotulo" style={{ flex: "0 1 120px" }}>Série da NFC-e<input className="campo" name="nfce_serie" type="number" min={1} max={999} defaultValue={o.nfce_serie} /></label>
+        </div>
+        <p className="vazio">
+          Emissão de NFC-e: {o.nfce_ambiente === "producao" ? "em produção (notas com valor fiscal)" : "em teste (homologação, sem valor fiscal)"}.
+          O certificado digital e o código da SEFAZ (CSC) são configurados com o suporte do Vitral.
+        </p>
         <p className="vazio">Plano Vitral (tudo incluído) · situação: {o.status}. Adicionais (nota fiscal, lojas extras) são contratados com o suporte do Vitral.</p>
 
         <h2>Site institucional</h2>

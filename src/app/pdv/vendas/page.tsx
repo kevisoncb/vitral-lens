@@ -2,6 +2,8 @@ import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { obterSessao } from "@/lib/sessao";
 import { dataBR, dataHoraBR, moeda } from "@/lib/formatar";
 import { cancelarVenda } from "../actions";
+import { BotaoNota, type NotaDaVenda } from "../botao-nota";
+import { urlArquivo } from "@/lib/focus-nfe";
 
 const FORMAS: Record<string, string> = { dinheiro: "Dinheiro", pix: "Pix", debito: "Débito", credito: "Crédito" };
 
@@ -19,6 +21,7 @@ type VendaLista = {
   venda_itens: { descricao: string; quantidade: number; preco_unitario: number }[];
   pagamentos: { forma: string; valor: number; parcelas: number }[];
   contas_receber: { valor: number; vencimento: string }[];
+  notas_fiscais: { id: string; status: NotaDaVenda["status"]; numero: string | null; mensagem: string | null; caminho_danfe: string | null; ambiente: "homologacao" | "producao"; autorizada_em: string | null; criado_em: string }[];
 };
 
 /** Vendas do PDV por dia. O gerente (pdv:editar) cancela, e os itens voltam ao estoque. */
@@ -31,7 +34,7 @@ export default async function VendasPdv({ searchParams }: { searchParams: Promis
   const supabase = await criarClienteServidor();
   const { data } = await supabase
     .from("vendas")
-    .select("id, numero, subtotal, desconto, total, cancelada, motivo_cancelamento, criado_em, clientes(nome), usuarios!vendas_vendedor_id_fkey(nome), venda_itens(descricao, quantidade, preco_unitario), pagamentos(forma, valor, parcelas), contas_receber(valor, vencimento)")
+    .select("id, numero, subtotal, desconto, total, cancelada, motivo_cancelamento, criado_em, clientes(nome), usuarios!vendas_vendedor_id_fkey(nome), venda_itens(descricao, quantidade, preco_unitario), pagamentos(forma, valor, parcelas), contas_receber(valor, vencimento), notas_fiscais(id, status, numero, mensagem, caminho_danfe, ambiente, autorizada_em, criado_em)")
     .gte("criado_em", `${dia}T00:00:00-03:00`)
     .lt("criado_em", `${amanha}T00:00:00-03:00`)
     .order("criado_em", { ascending: false })
@@ -39,6 +42,22 @@ export default async function VendasPdv({ searchParams }: { searchParams: Promis
   const vendas = data ?? [];
   const total = vendas.filter((v) => !v.cancelada).reduce((s, v) => s + Number(v.total), 0);
   const gerente = sessao?.pode("pdv", "editar") ?? false;
+  const { data: notaAtiva } = await supabase.rpc("recurso_ativo", { r: "nota_fiscal" });
+  const agora = Date.now();
+  /** a nota mais recente da venda, no formato do botão */
+  function notaDa(v: VendaLista): NotaDaVenda | null {
+    const n = [...v.notas_fiscais].sort((a, b) => b.criado_em.localeCompare(a.criado_em))[0];
+    if (!n) return null;
+    return {
+      id: n.id,
+      status: n.status,
+      numero: n.numero,
+      mensagem: n.mensagem,
+      danfe: urlArquivo(n.ambiente, n.caminho_danfe),
+      homologacao: n.ambiente === "homologacao",
+      cancelavel: gerente && n.status === "autorizada" && !!n.autorizada_em && agora - Date.parse(n.autorizada_em) < 30 * 60_000,
+    };
+  }
 
   return (
     <>
@@ -83,6 +102,7 @@ export default async function VendasPdv({ searchParams }: { searchParams: Promis
           </div>
           {v.cancelada && v.motivo_cancelamento && <p className="vazio">Motivo do cancelamento: {v.motivo_cancelamento}</p>}
           <a href={`/cupom/${v.id}`} target="_blank" rel="noopener">Ver e imprimir o cupom</a>
+          {(notaAtiva || v.notas_fiscais.length > 0) && !v.cancelada && <BotaoNota vendaId={v.id} nota={notaDa(v)} />}
           {gerente && !v.cancelada && (
             <form action={cancelarVenda.bind(null, v.id)} className="linha">
               <input className="campo" name="motivo" placeholder="Motivo do cancelamento" aria-label="Motivo do cancelamento" required minLength={3} />
