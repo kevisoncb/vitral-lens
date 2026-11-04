@@ -9,15 +9,15 @@ export type ItemEntrada = {
   categoria: string;
   quantidade: number;
   custo: number;
-  insumos_pct: number; // % da compra
-  impostos_pct: number; // % da compra
-  preco_venda: number | null;
+  /** frete/desconto e IPI/ICMS-ST da nota, em reais por unidade: só usados como ponto de partida do produto novo */
+  insumos_valor: number;
+  impostos_valor: number;
   ncm: string | null;
   cest: string | null;
   origem: number | null;
   unidade: string | null;
 };
-export type ResultadoEntrada = { ok: boolean; mensagem: string };
+export type ResultadoEntrada = { ok: boolean; mensagem: string; novos?: { id: string; nome: string }[] };
 
 export async function lancarNota(dados: {
   nota: { chave: string | null; numero: string; fornecedor: string; cnpj: string | null; emissao: string | null; valor_total: number };
@@ -35,15 +35,15 @@ export async function lancarNota(dados: {
     p_categoria_custo: dados.categoriaCusto,
   });
   if (error) return { ok: false, mensagem: error.message };
-  const r = data as { produtos_novos: number; unidades: number; contas: number; contas_sem_permissao: boolean };
+  const r = data as { produtos_novos: number; novos: { id: string; nome: string }[]; unidades: number; contas: number; contas_sem_permissao: boolean };
   revalidatePath("/estoque");
   revalidatePath("/catalogo");
   revalidatePath("/financeiro");
   const partes = [
     `${r.unidades} ${r.unidades === 1 ? "unidade entrou" : "unidades entraram"} no estoque`,
-    r.produtos_novos ? `${r.produtos_novos} ${r.produtos_novos === 1 ? "produto novo" : "produtos novos"} no catálogo` : null,
+    r.produtos_novos ? `${r.produtos_novos} ${r.produtos_novos === 1 ? "produto novo" : "produtos novos"} no catálogo (fora da venda até ter preço)` : null,
     r.contas ? `${r.contas} ${r.contas === 1 ? "parcela lançada" : "parcelas lançadas"} em contas a pagar` : null,
     r.contas_sem_permissao ? "as parcelas não foram lançadas (seu perfil não lança no financeiro)" : null,
   ].filter(Boolean);
-  return { ok: true, mensagem: `Nota lançada: ${partes.join("; ")}.` };
+  return { ok: true, mensagem: `Nota lançada: ${partes.join("; ")}.`, novos: r.novos ?? [] };
 }

@@ -154,12 +154,13 @@ jobs:
           grep -q "estoque | Armação acetato preta=3@150.00, Lente de contato mensal=10@62.50, Óculos sol aviador=2@89.90" nfe.txt
           grep -q "contas | *3 | 1254.80 | NF 8812 (1/3)" nfe.txt
           grep -q "Esta nota já foi lançada em" nfe.txt
-          grep -q 'Informe o preço de venda do produto novo "Novo sem preço"' nfe.txt
+          grep -q 'Quantidade inválida em "Novo com erro"' nfe.txt
           grep -q "notas lancadas (esperado 1) | *1" nfe.txt
           grep -q "Seu perfil não pode dar entrada no estoque" nfe.txt
-          grep -q "Armação acetato preta ncm=90031900 cest=2805400 orig=0 un=UN final=162.50" nfe.txt
+          grep -q "Armação acetato preta ncm=90031900 cest=2805400 orig=0 un=UN final=166.25" nfe.txt
           grep -q "Óculos sol aviador ncm=90041000 cest=- orig=2 un=UN final=91.20" nfe.txt
-          grep -q "custo do movimento | 62.50,91.20,162.50" nfe.txt
+          grep -q "custo do movimento | 62.50,91.20,166.25" nfe.txt
+          grep -q "margem e preco | Armação acetato preta m=30.00 p=216.13 reais/porcentagem | Lente de contato mensal m=- p=0.00 reais/reais fora da venda" nfe.txt
       - name: Teste da emissão de NFC-e (preparação, retorno e cancelamento)
         run: |
           psql -q -f supabase/tests/nfce_smoke.sql 2>&1 | tee nfce.txt

@@ -25,10 +25,15 @@ export async function salvarProduto(id: string, formulario: FormData) {
   if (!nome || !CATEGORIAS.includes(categoria) || preco === null || preco < 0) return voltar("Preencha nome, categoria e preço de venda");
 
   const custo = numeroOuNulo(formulario.get("custo"));
-  const insumos = numeroOuNulo(formulario.get("insumos_pct")) ?? 0;
-  const impostos = numeroOuNulo(formulario.get("impostos_pct")) ?? 0;
-  if ((custo !== null && custo < 0) || impostos < 0 || impostos > 1000) return voltar("Compra e impostos não podem ser negativos");
-  if (insumos <= -100 || insumos > 1000) return voltar("Insumos entre -99% e 1000% da compra");
+  const tipo = (v: FormDataEntryValue | null) => (v === "porcentagem" ? "porcentagem" : "reais");
+  const insumosTipo = tipo(formulario.get("insumos_tipo"));
+  const impostosTipo = tipo(formulario.get("impostos_tipo"));
+  const insumos = numeroOuNulo(formulario.get("insumos_valor")) ?? 0;
+  const impostos = numeroOuNulo(formulario.get("impostos_valor")) ?? 0;
+  const margem = numeroOuNulo(formulario.get("margem_pct"));
+  if ((custo !== null && custo < 0) || impostos < 0) return voltar("Compra e impostos não podem ser negativos");
+  if (insumosTipo === "porcentagem" && insumos <= -100) return voltar("Desconto nos insumos não pode passar de 100%");
+  if (margem !== null && (margem < 0 || margem > 10000)) return voltar("Margem entre 0% e 10.000%");
 
   const origem = textoOuNulo(formulario.get("origem"));
   const aliquota = numeroOuNulo(formulario.get("aliquota_icms"));
@@ -47,8 +52,11 @@ export async function salvarProduto(id: string, formulario: FormData) {
       ativo: formulario.get("ativo") === "on",
       unidade,
       custo,
-      insumos_pct: insumos,
-      impostos_pct: impostos,
+      insumos_valor: insumos,
+      insumos_tipo: insumosTipo,
+      impostos_valor: impostos,
+      impostos_tipo: impostosTipo,
+      margem_pct: margem,
       ncm: codigoFiscal(formulario.get("ncm"), 8, "O NCM", voltar),
       cest: codigoFiscal(formulario.get("cest"), 7, "O CEST", voltar),
       cfop: codigoFiscal(formulario.get("cfop"), 4, "O CFOP", voltar),

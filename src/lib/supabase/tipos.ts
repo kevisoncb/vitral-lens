@@ -440,8 +440,11 @@ export type Database = {
           aliquota_icms: number | null;
           cclass_trib: string | null;
           unidade: string;
-          insumos_pct: number;
-          impostos_pct: number;
+          insumos_valor: number;
+          insumos_tipo: string;
+          impostos_valor: number;
+          impostos_tipo: string;
+          margem_pct: number | null;
           custo_final: number | null;
         };
         Insert: {
@@ -469,8 +472,11 @@ export type Database = {
           aliquota_icms?: number | null;
           cclass_trib?: string | null;
           unidade?: string;
-          insumos_pct?: number;
-          impostos_pct?: number;
+          insumos_valor?: number;
+          insumos_tipo?: string;
+          impostos_valor?: number;
+          impostos_tipo?: string;
+          margem_pct?: number | null;
           custo_final?: never;
         };
         Update: {
@@ -498,8 +504,11 @@ export type Database = {
           aliquota_icms?: number | null;
           cclass_trib?: string | null;
           unidade?: string;
-          insumos_pct?: number;
-          impostos_pct?: number;
+          insumos_valor?: number;
+          insumos_tipo?: string;
+          impostos_valor?: number;
+          impostos_tipo?: string;
+          margem_pct?: number | null;
           custo_final?: never;
         };
         Relationships: [
@@ -2662,6 +2671,7 @@ export type Database = {
       catalogo_balcao: { Args: { p_otica: string | null }; Returns: undefined };
       concluir_exame: { Args: { p_exame: string | null }; Returns: string };
       criar_os_do_atendimento: { Args: { p_atendimento: string | null; p_data_prometida?: string | null }; Returns: string };
+      custo_com_partes: { Args: { p_custo: number | null; p_ins: number | null; p_ins_tipo: string | null; p_imp: number | null; p_imp_tipo: string | null }; Returns: number };
       definir_foto_produto: { Args: { p_item: string | null; p_caminho: string | null }; Returns: boolean };
       entrar_lista_espera: { Args: { p_nome: string | null; p_otica: string | null; p_cidade: string | null; p_uf: string | null; p_telefone: string | null; p_email: string | null; p_lojas: number | null; p_aceite_lgpd: boolean | null }; Returns: boolean };
       exigir_admin_vitral: { Args: Record<PropertyKey, never>; Returns: undefined };

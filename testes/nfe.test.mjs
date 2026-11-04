@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { categoriaPorNcm, lerNfe } from "../src/lib/nfe.ts";
+import { categoriaPorNcm, lerNfe, pagamentoPorTPag } from "../src/lib/nfe.ts";
 
 const xml = readFileSync(new URL("notas/nfe-armacoes.xml", import.meta.url), "utf8");
 
@@ -49,4 +49,14 @@ test("NCM para categoria", () => {
   assert.equal(categoriaPorNcm("9003.11.00"), "armacao");
   assert.equal(categoriaPorNcm("90015000"), "lente");
   assert.equal(categoriaPorNcm("42029200"), "acessorio");
+});
+
+test("forma de pagamento ao fornecedor: boleto gera parcelas, cartão e Pix são à vista", () => {
+  assert.equal(pagamentoPorTPag(["15"]), "boleto");
+  assert.equal(pagamentoPorTPag(["03"]), "a_vista");
+  assert.equal(pagamentoPorTPag(["17", "01"]), "a_vista");
+  assert.equal(pagamentoPorTPag(["90"]), null);
+  assert.equal(lerNfe(xml).pagamento, null); // a nota de exemplo não traz <pag>
+  const comCartao = xml.replace("</cobr>", "</cobr><pag><detPag><tPag>03</tPag><vPag>1254.80</vPag></detPag></pag>");
+  assert.equal(lerNfe(comCartao).pagamento, "a_vista");
 });

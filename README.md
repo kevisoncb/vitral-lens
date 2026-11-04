@@ -39,7 +39,7 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 | 0014 | Painel do Vitral: `vitral_admins` e funções `painel_*` (óticas, criar ótica com dono, adicionais, situação, lista de espera) | ✅ |
 | 0015 | Código interno para etiqueta (`gerar_codigos_catalogo()`: 2 + 9 dígitos, pula os já usados) | ✅ |
 | 0016 | Entrada pelo XML da NF-e do fornecedor (`notas_entrada`, `registrar_entrada_nfe()`): catálogo, estoque com custo e parcelas a pagar numa transação; a mesma nota não entra duas vezes | ✅ |
-| 0017 | Impostos e custo no produto: NCM, CEST, origem, CFOP, CSOSN/CST, alíquota ICMS, cClassTrib (IBS/CBS), unidade; custo em % sobre a compra (`insumos_pct`, `impostos_pct`; `custo_final` = compra × (1 + insumos% + impostos%)); entrada pela nota grava tudo e não sobrescreve o fiscal já corrigido | ✅ |
+| 0017 | Impostos e custo no produto: NCM, CEST, origem, CFOP, CSOSN/CST, alíquota ICMS, cClassTrib (IBS/CBS), unidade; insumos e impostos em R$ ou em % da compra (`insumos_valor/tipo`, `impostos_valor/tipo`), `custo_final` gerado, `margem_pct` (% sobre o custo final). A entrada pela nota só atualiza a compra do produto que existe (com margem definida, o preço acompanha); produto novo entra fora da venda (sem preço); não sobrescreve o fiscal já corrigido | ✅ |
 | 0018 | NFC-e pelo caixa via Focus NFe: configuração fiscal da ótica, `nfe_credenciais` (token por ótica, só o servidor usa), `notas_fiscais`, `preparar_nfce()` (confere adicional, cadastro fiscal, rateia o desconto, retoma nota sem resposta), `registrar_retorno_nfce()`, cancelamento em 30 min só pelo gerente | ✅ |
 
 ### Telas (`src/`): todas 🟡, compilam (`typecheck` e `build` passam) mas ainda não foram abertas com um Supabase de verdade
@@ -60,7 +60,7 @@ A venda do PDV (`src/app/pdv/venda.tsx`) foi aberta no navegador com produtos de
 | Loja e gestão | Cadastro do produto: compra em R$, insumos, impostos e markup em % (com o valor em reais ao lado), preço e margem com a conta na hora, impostos para a nota fiscal (o balcão vê só o preço) | `/catalogo/[id]` |
 | Loja e gestão | Etiquetas com código de barras (Code 128) para impressora de etiquetas 50 × 25 mm ou folha A4 Pimaco; gera código interno para quem não tem | `/catalogo/etiquetas` |
 | Loja e gestão | Estoque por loja: saldo, abaixo do mínimo, entrada, contagem, perda, transferência, histórico | `/estoque`, `/estoque/[id]` |
-| Loja e gestão | Entrada pela nota do fornecedor: sobe o XML, confere compra, insumos (frete, desconto) e impostos (IPI, ICMS-ST) em % da compra, define o preço dos novos pelo markup % sobre o custo final e lança | `/estoque/nota` |
+| Loja e gestão | Entrada pela nota do fornecedor: sobe o XML, confere produtos, quantidades e compra, escolhe boleto (parcelas vão para contas a pagar) ou cartão/Pix/dinheiro (já pago) e lança. Impostos, margem e preço ficam na página do produto | `/estoque/nota` |
 | Loja e gestão | Comissões do mês (vendedor vê as dele; gestão vê todas, regras e pagamento) | `/comissoes` |
 | Gestão | Relatórios do mês | `/relatorios` |
 | Gestão | Configurações: ótica e site, lojas, usuários, perfis (área + permissões), horários e bloqueios, funil e motivos | `/configuracoes/...` |
@@ -255,6 +255,7 @@ src/app/conta/         minha conta (qualquer área)
 
 Mais recente em cima. Uma linha por sessão: data, o que mudou, o que ficou pendente.
 
+- **2026-11-04 (22)** — Separação: a entrada pela nota só dá entrada (produto, categoria, quantidade, compra); impostos, insumos, margem e preço ficam na página do produto (`/catalogo/[id]`), com chave R$ / % em insumos e impostos e margem % sobre o custo final (mudou a margem, o preço muda; mudou o preço, a margem muda; `src/lib/precificacao.ts`, `<ValorReaisOuPct>`). Produto novo da nota entra fora da venda até ter preço (links para completar). Pagamento ao fornecedor: boleto gera as parcelas em contas a pagar; cartão, Pix ou dinheiro não (lido do `<tPag>` da nota, dá para trocar). Tabela da entrada vira cartões no celular. Pendente: confirmar com o cliente se margem é sobre o custo (hoje) ou sobre o preço.
 - **2026-11-04 (21)** — Custo do produto em porcentagem sobre a compra (insumos %, impostos %, markup %; migração 0017 ajustada, nada estava em produção); entrada pela nota converte os reais do XML em % sem perder centavos. Máscaras em todos os campos de dinheiro, porcentagem, CPF, CNPJ, telefone, NCM, CEST, CFOP e códigos fiscais (`CampoMascara`, testes em `testes/mascaras.test.mjs`). Ordem dos itens da NFC-e estável (do mais caro para o mais barato).
   - Pendente: medidas da ficha técnica (DNP, aro) seguem sem máscara de propósito.
 - **2026-11-04 (20)** — Emissão de NFC-e pelo caixa via Focus NFe: migração 0018, `src/lib/focus-nfe.ts` (emitir, consultar, cancelar; testes com uma Focus falsa), ações `src/app/pdv/nota-fiscal.ts`, botão da nota no PDV e na lista de vendas, dados fiscais da ótica em Configurações, tokens por ótica no painel. Teste `nfce_smoke.sql` no CI.

@@ -34,7 +34,16 @@ export type NotaFiscal = {
   valorTotal: number;
   itens: ItemNfe[];
   duplicatas: DuplicataNfe[];
+  /** como a ótica paga o fornecedor, pelo <tPag> da nota: boleto gera parcelas; cartão, Pix e dinheiro já saem pagos */
+  pagamento: "boleto" | "a_vista" | null;
 };
+
+/** tPag da NF-e: 15 boleto; 01 dinheiro, 02 cheque, 03 crédito, 04 débito, 16 depósito, 17 Pix, 18 transferência. */
+export function pagamentoPorTPag(codigos: string[]): NotaFiscal["pagamento"] {
+  if (codigos.includes("15")) return "boleto";
+  if (codigos.some((c) => ["01", "02", "03", "04", "16", "17", "18"].includes(c))) return "a_vista";
+  return null;
+}
 
 function texto(t: string): string {
   return t
@@ -128,5 +137,6 @@ export function lerNfe(xml: string): NotaFiscal {
     valorTotal: Number(tag(blocos(inf, "ICMSTot")[0] ?? "", "vNF") ?? 0),
     itens,
     duplicatas,
+    pagamento: pagamentoPorTPag(blocos(inf, "detPag").map((p) => tag(p, "tPag") ?? "")),
   };
 }

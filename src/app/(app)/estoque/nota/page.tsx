@@ -2,7 +2,7 @@ import Link from "next/link";
 import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { exigirArea } from "@/lib/sessao";
 import { dataHoraBR, moeda } from "@/lib/formatar";
-import { EntradaPorNota } from "./entrada";
+import { EntradaPorNota, type ProdutoExistente } from "./entrada";
 
 type Nota = { id: string; numero: string; fornecedor: string; valor_total: number | null; unidades: number; criado_em: string; usuarios: { nome: string } | null };
 
@@ -25,14 +25,17 @@ export default async function EntradaPelaNota() {
     podeFinanceiro ? supabase.from("categorias_custo").select("id, nome").order("nome") : Promise.resolve({ data: [] as { id: string; nome: string }[] }),
     supabase.from("notas_entrada").select("id, numero, fornecedor, valor_total, unidades, criado_em, usuarios(nome)").order("criado_em", { ascending: false }).limit(10).returns<Nota[]>(),
   ]);
-  const catalogo = Object.fromEntries((catalogoR.data ?? []).map((c) => [c.codigo as string, c.nome]));
+  const catalogo: Record<string, ProdutoExistente> = Object.fromEntries((catalogoR.data ?? []).map((c) => [
+    c.codigo as string,
+    { nome: c.nome },
+  ]));
 
   return (
     <>
       <div>
         <Link href="/estoque">← Estoque</Link>
         <h1>Entrada pela nota do fornecedor</h1>
-        <p className="subtitulo">Suba o XML da NF-e: os produtos entram no estoque com o custo, o que não existe vai para o catálogo e as parcelas vão para contas a pagar.</p>
+        <p className="subtitulo">Suba o XML da NF-e: os produtos entram no estoque com o custo de compra e o que não existe vai para o catálogo. Impostos, margem e preço ficam na página do produto.</p>
       </div>
       <EntradaPorNota catalogo={catalogo} lojas={lojasR.data ?? []} categoriasCusto={categoriasR.data ?? []} podeFinanceiro={podeFinanceiro} />
       {(notasR.data ?? []).length > 0 && (

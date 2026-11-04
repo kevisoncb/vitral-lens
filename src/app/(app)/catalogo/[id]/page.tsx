@@ -50,8 +50,11 @@ type Produto = {
   ativo: boolean;
   unidade: string;
   custo: number | null;
-  insumos_pct: number;
-  impostos_pct: number;
+  insumos_valor: number;
+  insumos_tipo: "reais" | "porcentagem";
+  impostos_valor: number;
+  impostos_tipo: "reais" | "porcentagem";
+  margem_pct: number | null;
   custo_final: number | null;
   ncm: string | null;
   cest: string | null;
@@ -70,7 +73,7 @@ export default async function Produto({ params, searchParams }: { params: Promis
   const supabase = await criarClienteServidor();
   const { data } = await supabase
     .from("catalogo_itens")
-    .select("id, nome, categoria, marca, codigo, preco, ativo, unidade, custo, insumos_pct, impostos_pct, custo_final, ncm, cest, origem, cfop, csosn, cst_icms, aliquota_icms, cclass_trib")
+    .select("id, nome, categoria, marca, codigo, preco, ativo, unidade, custo, insumos_valor, insumos_tipo, impostos_valor, impostos_tipo, margem_pct, custo_final, ncm, cest, origem, cfop, csosn, cst_icms, aliquota_icms, cclass_trib")
     .eq("id", id)
     .returns<Produto[]>()
     .maybeSingle();
@@ -87,6 +90,7 @@ export default async function Produto({ params, searchParams }: { params: Promis
         <Link href="/catalogo">← Catálogo</Link>
         <h1>{p.nome}</h1>
         <p className="subtitulo">{CATEGORIAS[p.categoria] ?? p.categoria}{p.marca ? ` · ${p.marca}` : ""}{p.codigo ? ` · código ${p.codigo}` : ""} · {moeda(p.preco)}</p>
+        {!p.ativo && <p className="aviso" role="status">Fora da venda. Preencha impostos, margem e preço de venda abaixo e marque “Ativo” para aparecer na venda.</p>}
       </div>
       {erro && <p className="erro" role="alert">{erro}</p>}
       {ok && <p className="ok" role="status">Produto salvo.</p>}
@@ -95,26 +99,37 @@ export default async function Produto({ params, searchParams }: { params: Promis
       <form action={salvarProduto.bind(null, p.id)} className="formulario-largo" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         <fieldset className="bloco" disabled={!podeEditar}>
           <legend className="rotulo">Produto</legend>
-          <div className="linha">
-            <label className="rotulo" style={{ flex: "3 1 240px" }}>Nome<input className="campo" name="nome" defaultValue={p.nome} required /></label>
+          <div className="grade-campos">
+            <label className="rotulo">Nome<input className="campo" name="nome" defaultValue={p.nome} required /></label>
             <label className="rotulo">Categoria
               <select className="campo" name="categoria" defaultValue={p.categoria}>
                 {Object.entries(CATEGORIAS).map(([v, r]) => <option key={v} value={v}>{r}</option>)}
               </select>
             </label>
           </div>
-          <div className="linha">
+          <div className="grade-campos">
             <label className="rotulo">Marca<input className="campo" name="marca" defaultValue={p.marca ?? ""} /></label>
             <label className="rotulo">Código (barras ou referência)<input className="campo" name="codigo" defaultValue={p.codigo ?? ""} /></label>
-            <label className="rotulo" style={{ flex: "0 1 110px" }}>Unidade<input className="campo" name="unidade" defaultValue={p.unidade} placeholder="UN" /></label>
-            <label className="marcar"><input type="checkbox" name="ativo" defaultChecked={p.ativo} /> Ativo</label>
+            <label className="rotulo">Unidade<input className="campo" name="unidade" defaultValue={p.unidade} placeholder="UN" /></label>
+            <label className="marcar" style={{ alignSelf: "end", minHeight: 48 }}><input type="checkbox" name="ativo" defaultChecked={p.ativo} /> Ativo (aparece na venda)</label>
           </div>
         </fieldset>
 
         <fieldset className="bloco" disabled={!podeEditar}>
           <legend className="rotulo">Custo, preço e margem</legend>
           {veCusto ? (
-            <Precificacao inicial={{ custo: p.custo === null ? null : Number(p.custo), insumosPct: Number(p.insumos_pct), impostosPct: Number(p.impostos_pct), preco: Number(p.preco) }} podeEditar={podeEditar} />
+            <Precificacao
+              inicial={{
+                custo: p.custo === null ? null : Number(p.custo),
+                insumos: Number(p.insumos_valor),
+                insumosTipo: p.insumos_tipo,
+                impostos: Number(p.impostos_valor),
+                impostosTipo: p.impostos_tipo,
+                margem: p.margem_pct === null ? null : Number(p.margem_pct),
+                preco: Number(p.preco),
+              }}
+              podeEditar={podeEditar}
+            />
           ) : (
             <>
               <input type="hidden" name="preco" value={String(p.preco)} />
@@ -129,7 +144,7 @@ export default async function Produto({ params, searchParams }: { params: Promis
             Tudo opcional, mas sem NCM e CSOSN (ou CST) o produto não sai na nota. Na dúvida, peça ao contador: ele tem esses códigos.
             A entrada pela nota do fornecedor já preenche NCM, CEST e origem.
           </p>
-          <div className="linha">
+          <div className="grade-campos">
             <label className="rotulo" title="Nomenclatura Comum do Mercosul: 8 números. Armações 9003…, óculos de sol 9004…, lentes 9001…">NCM
               <CampoMascara mascara="ncm" name="ncm" defaultValue={p.ncm} placeholder="9003.11.00" />
             </label>
@@ -140,16 +155,16 @@ export default async function Produto({ params, searchParams }: { params: Promis
               <CampoMascara mascara="cfop" name="cfop" defaultValue={p.cfop} placeholder="5102" />
             </label>
           </div>
-          <div className="linha">
-            <label className="rotulo" style={{ flex: "2 1 260px" }}>Origem da mercadoria
+          <div className="grade-campos">
+            <label className="rotulo">Origem da mercadoria
               <select className="campo" name="origem" defaultValue={p.origem === null ? "" : String(p.origem)}>
                 <option value="">Não informada</option>
                 {Object.entries(ORIGENS).map(([v, r]) => <option key={v} value={v}>{r}</option>)}
               </select>
             </label>
           </div>
-          <div className="linha">
-            <label className="rotulo" style={{ flex: "2 1 260px" }}>CSOSN (Simples Nacional)
+          <div className="grade-campos">
+            <label className="rotulo">CSOSN (Simples Nacional)
               <select className="campo" name="csosn" defaultValue={p.csosn ?? ""}>
                 <option value="">Não informado</option>
                 {Object.entries(CSOSN).map(([v, r]) => <option key={v} value={v}>{r}</option>)}
@@ -163,7 +178,7 @@ export default async function Produto({ params, searchParams }: { params: Promis
               <CampoMascara mascara="porcentagem" name="aliquota_icms" defaultValue={p.aliquota_icms} />
             </label>
           </div>
-          <div className="linha">
+          <div className="grade-campos">
             <label className="rotulo" title="Classificação tributária do IBS e da CBS (cClassTrib): 6 números, da tabela oficial da reforma. O contador informa.">
               Classificação IBS/CBS (cClassTrib)
               <CampoMascara mascara="digitos" name="cclass_trib" defaultValue={p.cclass_trib} placeholder="000001" maxLength={6} />

@@ -559,3 +559,45 @@ a.linha-valor { text-decoration: none; color: inherit; }
 .campo-mascara-prefixo, .campo-mascara-sufixo { position: absolute; top: 50%; transform: translateY(-50%); color: var(--texto-suave); font-weight: 600; font-size: 14px; pointer-events: none; }
 .campo-mascara-prefixo { left: 12px; }
 .campo-mascara-sufixo { right: 12px; }
+
+/* Valor em R$ ou % com a chave do lado; linha de ajuda sempre com a mesma altura (alinha as colunas) */
+.valor-unidade { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.valor-unidade-campo { display: flex; align-items: stretch; gap: 6px; }
+.valor-unidade-campo .campo-mascara { flex: 1 1 auto; }
+.valor-unidade-chave { display: inline-flex; border: 1px solid var(--borda-campo); border-radius: 10px; overflow: hidden; flex: 0 0 auto; }
+.valor-unidade-chave button { border: none; background: #fff; color: var(--texto-suave); font: inherit; font-size: 13px; font-weight: 700; padding: 0 8px; cursor: pointer; min-width: 34px; }
+.valor-unidade-chave button[aria-pressed="true"] { background: var(--verde); color: #fff; }
+.valor-unidade-chave button:focus-visible { outline: 2px solid var(--verde); outline-offset: -2px; }
+.ajuda-campo { display: block; min-height: 16px; font-size: 12px; line-height: 16px; color: var(--texto-suave); font-weight: 500; }
+
+/* Formulários em grade: rótulo, campo e ajuda na mesma altura em todas as colunas */
+.grade-campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; align-items: start; }
+.grade-campos > .rotulo { min-width: 0; }
+
+/* Tabela de entrada pela nota: tudo alinhado pelo topo e colunas numéricas com a mesma largura */
+.tabela-entrada td { vertical-align: top; }
+.tabela-entrada td.numero, .tabela-entrada th.numero { text-align: right; }
+.tabela-entrada .col-qtd { width: 90px; min-width: 90px; }
+.tabela-entrada .col-qtd .campo { min-width: 72px; padding-left: 8px; padding-right: 8px; }
+.tabela-entrada .col-valor { width: 230px; min-width: 230px; text-align: left !important; }
+.tabela-entrada .col-margem { width: 130px; min-width: 130px; }
+.tabela-entrada .col-preco { width: 150px; min-width: 150px; }
+.tabela-entrada .col-categoria { width: 200px; min-width: 200px; }
+.tabela-entrada .campo, .tabela-entrada .campo-mascara { width: 100%; }
+.tabela-entrada .texto-celula { display: flex; align-items: center; min-height: 38px; justify-content: flex-end; font-variant-numeric: tabular-nums; }
+.tabela-entrada .produto-celula { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 230px; }
+.campo-leitura { display: flex; align-items: center; justify-content: flex-end; background: var(--fundo); font-weight: 700; font-variant-numeric: tabular-nums; }
+.tabela-entrada .ajuda-campo { text-align: inherit; }
+.tabela-entrada .col-valor .ajuda-campo { text-align: left; }
+.escolha-pagamento { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-bottom: 8px; }
+@media (max-width: 640px) {
+  .tabela-entrada thead { display: none; }
+  .tabela-entrada, .tabela-entrada tbody { display: block; }
+  .tabela-entrada tr { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; padding: 14px 0; border-bottom: 1px solid var(--borda); }
+  .tabela-entrada td { display: block; border: none; padding: 0; width: auto !important; min-width: 0 !important; text-align: left !important; }
+  .tabela-entrada td:first-child, .tabela-entrada .col-categoria { grid-column: 1 / -1; }
+  .tabela-entrada td[data-rotulo]::before { content: attr(data-rotulo); display: block; font-size: 12px; font-weight: 600; color: var(--texto-suave); margin-bottom: 4px; }
+  .tabela-entrada .produto-celula { min-width: 0; }
+  .tabela-entrada .texto-celula { justify-content: flex-start; min-height: 0; }
+  .tabela-entrada .col-qtd .campo { max-width: 110px; text-align: left !important; }
+}

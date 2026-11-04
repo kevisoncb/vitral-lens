@@ -9,18 +9,18 @@ from (values (1, 'dono', 'Dono'), (2, 'vendedor', 'Balcao')) v(n, k, nm);
 
 set role authenticated; set request.jwt.claim.sub = 'ac200000-0000-0000-0000-000000000001';
 -- a armação já está no catálogo com o EAN; os outros dois são novos
--- o gerente já corrigiu o NCM da armação no cadastro: a nota não pode trocar
-insert into catalogo_itens (id, categoria, nome, preco, codigo, ncm) values
-  ('ac300000-0000-0000-0000-000000000001', 'armacao', 'Armação acetato preta', 450, '7891234567895', '90031900');
+-- o gerente já corrigiu o NCM da armação no cadastro e definiu frete R$ 5, IPI 7,5% e margem 30%: a nota não troca nada disso
+insert into catalogo_itens (id, categoria, nome, preco, codigo, ncm, custo, insumos_valor, insumos_tipo, impostos_valor, impostos_tipo, margem_pct) values
+  ('ac300000-0000-0000-0000-000000000001', 'armacao', 'Armação acetato preta', 450, '7891234567895', '90031900', 120, 5, 'reais', 7.5, 'porcentagem', 30);
 
 select 'entrada' as teste, registrar_entrada_nfe(
   '{"chave": "32261112345678000190550010000088121000088120", "numero": "8812", "fornecedor": "Distribuidora", "cnpj": "12345678000190", "emissao": "2026-11-03", "valor_total": 1254.80}',
   null,
   '[{"codigo": "7891234567895", "nome": "ARMACAO ACETATO PRETA 52-18", "categoria": "armacao", "quantidade": 3, "custo": 150,
-     "insumos_pct": 3.3333, "impostos_pct": 5, "ncm": "90031100", "cest": "2805400", "origem": 0},
-    {"codigo": "SOL-AV-01", "nome": "Óculos sol aviador", "categoria": "armacao", "quantidade": 2, "custo": 89.9, "preco_venda": 249,
-     "insumos_pct": -5.4505, "impostos_pct": 6.8966, "ncm": "9004.10.00", "origem": 2, "unidade": "un"},
-    {"codigo": "7890000000013", "nome": "Lente de contato mensal", "categoria": "lente_contato", "quantidade": 10, "custo": 62.5, "preco_venda": 160}]',
+     "insumos_valor": 1, "impostos_valor": 2, "ncm": "90031100", "cest": "2805400", "origem": 0},
+    {"codigo": "SOL-AV-01", "nome": "Óculos sol aviador", "categoria": "armacao", "quantidade": 2, "custo": 89.9,
+     "insumos_valor": -4.9, "impostos_valor": 6.2, "ncm": "9004.10.00", "origem": 2, "unidade": "un"},
+    {"codigo": "7890000000013", "nome": "Lente de contato mensal", "categoria": "lente_contato", "quantidade": 10, "custo": 62.5}]',
   '[{"vencimento": "2026-12-03", "valor": 418.27}, {"vencimento": "2027-01-02", "valor": 418.27}, {"vencimento": "2027-02-01", "valor": 418.26}]',
   (select id from categorias_custo where nome = 'Fornecedor de armações')) - 'nota_id' as resultado;
 
@@ -29,19 +29,21 @@ from estoque_saldos s join catalogo_itens c on c.id = s.item_id;
 select 'contas' as teste, count(*), sum(valor), min(descricao) from contas_pagar;
 select 'fiscal e custo' as teste, string_agg(nome || ' ncm=' || coalesce(ncm, '-') || ' cest=' || coalesce(cest, '-') || ' orig=' || coalesce(origem::text, '-')
        || ' un=' || unidade || ' final=' || custo_final, ' | ' order by nome) from catalogo_itens;
+select 'margem e preco' as teste, string_agg(nome || ' m=' || coalesce(margem_pct::text, '-') || ' p=' || preco || ' ' || insumos_tipo || '/' || impostos_tipo
+       || case when ativo then '' else ' fora da venda' end, ' | ' order by nome) from catalogo_itens;
 select 'custo do movimento' as teste, string_agg(custo_unitario::text, ',' order by custo_unitario) from estoque_movimentos;
 
 -- a mesma nota de novo: recusada
 select registrar_entrada_nfe('{"chave": "32261112345678000190550010000088121000088120", "numero": "8812", "fornecedor": "Distribuidora"}',
   null, '[{"codigo": "SOL-AV-01", "nome": "x", "categoria": "armacao", "quantidade": 1, "custo": 1}]', '[]');
--- produto novo sem preço de venda: recusado, e nada fica pela metade
+-- um item com quantidade errada: recusado, e nada fica pela metade
 select registrar_entrada_nfe('{"numero": "9000", "fornecedor": "Outro"}', null,
   '[{"codigo": "SOL-AV-01", "nome": "Aviador", "categoria": "armacao", "quantidade": 1, "custo": 80},
-    {"codigo": "NOVO-1", "nome": "Novo sem preço", "categoria": "acessorio", "quantidade": 1, "custo": 5}]', '[]');
+    {"codigo": "NOVO-1", "nome": "Novo com erro", "categoria": "acessorio", "quantidade": 0, "custo": 5}]', '[]');
 select 'notas lancadas (esperado 1)' as teste, count(*) from notas_entrada;
 reset role;
 
 -- balcão (vendedor) não dá entrada
 set role authenticated; set request.jwt.claim.sub = 'ac200000-0000-0000-0000-000000000002';
-select registrar_entrada_nfe('{"numero": "1", "fornecedor": "X"}', null, '[{"codigo": "A", "nome": "A", "categoria": "acessorio", "quantidade": 1, "custo": 1, "preco_venda": 2}]', '[]');
+select registrar_entrada_nfe('{"numero": "1", "fornecedor": "X"}', null, '[{"codigo": "A", "nome": "A", "categoria": "acessorio", "quantidade": 1, "custo": 1}]', '[]');
 reset role;
