@@ -65,6 +65,7 @@ A venda do PDV (`src/app/pdv/venda.tsx`) foi aberta no navegador com produtos de
 | Gestão | Importar planilha (Excel `.xlsx` ou CSV): clientes e produtos, com prévia e relatório de erros | `/configuracoes/importar` |
 | Público | Site da ótica + pedido de orçamento; agendamento online | `/site/[slug]`, `/site/[slug]/agendar` |
 | Público | Site do Vitral com preço e lista de espera (quem está logado vai para o sistema) | `/` |
+| Todas | Instalar como app (PWA): ícone na tela inicial, tela cheia, atalhos para Vendas, Caixa e Produção | `/manifest.webmanifest` |
 | PDV | Caixa: abrir, venda rápida (código de barras, várias formas, crediário, troco), sangria/suprimento, fechar com conferência | `/pdv` |
 | PDV | Vendas do dia (gerente cancela e devolve ao estoque), caixas fechados com diferença | `/pdv/vendas`, `/pdv/caixas` |
 | PDV | Cupom sem valor fiscal (impressora térmica de 80 mm), aberto ao finalizar a venda | `/cupom/[id]` |
@@ -98,7 +99,7 @@ Marque com `[x]` quando terminar e anote no Histórico.
   - [ ] laboratório puxa, registra etapas, manda recado, move para "Chegou na loja";
   - [ ] loja vê o recado, avisa pelo WhatsApp, entrega.
 - [ ] Testar o site: `/site/nery` publicado, pedido de orçamento vira card; cadastrar horários e testar `/site/nery/agendar`.
-- [ ] Testar no celular e no tablet: mover cards pelo botão "Mover para" (arrastar não funciona no toque).
+- [ ] Testar no celular e no tablet: mover cards pelo botão "Mover para" (arrastar não funciona no toque) e instalar o app ("Adicionar à tela de início").
 - [ ] (Opcional) pg_cron: `select cron.schedule('sem-retorno', '0 * * * *', 'select mover_sem_retorno()');`
 - [ ] Deploy na Vercel (conta do dono, região `gru1`), variáveis de ambiente, domínio das Óticas Nery em `SITE_DOMINIOS`.
 - [x] Gerar os tipos do banco e usar nos clientes (`npm run tipos`; achou o bug do cadastro de horários, corrigido na 0013).
@@ -233,6 +234,8 @@ src/app/conta/         minha conta (qualquer área)
 
 Mais recente em cima. Uma linha por sessão: data, o que mudou, o que ficou pendente.
 
+- **2026-11-04 (16)** — PWA: manifesto (`src/app/manifest.ts`), ícones em `public/icones/` (comum, maskable e do iPhone), `src/app/icon.svg`, metadados do iPhone; o middleware deixa manifesto e ícones passarem sem login. O Chrome não aponta nenhum erro de instalação.
+  - Pendente: funcionar sem internet (service worker com a agenda e a fila do dia).
 - **2026-11-04 (15)** — Etiquetas com código de barras: gerador Code 128 próprio (`src/lib/codigo-barras.ts`, testes em `testes/`, tabela de símbolos conferida com a python-barcode), tela `/catalogo/etiquetas` (rolo 50 × 25 mm ou A4 Pimaco 6180, uma por peça em estoque) e migração 0015 (`gerar_codigos_catalogo()`). Impressão: tamanho de página por formato (conferido em PDF).
   - Pendente: testar com impressora e leitor de verdade.
 - **2026-11-04 (14)** — Importação aceita Excel `.xlsx` direto (leitor próprio: ZIP + XML, datas do Excel, CPF que perdeu os zeros). `npm test` com os primeiros testes do código (`testes/planilha.test.mjs`, planilhas de exemplo em `testes/planilhas/`), rodando no CI.

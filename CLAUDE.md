@@ -14,7 +14,7 @@ Idioma: português do Brasil em tudo (interface, tabelas, colunas, nomes de vari
 
 ## Stack
 
-Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Storage), hospedagem na Vercel. CSS simples em `src/app/globals.css` (sem Tailwind). Somente web, responsivo (computador, tablet, celular), com PWA no futuro.
+Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Storage), hospedagem na Vercel. CSS simples em `src/app/globals.css` (sem Tailwind). Somente web, responsivo (computador, tablet, celular), instalável como app (PWA: `src/app/manifest.ts`, ícones em `public/icones/`).
 
 ## Regras do produto (não mudar sem combinar)
 
