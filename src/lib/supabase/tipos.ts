@@ -2408,6 +2408,7 @@ export type Database = {
       entrar_lista_espera: { Args: { p_nome: string | null; p_otica: string | null; p_cidade: string | null; p_uf: string | null; p_telefone: string | null; p_email: string | null; p_lojas: number | null; p_aceite_lgpd: boolean | null }; Returns: boolean };
       exigir_admin_vitral: { Args: Record<PropertyKey, never>; Returns: undefined };
       fechar_caixa: { Args: { p_caixa: string | null; p_contado: number | null; p_observacao?: string | null }; Returns: Json };
+      gerar_codigos_catalogo: { Args: { p_itens?: string[] | null }; Returns: number };
       horarios_livres: { Args: { p_slug: string | null; p_dia: string | null }; Returns: { inicio: string; fim: string }[] };
       horarios_ocupados: { Args: { p_loja: string | null; p_dia: string | null }; Returns: { inicio: string; fim: string }[] };
       importar_clientes: { Args: { p_linhas: Json | null }; Returns: Json };

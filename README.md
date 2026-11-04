@@ -37,6 +37,7 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 | 0012 | Versão 4: áreas `pdv` e `financeiro`, perfil Contador, caixa, venda no PDV (crediário, estoque, comissão, cancelamento), categorias de custo, alíquota | ✅ |
 | 0013 | `otica_id` automático em horários, lojas, perfis, motivos e etapas (o cadastro de horários falhava) | ✅ |
 | 0014 | Painel do Vitral: `vitral_admins` e funções `painel_*` (óticas, criar ótica com dono, adicionais, situação, lista de espera) | ✅ |
+| 0015 | Código interno para etiqueta (`gerar_codigos_catalogo()`: 2 + 9 dígitos, pula os já usados) | ✅ |
 
 ### Telas (`src/`): todas 🟡, compilam (`typecheck` e `build` passam) mas ainda não foram abertas com um Supabase de verdade
 
@@ -53,6 +54,7 @@ A venda do PDV (`src/app/pdv/venda.tsx`) foi aberta no navegador com produtos de
 | Loja e gestão | Ordens de serviço: acompanha, avisa e entrega; recados com o laboratório | `/laboratorio`, `/laboratorio/[id]` |
 | Loja e gestão | Agenda interna | `/agenda` |
 | Loja e gestão | Catálogo com fotos; foto da armação depois da venda | `/catalogo`, `/catalogo/fotos` |
+| Loja e gestão | Etiquetas com código de barras (Code 128) para impressora de etiquetas 50 × 25 mm ou folha A4 Pimaco; gera código interno para quem não tem | `/catalogo/etiquetas` |
 | Loja e gestão | Estoque por loja: saldo, abaixo do mínimo, entrada, contagem, perda, transferência, histórico | `/estoque`, `/estoque/[id]` |
 | Loja e gestão | Comissões do mês (vendedor vê as dele; gestão vê todas, regras e pagamento) | `/comissoes` |
 | Gestão | Relatórios do mês | `/relatorios` |
@@ -85,7 +87,7 @@ Marque com `[x]` quando terminar e anote no Histórico.
 
 - [x] `npm install`, `npm run typecheck`, corrigir os erros. Commitar `package-lock.json`.
 - [ ] `npm audit` aponta o `postcss` embutido no Next 15 (só afeta o build, não o site no ar); a correção só vem no Next 16. Avaliar a migração depois da Versão 1.
-- [ ] Criar o projeto no Supabase **na região São Paulo (sa-east-1)**, na conta do dono do produto, e rodar as migrações 0001 → 0014 no SQL Editor.
+- [ ] Criar o projeto no Supabase **na região São Paulo (sa-east-1)**, na conta do dono do produto, e rodar as migrações 0001 → 0015 no SQL Editor.
 - [ ] Cadastrar você em `vitral_admins` e criar as Óticas Nery pelo painel (`/painel`, seção 4).
 - [ ] Rodar `supabase/seed_catalogo.sql` (ajustar os preços antes).
 - [x] Conferir as consultas das telas contra o banco sem o Supabase (`conferir_consultas.mjs`, no CI).
@@ -101,7 +103,9 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - [ ] Deploy na Vercel (conta do dono, região `gru1`), variáveis de ambiente, domínio das Óticas Nery em `SITE_DOMINIOS`.
 - [x] Gerar os tipos do banco e usar nos clientes (`npm run tipos`; achou o bug do cadastro de horários, corrigido na 0013).
 - [ ] Definir o preço dos adicionais: nota fiscal (sugestão: +R$ 50) e loja extra.
-- [ ] Ideias da concorrência para depois: assinatura digital da OS pelo link, medida de DNP pela câmera, entrada de produtos por XML, etiqueta com código de barras.
+- [x] Etiqueta com código de barras (`/catalogo/etiquetas`, gerador próprio em `src/lib/codigo-barras.ts`, conferido com a python-barcode).
+- [ ] Testar as etiquetas numa impressora de etiquetas de verdade e ler com o leitor do PDV.
+- [ ] Ideias da concorrência para depois: assinatura digital da OS pelo link, medida de DNP pela câmera, entrada de produtos por XML.
 - [x] Versão 2: importação de planilha (clientes e produtos) e site do Vitral com lista de espera.
 - [ ] Importar a planilha de clientes das Óticas Nery (pedir o arquivo do sistema antigo) e conferir o relatório de erros.
 - [x] Planilha `.xlsx` direto, sem biblioteca externa (`lerXlsx()` em `src/lib/planilha.ts`, testes em `testes/`).
@@ -196,7 +200,7 @@ psql -f supabase/tests/versao3_smoke.sql      # estoque e comissões
 psql -f supabase/tests/versao4_smoke.sql      # PDV e financeiro
 node supabase/tests/conferir_consultas.mjs    # as consultas das telas batem com o banco (precisa do npm install)
 node supabase/gerar_tipos.mjs --conferir      # src/lib/supabase/tipos.ts em dia com as migrações
-npm test                                      # testes do código (leitura de planilhas CSV e Excel)
+npm test                                      # testes do código (planilhas CSV e Excel, código de barras)
 ```
 
 Cada teste imprime as linhas esperadas e alguns erros de propósito: eles provam que o bloqueio funciona. O GitHub Actions (`.github/workflows/ci.yml`) roda tudo a cada push e confere as linhas. O teste de carga (1.000 óticas) está em `supabase/carga/` e os resultados em `docs/ESCALA.md`.
@@ -229,6 +233,8 @@ src/app/conta/         minha conta (qualquer área)
 
 Mais recente em cima. Uma linha por sessão: data, o que mudou, o que ficou pendente.
 
+- **2026-11-04 (15)** — Etiquetas com código de barras: gerador Code 128 próprio (`src/lib/codigo-barras.ts`, testes em `testes/`, tabela de símbolos conferida com a python-barcode), tela `/catalogo/etiquetas` (rolo 50 × 25 mm ou A4 Pimaco 6180, uma por peça em estoque) e migração 0015 (`gerar_codigos_catalogo()`). Impressão: tamanho de página por formato (conferido em PDF).
+  - Pendente: testar com impressora e leitor de verdade.
 - **2026-11-04 (14)** — Importação aceita Excel `.xlsx` direto (leitor próprio: ZIP + XML, datas do Excel, CPF que perdeu os zeros). `npm test` com os primeiros testes do código (`testes/planilha.test.mjs`, planilhas de exemplo em `testes/planilhas/`), rodando no CI.
   - Pendente: `.xls` antigo continua pedindo para salvar como `.xlsx` ou CSV.
 - **2026-10-29 (13)** — Nome do produto: **Vitral** (era Vitra) em toda a interface, documentos e banco (`vitral_admins`, `sou_admin_vitral()`, pasta `src/app/_vitral`, migração `0014_painel_do_vitral.sql`); nada estava em produção. Primeiro cliente: **Óticas Nery** (no lugar da Ótica Ômega, que não existe); site de exemplo `/site/nery`.

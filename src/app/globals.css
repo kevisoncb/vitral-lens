@@ -507,3 +507,29 @@ a.linha-valor { text-decoration: none; color: inherit; }
   .cupom { margin: 0; width: 80mm; }
   .cupom-acoes { display: none; }
 }
+
+/* Etiquetas com código de barras (/catalogo/etiquetas) */
+.etiquetas-folha { display: flex; flex-wrap: wrap; gap: 8px; }
+.etiqueta-produto { width: 50mm; height: 25mm; padding: 1.5mm 2mm; background: #fff; color: #000; border: 1px dashed var(--borda-campo); border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; overflow: hidden; font-size: 7pt; line-height: 1.15; text-align: center; }
+.etiqueta-produto strong { font-size: 7.5pt; max-height: 2.3em; overflow: hidden; }
+.etiqueta-produto small { font-size: 6pt; }
+.etiqueta-preco { font-size: 10pt; font-weight: 700; }
+.etiqueta-barras { display: block; width: 100%; height: 7mm; }
+.etiqueta-barras svg { display: block; width: 100%; height: 100%; }
+.etiqueta-codigo { font-family: ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0.05em; }
+.etiquetas-a4 .etiqueta-produto { width: 66.7mm; height: 25.4mm; }
+
+@page etiqueta-rolo { size: 50mm 25mm; margin: 0; }
+@page etiqueta-a4 { size: A4; margin: 12.7mm 4.7mm; }
+@media print {
+  .menu, .barra-area, .nao-imprimir, .demo-faixa { display: none !important; }
+  .app { display: block; }
+  .conteudo, .area-conteudo { padding: 0 !important; max-width: none; }
+  html, body { background: #fff !important; }
+  .etiquetas-folha { gap: 0; }
+  .etiqueta-produto { border: none; border-radius: 0; break-inside: avoid; }
+  .etiquetas-rolo { display: block; }
+  .etiquetas-rolo .etiqueta-produto { page: etiqueta-rolo; break-after: page; }
+  .etiquetas-rolo .etiqueta-produto:last-child { break-after: auto; }
+  .etiquetas-a4 { page: etiqueta-a4; display: grid; grid-template-columns: repeat(3, 66.7mm); grid-auto-rows: 25.4mm; column-gap: 3.1mm; }
+}

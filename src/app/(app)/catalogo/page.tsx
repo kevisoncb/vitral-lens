@@ -23,9 +23,14 @@ export default async function PaginaCatalogo({ searchParams }: { searchParams: P
 
   return (
     <>
-      <div>
-        <h1>Catálogo</h1>
-        <p className="subtitulo">Lentes, tratamentos, armações e serviços que aparecem no orçamento.</p>
+      <div className="topo">
+        <div>
+          <h1>Catálogo</h1>
+          <p className="subtitulo">Lentes, tratamentos, armações e serviços que aparecem no orçamento.</p>
+        </div>
+        <div className="topo-acoes">
+          <Link className="botao-secundario" href="/catalogo/etiquetas" style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}>Etiquetas com código de barras</Link>
+        </div>
       </div>
       {erro && <p className="erro" role="alert">{erro}</p>}
 

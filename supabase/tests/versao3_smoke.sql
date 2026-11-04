@@ -83,3 +83,14 @@ reset role;
 set role authenticated; set request.jwt.claim.sub = 'a8200000-0000-0000-0000-000000000004';
 select 'lab nao ve estoque nem comissoes (esperado 0 0)' as teste, (select count(*) from estoque_saldos), (select count(*) from comissoes);
 reset role;
+
+-- 0015: código interno para etiqueta (só para quem edita o catálogo; pula código já usado à mão)
+set role authenticated; set request.jwt.claim.sub = 'a8200000-0000-0000-0000-000000000001';
+insert into catalogo_itens (id, categoria, nome, preco, codigo) values
+  ('a8300000-0000-0000-0000-000000000009', 'acessorio', 'Cordão', 20, '2000000001');
+select 'codigos gerados' as teste, gerar_codigos_catalogo();
+select 'codigos' as teste, string_agg(nome || '=' || codigo, ',' order by nome) from catalogo_itens;
+reset role;
+set role authenticated; set request.jwt.claim.sub = 'a8200000-0000-0000-0000-000000000002';
+select gerar_codigos_catalogo();
+reset role;
