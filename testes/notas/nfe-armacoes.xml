@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nfeProc xmlns="http://www.portalfiscal.inf.br/nfe" versao="4.00">
+  <NFe xmlns="http://www.portalfiscal.inf.br/nfe">
+    <infNFe Id="NFe32261112345678000190550010000088121000088120" versao="4.00">
+      <ide>
+        <cUF>32</cUF><cNF>00008812</cNF><natOp>Venda de mercadoria</natOp><mod>55</mod>
+        <serie>1</serie><nNF>8812</nNF><dhEmi>2026-11-03T10:15:00-03:00</dhEmi><tpNF>1</tpNF>
+      </ide>
+      <emit>
+        <CNPJ>12345678000190</CNPJ>
+        <xNome>DISTRIBUIDORA OTICA EXEMPLO LTDA</xNome>
+        <xFant>Ótica Distribuidora &amp; Cia</xFant>
+        <enderEmit><xLgr>Rua das Lentes</xLgr><nro>100</nro><xMun>Vitória</xMun><UF>ES</UF></enderEmit>
+      </emit>
+      <dest><CNPJ>98765432000110</CNPJ><xNome>OTICAS NERY</xNome></dest>
+      <det nItem="1">
+        <prod>
+          <cProd>AR-ACT-52</cProd><cEAN>7891234567895</cEAN><xProd>ARMACAO ACETATO PRETA 52-18</xProd>
+          <NCM>90031100</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>3.0000</qCom>
+          <vUnCom>150.0000000000</vUnCom><vProd>450.00</vProd><cEANTrib>7891234567895</cEANTrib>
+          <uTrib>UN</uTrib><qTrib>3.0000</qTrib><vUnTrib>150.0000000000</vUnTrib><indTot>1</indTot>
+        </prod>
+        <imposto><ICMS><ICMSSN102><orig>0</orig><CSOSN>102</CSOSN></ICMSSN102></ICMS></imposto>
+      </det>
+      <det nItem="2">
+        <prod>
+          <cProd>SOL-AV-01</cProd><cEAN>SEM GTIN</cEAN><xProd>OCULOS SOL AVIADOR DOURADO</xProd>
+          <NCM>90041000</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>2.0000</qCom>
+          <vUnCom>89.9000000000</vUnCom><vProd>179.80</vProd><cEANTrib>SEM GTIN</cEANTrib>
+          <uTrib>UN</uTrib><qTrib>2.0000</qTrib><vUnTrib>89.9000000000</vUnTrib><indTot>1</indTot>
+        </prod>
+      </det>
+      <det nItem="3">
+        <prod>
+          <cProd>LC-MENSAL</cProd><cEAN>7890000000013</cEAN><xProd>LENTE DE CONTATO MENSAL CX 6</xProd>
+          <NCM>90013000</NCM><CFOP>5102</CFOP><uCom>CX</uCom><qCom>10.0000</qCom>
+          <vUnCom>62.5000000000</vUnCom><vProd>625.00</vProd><cEANTrib>7890000000013</cEANTrib>
+          <uTrib>CX</uTrib><qTrib>10.0000</qTrib><vUnTrib>62.5000000000</vUnTrib><indTot>1</indTot>
+        </prod>
+      </det>
+      <total><ICMSTot><vProd>1254.80</vProd><vNF>1254.80</vNF></ICMSTot></total>
+      <cobr>
+        <fat><nFat>8812</nFat><vOrig>1254.80</vOrig><vLiq>1254.80</vLiq></fat>
+        <dup><nDup>001</nDup><dVenc>2026-12-03</dVenc><vDup>418.27</vDup></dup>
+        <dup><nDup>002</nDup><dVenc>2027-01-02</dVenc><vDup>418.27</vDup></dup>
+        <dup><nDup>003</nDup><dVenc>2027-02-01</dVenc><vDup>418.26</vDup></dup>
+      </cobr>
+    </infNFe>
+  </NFe>
+  <protNFe versao="4.00">
+    <infProt><tpAmb>1</tpAmb><chNFe>32261112345678000190550010000088121000088120</chNFe><nProt>132260000012345</nProt></infProt>
+  </protNFe>
+</nfeProc>

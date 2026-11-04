@@ -72,6 +72,9 @@ export default async function PaginaEstoque({ searchParams }: Props) {
           <p className="subtitulo">Armações, lentes de contato e acessórios. A venda dá baixa sozinha no primeiro pagamento.</p>
         </div>
         <div className="topo-acoes">
+          {podeEntrada && (
+            <Link className="botao" href="/estoque/nota" style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}>Entrada pela nota (XML)</Link>
+          )}
           <form action="/estoque" method="get" className="linha">
             {loja && <input type="hidden" name="loja" value={loja.id} />}
             <input className="campo" type="search" name="q" defaultValue={busca} placeholder="Buscar nome, marca ou código" aria-label="Buscar produto" />

@@ -793,6 +793,7 @@ export type Database = {
           fornecedor: string | null;
           observacao: string | null;
           recorrencia_id: string | null;
+          nota_id: string | null;
         };
         Insert: {
           id?: string;
@@ -807,6 +808,7 @@ export type Database = {
           fornecedor?: string | null;
           observacao?: string | null;
           recorrencia_id?: string | null;
+          nota_id?: string | null;
         };
         Update: {
           id?: string;
@@ -821,6 +823,7 @@ export type Database = {
           fornecedor?: string | null;
           observacao?: string | null;
           recorrencia_id?: string | null;
+          nota_id?: string | null;
         };
         Relationships: [
           {
@@ -835,6 +838,13 @@ export type Database = {
             columns: ["loja_id"];
             isOneToOne: false;
             referencedRelation: "lojas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contas_pagar_nota_id_fkey";
+            columns: ["nota_id"];
+            isOneToOne: false;
+            referencedRelation: "notas_entrada";
             referencedColumns: ["id"];
           },
           {
@@ -934,6 +944,7 @@ export type Database = {
           motivo: string | null;
           usuario_id: string | null;
           criado_em: string;
+          nota_id: string | null;
         };
         Insert: {
           id?: string;
@@ -948,6 +959,7 @@ export type Database = {
           motivo?: string | null;
           usuario_id?: string | null;
           criado_em?: string;
+          nota_id?: string | null;
         };
         Update: {
           id?: string;
@@ -962,6 +974,7 @@ export type Database = {
           motivo?: string | null;
           usuario_id?: string | null;
           criado_em?: string;
+          nota_id?: string | null;
         };
         Relationships: [
           {
@@ -983,6 +996,13 @@ export type Database = {
             columns: ["loja_id"];
             isOneToOne: false;
             referencedRelation: "lojas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "estoque_movimentos_nota_id_fkey";
+            columns: ["nota_id"];
+            isOneToOne: false;
+            referencedRelation: "notas_entrada";
             referencedColumns: ["id"];
           },
           {
@@ -1396,6 +1416,76 @@ export type Database = {
             columns: ["otica_id"];
             isOneToOne: false;
             referencedRelation: "oticas";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      notas_entrada: {
+        Row: {
+          id: string;
+          otica_id: string;
+          loja_id: string | null;
+          chave: string | null;
+          numero: string;
+          fornecedor: string;
+          cnpj: string | null;
+          emissao: string | null;
+          valor_total: number | null;
+          itens: number;
+          unidades: number;
+          usuario_id: string | null;
+          criado_em: string;
+        };
+        Insert: {
+          id?: string;
+          otica_id: string;
+          loja_id?: string | null;
+          chave?: string | null;
+          numero: string;
+          fornecedor: string;
+          cnpj?: string | null;
+          emissao?: string | null;
+          valor_total?: number | null;
+          itens: number;
+          unidades: number;
+          usuario_id?: string | null;
+          criado_em?: string;
+        };
+        Update: {
+          id?: string;
+          otica_id?: string;
+          loja_id?: string | null;
+          chave?: string | null;
+          numero?: string;
+          fornecedor?: string;
+          cnpj?: string | null;
+          emissao?: string | null;
+          valor_total?: number | null;
+          itens?: number;
+          unidades?: number;
+          usuario_id?: string | null;
+          criado_em?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notas_entrada_loja_id_fkey";
+            columns: ["loja_id"];
+            isOneToOne: false;
+            referencedRelation: "lojas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notas_entrada_otica_id_fkey";
+            columns: ["otica_id"];
+            isOneToOne: false;
+            referencedRelation: "oticas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notas_entrada_usuario_id_fkey";
+            columns: ["usuario_id"];
+            isOneToOne: false;
+            referencedRelation: "usuarios";
             referencedColumns: ["id"];
           },
         ];
@@ -2433,6 +2523,7 @@ export type Database = {
       permissoes_v3: { Args: { p_otica: string | null }; Returns: undefined };
       proximo_numero: { Args: { p_otica: string | null; p_nome: string | null }; Returns: number };
       recurso_ativo: { Args: { r: string | null }; Returns: boolean };
+      registrar_entrada_nfe: { Args: { p_nota: Json | null; p_loja: string | null; p_itens: Json | null; p_duplicatas: Json | null; p_categoria_custo?: string | null }; Returns: Json };
       registrar_pagamento: { Args: { p_atendimento: string | null; p_valor: number | null; p_forma: string | null; p_parcelas?: number | null; p_sinal?: boolean | null; p_data_prometida?: string | null }; Returns: string };
       registrar_venda: { Args: { p_caixa: string | null; p_cliente: string | null; p_itens: Json | null; p_desconto: number | null; p_pagamentos: Json | null; p_observacao?: string | null }; Returns: string };
       site_da_otica: { Args: { p_slug: string | null }; Returns: { nome: string; titulo: string; sobre: string; endereco: string; whatsapp: string; horario: string; instagram: string; cor: string; logo_url: string; agendamento_online: boolean }[] };
