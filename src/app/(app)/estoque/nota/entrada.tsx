@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 import { lerNfe, type NotaFiscal } from "@/lib/nfe";
 import { dataBR, moeda } from "@/lib/formatar";
+import { formatarDecimal, lerDecimal } from "@/lib/mascaras";
+import { CampoMascara } from "@/components/campo-mascara";
 import { lancarNota, type ResultadoEntrada } from "./actions";
 
 const CATEGORIAS: Record<string, string> = {
@@ -19,8 +21,11 @@ type Linha = {
   categoria: string;
   quantidade: number;
   custo: number;
-  insumos: string;
-  impostos: string;
+  /** % da compra, exato (o que veio da nota); o texto só existe depois que a pessoa edita */
+  insumosPct: number;
+  impostosPct: number;
+  insumosTexto?: string;
+  impostosTexto?: string;
   preco: string;
   existente: string | null;
   ncm: string | null;
@@ -29,18 +34,17 @@ type Linha = {
   unidade: string | null;
 };
 
-const texto = (n: number) => n.toFixed(2).replace(".", ",");
-
-/** Preço de venda sugerido: custo × margem, terminando em ,90. */
-function sugerido(custo: number, margem: number): string {
-  const v = Math.max(0, Math.ceil(custo * margem) - 0.1);
-  return v.toFixed(2).replace(".", ",");
+/** Preço de venda sugerido: custo final + markup %, terminando em ,90. */
+function sugerido(custo: number, markup: number): string {
+  return formatarDecimal(Math.max(0, Math.ceil(custo * (1 + markup / 100)) - 0.1));
 }
 
-const numero = (t: string) => {
-  const n = Number(t.replace(/\./g, "").replace(",", "."));
-  return Number.isFinite(n) ? n : null;
-};
+/** R$ por unidade (como vem na nota) -> % da compra, com 4 casas para não perder centavos. */
+function porcentagem(valor: number, custo: number): number {
+  return custo > 0 ? Math.round((valor / custo) * 1000000) / 10000 : 0;
+}
+
+const numero = lerDecimal;
 
 export function EntradaPorNota({
   catalogo,
@@ -55,7 +59,7 @@ export function EntradaPorNota({
 }) {
   const [nota, setNota] = useState<NotaFiscal | null>(null);
   const [linhas, setLinhas] = useState<Linha[]>([]);
-  const [margem, setMargem] = useState("2,5");
+  const [markup, setMarkup] = useState("150,00");
   const [loja, setLoja] = useState(lojas[0]?.id ?? "");
   const [categoriaCusto, setCategoriaCusto] = useState(categoriasCusto.find((c) => /fornecedor/i.test(c.nome))?.id ?? "");
   const [lancarParcelas, setLancarParcelas] = useState(podeFinanceiro);
@@ -68,7 +72,7 @@ export function EntradaPorNota({
     if (!f) return;
     try {
       const n = lerNfe(await f.text());
-      const m = numero(margem) ?? 2.5;
+      const m = numero(markup) ?? 150;
       setNota(n);
       setLinhas(n.itens.map((i) => ({
         codigo: i.codigo,
@@ -76,8 +80,8 @@ export function EntradaPorNota({
         categoria: i.categoria,
         quantidade: Math.max(1, Math.round(i.quantidade)),
         custo: i.custo,
-        insumos: texto(i.insumos),
-        impostos: texto(i.impostos),
+        insumosPct: porcentagem(i.insumos, i.custo),
+        impostosPct: porcentagem(i.impostos, i.custo),
         preco: sugerido(i.custo + i.insumos + i.impostos, m),
         existente: catalogo[i.codigo] ?? null,
         ncm: i.ncm,
@@ -92,15 +96,15 @@ export function EntradaPorNota({
     }
   }
 
-  function aplicarMargem(valor: string) {
-    setMargem(valor);
+  function aplicarMarkup(valor: string) {
+    setMarkup(valor);
     const m = numero(valor);
-    if (m && m > 0) setLinhas((ls) => ls.map((l) => (l.existente ? l : { ...l, preco: sugerido(custoFinal(l), m) })));
+    if (m !== null && m >= 0) setLinhas((ls) => ls.map((l) => (l.existente ? l : { ...l, preco: sugerido(custoFinal(l), m) })));
   }
 
-  /** compra + insumos + impostos, por unidade */
+  /** compra × (1 + insumos% + impostos%), por unidade */
   function custoFinal(l: Linha): number {
-    return l.custo + (numero(l.insumos) ?? 0) + (numero(l.impostos) ?? 0);
+    return Math.round(l.custo * (1 + (l.insumosPct + l.impostosPct) / 100) * 100) / 100;
   }
 
   function mudar(i: number, campo: Partial<Linha>) {
@@ -119,8 +123,8 @@ export function EntradaPorNota({
           categoria: l.categoria,
           quantidade: l.quantidade,
           custo: l.custo,
-          insumos: numero(l.insumos) ?? 0,
-          impostos: Math.max(0, numero(l.impostos) ?? 0),
+          insumos_pct: l.insumosPct,
+          impostos_pct: Math.max(0, l.impostosPct),
           preco_venda: l.existente ? null : numero(l.preco),
           ncm: l.ncm,
           cest: l.cest,
@@ -169,8 +173,9 @@ export function EntradaPorNota({
                 </label>
               )}
               {novos.length > 0 && (
-                <label className="rotulo" style={{ flex: "0 1 220px" }}>Margem dos produtos novos (× custo)
-                  <input className="campo" inputMode="decimal" value={margem} onChange={(e) => aplicarMargem(e.target.value)} />
+                <label className="rotulo" style={{ flex: "0 1 240px" }} title="Quanto o preço fica acima do custo final. 150% transforma R$ 100 em R$ 250.">
+                  Markup dos produtos novos (% sobre o custo)
+                  <CampoMascara mascara="porcentagem" value={markup} onChange={aplicarMarkup} />
                 </label>
               )}
             </div>
@@ -179,9 +184,9 @@ export function EntradaPorNota({
                 <thead>
                   <tr>
                     <th>Produto</th><th>Categoria</th><th className="numero">Qtd.</th><th className="numero">Compra un.</th>
-                    <th className="numero" title="Frete, seguro e outras despesas, menos o desconto, por unidade">Insumos un.</th>
-                    <th className="numero" title="IPI e ICMS-ST pagos na compra, por unidade">Impostos un.</th>
-                    <th className="numero">Custo final</th><th className="numero">Preço de venda</th><th className="numero">Margem</th>
+                    <th className="numero" title="Frete, seguro e outras despesas, menos o desconto, em % da compra">Insumos</th>
+                    <th className="numero" title="IPI e ICMS-ST pagos na compra, em % da compra">Impostos</th>
+                    <th className="numero">Custo final</th><th className="numero">Preço de venda</th><th className="numero">Markup</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -203,26 +208,30 @@ export function EntradaPorNota({
                       </td>
                       <td className="numero">{moeda(l.custo)}</td>
                       <td className="numero">
-                        <input className="campo" style={{ width: 90, textAlign: "right" }} inputMode="decimal" value={l.insumos} onChange={(e) => mudar(i, { insumos: e.target.value })} aria-label={`Insumos de ${l.nome}`} />
+                        <CampoMascara mascara="porcentagem" negativo style={{ width: 110 }} value={l.insumosTexto ?? formatarDecimal(l.insumosPct)}
+                          onChange={(t) => mudar(i, { insumosTexto: t, insumosPct: numero(t) ?? 0 })} aria-label={`Insumos de ${l.nome} (% da compra)`} />
+                        <small className="vazio">{moeda((l.custo * l.insumosPct) / 100)}</small>
                       </td>
                       <td className="numero">
-                        <input className="campo" style={{ width: 90, textAlign: "right" }} inputMode="decimal" value={l.impostos} onChange={(e) => mudar(i, { impostos: e.target.value })} aria-label={`Impostos de ${l.nome}`} />
+                        <CampoMascara mascara="porcentagem" style={{ width: 110 }} value={l.impostosTexto ?? formatarDecimal(l.impostosPct)}
+                          onChange={(t) => mudar(i, { impostosTexto: t, impostosPct: numero(t) ?? 0 })} aria-label={`Impostos de ${l.nome} (% da compra)`} />
+                        <small className="vazio">{moeda((l.custo * l.impostosPct) / 100)}</small>
                       </td>
                       <td className="numero"><strong>{moeda(custoFinal(l))}</strong></td>
                       <td className="numero">
                         {l.existente ? <small className="vazio">mantém o atual</small> : (
-                          <input className="campo" style={{ width: 110, textAlign: "right" }} inputMode="decimal" value={l.preco} onChange={(e) => mudar(i, { preco: e.target.value })} aria-label={`Preço de venda de ${l.nome}`} />
+                          <CampoMascara mascara="moeda" style={{ width: 140 }} value={l.preco} onChange={(t) => mudar(i, { preco: t })} aria-label={`Preço de venda de ${l.nome}`} />
                         )}
                       </td>
-                      <td className="numero">{!l.existente && numero(l.preco) && custoFinal(l) > 0 ? `${((numero(l.preco) as number) / custoFinal(l)).toFixed(2).replace(".", ",")}×` : "—"}</td>
+                      <td className="numero">{!l.existente && numero(l.preco) && custoFinal(l) > 0 ? `${formatarDecimal(((numero(l.preco) as number) / custoFinal(l) - 1) * 100)}%` : "—"}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
             <small className="vazio">
-              Insumos e impostos vêm da nota (frete, seguro, outras despesas e desconto; IPI e ICMS-ST) e podem ser ajustados, por exemplo para incluir
-              embalagem ou o frete que veio em outra nota. NCM, CEST e origem vão para o cadastro do produto quando ele ainda não tem.
+              Insumos e impostos vêm da nota (frete, seguro, outras despesas e desconto; IPI e ICMS-ST), em % da compra, e podem ser ajustados,
+              por exemplo para incluir embalagem ou o frete que veio em outra nota. NCM, CEST e origem vão para o cadastro do produto quando ele ainda não tem.
               Caixa com várias peças (ex.: lente de contato “CX”)? Ajuste a quantidade para o que vai para a prateleira.
             </small>
           </section>

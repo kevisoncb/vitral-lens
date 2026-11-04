@@ -3,6 +3,7 @@ import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { obterSessao } from "@/lib/sessao";
 import { dataBR, mesDoParametro, moeda, nomeMes, proximoMes } from "@/lib/formatar";
 import { criarContaPagar, desfazerPagamento, excluirContaPagar, pagarConta } from "../actions";
+import { CampoMascara } from "@/components/campo-mascara";
 
 type Conta = {
   id: string;
@@ -76,7 +77,7 @@ export default async function ContasAPagar({ searchParams }: Props) {
                 </select>
               </label>
               <label className="rotulo">Valor (R$)
-                <input className="campo" name="valor" inputMode="decimal" required />
+                <CampoMascara mascara="moeda" name="valor" required />
               </label>
               <label className="rotulo">Vencimento
                 <input className="campo" name="vencimento" type="date" required defaultValue={hoje} />

@@ -1,3 +1,5 @@
+import { lerDecimal } from "./mascaras";
+
 export function moeda(valor: number | string | null | undefined): string {
   return Number(valor ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
@@ -27,12 +29,9 @@ export function grau(valor: number | string | null | undefined): string {
   return `${n > 0 ? "+" : ""}${n.toFixed(2).replace(".", ",")}`;
 }
 
-/** Converte "1,25" ou "1.25" em número; vazio vira null. */
+/** Converte "1,25", "1.25" ou "1.234,56" (campo com máscara) em número; vazio vira null. */
 export function numeroOuNulo(texto: FormDataEntryValue | null): number | null {
-  const t = String(texto ?? "").trim().replace(",", ".");
-  if (t === "") return null;
-  const n = Number(t);
-  return Number.isFinite(n) ? n : null;
+  return lerDecimal(String(texto ?? ""));
 }
 
 export function textoOuNulo(texto: FormDataEntryValue | null): string | null {

@@ -3,6 +3,7 @@ import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { obterSessao } from "@/lib/sessao";
 import { mesAnterior, mesDoParametro, moeda, nomeMes, proximoMes } from "@/lib/formatar";
 import { pagarComissoesDoMes, salvarAliquota } from "./actions";
+import { CampoMascara } from "@/components/campo-mascara";
 
 const FORMAS: Record<string, string> = { dinheiro: "Dinheiro", pix: "Pix", debito: "Débito", credito: "Crédito", boleto: "Boleto", outro: "Outro" };
 const TIPOS: Record<string, string> = { fornecedor: "Fornecedores", fixo: "Custos fixos", imposto: "Impostos", servico: "Serviços", comissao: "Comissões", outro: "Outros" };
@@ -121,7 +122,7 @@ export default async function VisaoDoMes({ searchParams }: { searchParams: Promi
           {sessao?.pode("configuracoes", "editar") ? (
             <form action={salvarAliquota.bind(null, mes)} className="linha">
               <label className="rotulo" style={{ flex: "0 1 200px" }}>Alíquota (Simples Nacional, %)
-                <input className="campo" name="aliquota" inputMode="decimal" defaultValue={aliquota !== null ? String(aliquota).replace(".", ",") : ""} placeholder="Ex.: 6" />
+                <CampoMascara mascara="porcentagem" name="aliquota" defaultValue={aliquota} placeholder="6,00" />
               </label>
               <button className="botao-secundario" type="submit">Salvar</button>
             </form>

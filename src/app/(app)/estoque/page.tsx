@@ -3,6 +3,7 @@ import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { exigirArea } from "@/lib/sessao";
 import { moeda } from "@/lib/formatar";
 import { movimentar } from "./actions";
+import { CampoMascara } from "@/components/campo-mascara";
 
 type Props = { searchParams: Promise<{ q?: string; loja?: string; baixo?: string; erro?: string; ok?: string }> };
 
@@ -124,7 +125,7 @@ export default async function PaginaEstoque({ searchParams }: Props) {
             </label>
             {podeEntrada && (
               <label className="rotulo" style={{ flex: "1 1 110px" }}>Custo un. (entrada)
-                <input className="campo" name="custo" inputMode="decimal" placeholder="R$" />
+                <CampoMascara mascara="moeda" name="custo" />
               </label>
             )}
             {lojas.length > 1 && (

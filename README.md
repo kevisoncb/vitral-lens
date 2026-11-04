@@ -39,7 +39,7 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 | 0014 | Painel do Vitral: `vitral_admins` e funções `painel_*` (óticas, criar ótica com dono, adicionais, situação, lista de espera) | ✅ |
 | 0015 | Código interno para etiqueta (`gerar_codigos_catalogo()`: 2 + 9 dígitos, pula os já usados) | ✅ |
 | 0016 | Entrada pelo XML da NF-e do fornecedor (`notas_entrada`, `registrar_entrada_nfe()`): catálogo, estoque com custo e parcelas a pagar numa transação; a mesma nota não entra duas vezes | ✅ |
-| 0017 | Impostos e custo no produto: NCM, CEST, origem, CFOP, CSOSN/CST, alíquota ICMS, cClassTrib (IBS/CBS), unidade; custo em partes (compra + insumos + impostos = `custo_final`); entrada pela nota grava tudo e não sobrescreve o fiscal já corrigido | ✅ |
+| 0017 | Impostos e custo no produto: NCM, CEST, origem, CFOP, CSOSN/CST, alíquota ICMS, cClassTrib (IBS/CBS), unidade; custo em % sobre a compra (`insumos_pct`, `impostos_pct`; `custo_final` = compra × (1 + insumos% + impostos%)); entrada pela nota grava tudo e não sobrescreve o fiscal já corrigido | ✅ |
 | 0018 | NFC-e pelo caixa via Focus NFe: configuração fiscal da ótica, `nfe_credenciais` (token por ótica, só o servidor usa), `notas_fiscais`, `preparar_nfce()` (confere adicional, cadastro fiscal, rateia o desconto, retoma nota sem resposta), `registrar_retorno_nfce()`, cancelamento em 30 min só pelo gerente | ✅ |
 
 ### Telas (`src/`): todas 🟡, compilam (`typecheck` e `build` passam) mas ainda não foram abertas com um Supabase de verdade
@@ -57,10 +57,10 @@ A venda do PDV (`src/app/pdv/venda.tsx`) foi aberta no navegador com produtos de
 | Loja e gestão | Ordens de serviço: acompanha, avisa e entrega; recados com o laboratório | `/laboratorio`, `/laboratorio/[id]` |
 | Loja e gestão | Agenda interna | `/agenda` |
 | Loja e gestão | Catálogo com fotos; foto da armação depois da venda | `/catalogo`, `/catalogo/fotos` |
-| Loja e gestão | Cadastro do produto: dados, custo (compra + insumos + impostos), preço e margem com a conta na hora, impostos para a nota fiscal (o balcão vê só o preço) | `/catalogo/[id]` |
+| Loja e gestão | Cadastro do produto: compra em R$, insumos, impostos e markup em % (com o valor em reais ao lado), preço e margem com a conta na hora, impostos para a nota fiscal (o balcão vê só o preço) | `/catalogo/[id]` |
 | Loja e gestão | Etiquetas com código de barras (Code 128) para impressora de etiquetas 50 × 25 mm ou folha A4 Pimaco; gera código interno para quem não tem | `/catalogo/etiquetas` |
 | Loja e gestão | Estoque por loja: saldo, abaixo do mínimo, entrada, contagem, perda, transferência, histórico | `/estoque`, `/estoque/[id]` |
-| Loja e gestão | Entrada pela nota do fornecedor: sobe o XML, confere compra, insumos (frete, desconto) e impostos (IPI, ICMS-ST) por unidade, define o preço dos novos pela margem sobre o custo final e lança | `/estoque/nota` |
+| Loja e gestão | Entrada pela nota do fornecedor: sobe o XML, confere compra, insumos (frete, desconto) e impostos (IPI, ICMS-ST) em % da compra, define o preço dos novos pelo markup % sobre o custo final e lança | `/estoque/nota` |
 | Loja e gestão | Comissões do mês (vendedor vê as dele; gestão vê todas, regras e pagamento) | `/comissoes` |
 | Gestão | Relatórios do mês | `/relatorios` |
 | Gestão | Configurações: ótica e site, lojas, usuários, perfis (área + permissões), horários e bloqueios, funil e motivos | `/configuracoes/...` |
@@ -166,7 +166,8 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - **Pagamento:** o primeiro pagamento move o card para a etapa ganha e cria a OS uma única vez.
 - **Agenda:** o mesmo horário nunca é marcado duas vezes. O site só vê horários livres.
 - **Site público:** só funções `security definer` liberadas para `anon`, com limite de uso e aceite LGPD.
-- **Custo do produto:** compra + insumos (frete, seguro, embalagem, outras despesas; desconto entra negativo) + impostos da compra (IPI, ICMS-ST) = custo final, base do preço e do valor do estoque. Custo e margem só para quem edita o catálogo ou dá entrada no estoque; o balcão vê o preço.
+- **Custo do produto:** em porcentagem sobre a compra, que é como a ótica sabe: custo final = compra × (1 + insumos% + impostos%). Insumos: frete, seguro, embalagem, outras despesas (desconto entra negativo). Impostos da compra: IPI, ICMS-ST. O preço sai do markup % sobre o custo final.
+- **Máscaras:** todo campo de dinheiro, porcentagem, CPF, CNPJ, telefone, NCM, CEST e CFOP usa `<CampoMascara>` (`src/components/campo-mascara.tsx`, regras em `src/lib/mascaras.ts`); dinheiro e porcentagem enchem da direita, como na maquininha. No servidor, `numeroOuNulo()` lê "1.234,56". Custo e margem só para quem edita o catálogo ou dá entrada no estoque; o balcão vê o preço.
 - **Estoque:** por loja, só dos produtos com `controla_estoque` (padrão: armação, lente de contato, acessório; lente sob medida não). O livro `estoque_movimentos` nunca se altera; entrada, saída, contagem e transferência só pelas funções do banco. O primeiro pagamento da venda dá baixa uma vez. A venda nunca é bloqueada por falta de estoque (o saldo pode ficar negativo e aparece em vermelho).
 - **Comissões:** regra mais específica vale (vendedor + categoria > vendedor > categoria > todos). Calculadas no primeiro pagamento, para o responsável do atendimento. O vendedor vê só as dele; `comissoes:editar` vê todas e marca como pagas.
 - **PDV (Versão 4):** área própria (`pdv`, perfil Caixa). Venda só por `registrar_venda()`: preço vem do catálogo, desconto acima de 10% exige `pdv:editar`, a soma dos pagamentos tem de fechar com o total, crediário exige cliente e vira conta a receber. Um caixa aberto por operador. Só o gerente cancela venda (devolve ao estoque e cancela a comissão aberta).
@@ -221,7 +222,7 @@ node supabase/tests/conferir_consultas.mjs    # as consultas das telas batem com
 node supabase/gerar_tipos.mjs --conferir      # src/lib/supabase/tipos.ts em dia com as migrações
 psql -f supabase/tests/nfe_smoke.sql         # entrada pelo XML da NF-e do fornecedor
 psql -f supabase/tests/nfce_smoke.sql        # emissão de NFC-e: preparação, retorno, cancelamento
-npm test                                      # testes do código (planilhas, código de barras, XML da NF-e, Focus NFe)
+npm test                                      # testes do código (planilhas, código de barras, XML da NF-e, Focus NFe, máscaras)
 ```
 
 Cada teste imprime as linhas esperadas e alguns erros de propósito: eles provam que o bloqueio funciona. O GitHub Actions (`.github/workflows/ci.yml`) roda tudo a cada push e confere as linhas. O teste de carga (1.000 óticas) está em `supabase/carga/` e os resultados em `docs/ESCALA.md`.
@@ -254,6 +255,8 @@ src/app/conta/         minha conta (qualquer área)
 
 Mais recente em cima. Uma linha por sessão: data, o que mudou, o que ficou pendente.
 
+- **2026-11-04 (21)** — Custo do produto em porcentagem sobre a compra (insumos %, impostos %, markup %; migração 0017 ajustada, nada estava em produção); entrada pela nota converte os reais do XML em % sem perder centavos. Máscaras em todos os campos de dinheiro, porcentagem, CPF, CNPJ, telefone, NCM, CEST, CFOP e códigos fiscais (`CampoMascara`, testes em `testes/mascaras.test.mjs`). Ordem dos itens da NFC-e estável (do mais caro para o mais barato).
+  - Pendente: medidas da ficha técnica (DNP, aro) seguem sem máscara de propósito.
 - **2026-11-04 (20)** — Emissão de NFC-e pelo caixa via Focus NFe: migração 0018, `src/lib/focus-nfe.ts` (emitir, consultar, cancelar; testes com uma Focus falsa), ações `src/app/pdv/nota-fiscal.ts`, botão da nota no PDV e na lista de vendas, dados fiscais da ótica em Configurações, tokens por ótica no painel. Teste `nfce_smoke.sql` no CI.
   - Pendente: conta na Focus NFe e teste em homologação; campos de IBS/CBS da NFC-e para 2027; NF-e modelo 55.
 - **2026-11-04 (19)** — Guia da reforma tributária para óticas em `/reforma-tributaria` (público, aberto também para quem está logado): linha do tempo 2026–2033, Simples Nacional e Simples híbrido com os prazos de 2027, o que muda na nota fiscal, checklist e fontes oficiais com data. Links no site do Vitral, no financeiro e no cadastro do produto.

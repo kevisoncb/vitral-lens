@@ -5,6 +5,7 @@ import { obterSessao } from "@/lib/sessao";
 import { moeda } from "@/lib/formatar";
 import { salvarProduto } from "./actions";
 import { Precificacao } from "./precificacao";
+import { CampoMascara } from "@/components/campo-mascara";
 
 const CATEGORIAS: Record<string, string> = {
   armacao: "Armação",
@@ -49,8 +50,8 @@ type Produto = {
   ativo: boolean;
   unidade: string;
   custo: number | null;
-  custo_insumos: number;
-  custo_impostos: number;
+  insumos_pct: number;
+  impostos_pct: number;
   custo_final: number | null;
   ncm: string | null;
   cest: string | null;
@@ -69,7 +70,7 @@ export default async function Produto({ params, searchParams }: { params: Promis
   const supabase = await criarClienteServidor();
   const { data } = await supabase
     .from("catalogo_itens")
-    .select("id, nome, categoria, marca, codigo, preco, ativo, unidade, custo, custo_insumos, custo_impostos, custo_final, ncm, cest, origem, cfop, csosn, cst_icms, aliquota_icms, cclass_trib")
+    .select("id, nome, categoria, marca, codigo, preco, ativo, unidade, custo, insumos_pct, impostos_pct, custo_final, ncm, cest, origem, cfop, csosn, cst_icms, aliquota_icms, cclass_trib")
     .eq("id", id)
     .returns<Produto[]>()
     .maybeSingle();
@@ -113,10 +114,10 @@ export default async function Produto({ params, searchParams }: { params: Promis
         <fieldset className="bloco" disabled={!podeEditar}>
           <legend className="rotulo">Custo, preço e margem</legend>
           {veCusto ? (
-            <Precificacao inicial={{ custo: p.custo, insumos: Number(p.custo_insumos), impostos: Number(p.custo_impostos), preco: Number(p.preco) }} podeEditar={podeEditar} />
+            <Precificacao inicial={{ custo: p.custo === null ? null : Number(p.custo), insumosPct: Number(p.insumos_pct), impostosPct: Number(p.impostos_pct), preco: Number(p.preco) }} podeEditar={podeEditar} />
           ) : (
             <>
-              <input type="hidden" name="preco" value={String(p.preco).replace(".", ",")} />
+              <input type="hidden" name="preco" value={String(p.preco)} />
               <p className="vazio">Preço de venda: {moeda(p.preco)}. Custo e margem são do gerente.</p>
             </>
           )}
@@ -130,13 +131,13 @@ export default async function Produto({ params, searchParams }: { params: Promis
           </p>
           <div className="linha">
             <label className="rotulo" title="Nomenclatura Comum do Mercosul: 8 números. Armações 9003…, óculos de sol 9004…, lentes 9001…">NCM
-              <input className="campo" name="ncm" defaultValue={p.ncm ?? ""} inputMode="numeric" placeholder="9003.11.00" />
+              <CampoMascara mascara="ncm" name="ncm" defaultValue={p.ncm} placeholder="9003.11.00" />
             </label>
             <label className="rotulo" title="Código Especificador da Substituição Tributária: 7 números, quando o produto tem ST">CEST
-              <input className="campo" name="cest" defaultValue={p.cest ?? ""} inputMode="numeric" placeholder="28.054.00" />
+              <CampoMascara mascara="cest" name="cest" defaultValue={p.cest} placeholder="28.054.00" />
             </label>
             <label className="rotulo" title="Código Fiscal de Operações: venda dentro do estado é 5102 (ou 5405 com ST)">CFOP da venda
-              <input className="campo" name="cfop" defaultValue={p.cfop ?? ""} inputMode="numeric" placeholder="5102" />
+              <CampoMascara mascara="cfop" name="cfop" defaultValue={p.cfop} placeholder="5102" />
             </label>
           </div>
           <div className="linha">
@@ -156,16 +157,16 @@ export default async function Produto({ params, searchParams }: { params: Promis
               </select>
             </label>
             <label className="rotulo" title="Só para quem não é do Simples Nacional (regime normal): 2 números, ex.: 00, 10, 60">CST do ICMS (regime normal)
-              <input className="campo" name="cst_icms" defaultValue={p.cst_icms ?? ""} inputMode="numeric" placeholder="00" />
+              <CampoMascara mascara="digitos" name="cst_icms" defaultValue={p.cst_icms} placeholder="00" maxLength={2} />
             </label>
             <label className="rotulo" title="Só no regime normal; no Simples o ICMS vai no DAS">Alíquota ICMS (%)
-              <input className="campo" name="aliquota_icms" defaultValue={p.aliquota_icms === null ? "" : String(p.aliquota_icms).replace(".", ",")} inputMode="decimal" />
+              <CampoMascara mascara="porcentagem" name="aliquota_icms" defaultValue={p.aliquota_icms} />
             </label>
           </div>
           <div className="linha">
             <label className="rotulo" title="Classificação tributária do IBS e da CBS (cClassTrib): 6 números, da tabela oficial da reforma. O contador informa.">
               Classificação IBS/CBS (cClassTrib)
-              <input className="campo" name="cclass_trib" defaultValue={p.cclass_trib ?? ""} inputMode="numeric" placeholder="000001" />
+              <CampoMascara mascara="digitos" name="cclass_trib" defaultValue={p.cclass_trib} placeholder="000001" maxLength={6} />
             </label>
           </div>
           <small className="vazio">

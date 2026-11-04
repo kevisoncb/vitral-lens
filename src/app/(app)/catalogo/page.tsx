@@ -3,6 +3,7 @@ import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { obterSessao } from "@/lib/sessao";
 import { moeda } from "@/lib/formatar";
 import { criarItem, salvarItem } from "./actions";
+import { CampoMascara } from "@/components/campo-mascara";
 
 const CATEGORIAS: Record<string, string> = {
   lente: "Lentes",
@@ -57,7 +58,7 @@ export default async function PaginaCatalogo({ searchParams }: { searchParams: P
               <input className="campo" name="nome" required placeholder="Ex.: Lente multifocal 1.67" />
             </label>
             <label className="rotulo">Preço (R$)
-              <input className="campo" name="preco" inputMode="decimal" required />
+              <CampoMascara mascara="moeda" name="preco" required />
             </label>
             <button className="botao" type="submit">Adicionar</button>
           </form>
@@ -80,7 +81,7 @@ export default async function PaginaCatalogo({ searchParams }: { searchParams: P
                   ) : null}
                   <input className="campo" name="nome" defaultValue={i.nome} aria-label="Nome" style={{ flex: "3 1 240px" }} />
                   {i.criado_na_venda && <span className="etiqueta">criado na venda</span>}
-                  <input className="campo" name="preco" defaultValue={String(i.preco).replace(".", ",")} inputMode="decimal" aria-label="Preço" />
+                  <CampoMascara mascara="moeda" name="preco" defaultValue={i.preco} aria-label="Preço" />
                   <label className="marcar"><input type="checkbox" name="ativo" defaultChecked={i.ativo} /> Ativo</label>
                   <button className="botao-secundario" type="submit">Salvar</button>
                   <Link href={`/catalogo/${i.id}`}>Custo e impostos</Link>

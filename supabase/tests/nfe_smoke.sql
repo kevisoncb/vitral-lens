@@ -17,9 +17,9 @@ select 'entrada' as teste, registrar_entrada_nfe(
   '{"chave": "32261112345678000190550010000088121000088120", "numero": "8812", "fornecedor": "Distribuidora", "cnpj": "12345678000190", "emissao": "2026-11-03", "valor_total": 1254.80}',
   null,
   '[{"codigo": "7891234567895", "nome": "ARMACAO ACETATO PRETA 52-18", "categoria": "armacao", "quantidade": 3, "custo": 150,
-     "insumos": 5, "impostos": 7.5, "ncm": "90031100", "cest": "2805400", "origem": 0},
+     "insumos_pct": 3.3333, "impostos_pct": 5, "ncm": "90031100", "cest": "2805400", "origem": 0},
     {"codigo": "SOL-AV-01", "nome": "Óculos sol aviador", "categoria": "armacao", "quantidade": 2, "custo": 89.9, "preco_venda": 249,
-     "insumos": -4.9, "impostos": 6.2, "ncm": "9004.10.00", "origem": 2, "unidade": "un"},
+     "insumos_pct": -5.4505, "impostos_pct": 6.8966, "ncm": "9004.10.00", "origem": 2, "unidade": "un"},
     {"codigo": "7890000000013", "nome": "Lente de contato mensal", "categoria": "lente_contato", "quantidade": 10, "custo": 62.5, "preco_venda": 160}]',
   '[{"vencimento": "2026-12-03", "valor": 418.27}, {"vencimento": "2027-01-02", "valor": 418.27}, {"vencimento": "2027-02-01", "valor": 418.26}]',
   (select id from categorias_custo where nome = 'Fornecedor de armações')) - 'nota_id' as resultado;

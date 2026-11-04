@@ -1,6 +1,7 @@
 import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { Abas } from "./abas";
 import { criarLoja, salvarOtica } from "./actions";
+import { CampoMascara } from "@/components/campo-mascara";
 
 export default async function ConfigOtica({ searchParams }: { searchParams: Promise<{ erro?: string; ok?: string }> }) {
   const { erro, ok } = await searchParams;
@@ -23,8 +24,8 @@ export default async function ConfigOtica({ searchParams }: { searchParams: Prom
         <h2>Dados da ótica</h2>
         <div className="linha">
           <label className="rotulo">Nome<input className="campo" name="nome" defaultValue={o.nome} required /></label>
-          <label className="rotulo">CNPJ<input className="campo" name="cnpj" defaultValue={o.cnpj ?? ""} /></label>
-          <label className="rotulo">Telefone<input className="campo" name="telefone" defaultValue={o.telefone ?? ""} /></label>
+          <label className="rotulo">CNPJ<CampoMascara mascara="cnpj" name="cnpj" defaultValue={o.cnpj} /></label>
+          <label className="rotulo">Telefone<CampoMascara mascara="telefone" name="telefone" defaultValue={o.telefone} /></label>
         </div>
         <h2>Dados fiscais (nota fiscal)</h2>
         <div className="linha">
@@ -35,7 +36,7 @@ export default async function ConfigOtica({ searchParams }: { searchParams: Prom
               <option value="normal">Regime normal (Lucro Presumido ou Real)</option>
             </select>
           </label>
-          <label className="rotulo">Inscrição estadual<input className="campo" name="inscricao_estadual" defaultValue={o.inscricao_estadual ?? ""} inputMode="numeric" /></label>
+          <label className="rotulo">Inscrição estadual<CampoMascara mascara="digitos" name="inscricao_estadual" defaultValue={o.inscricao_estadual} /></label>
           <label className="rotulo" style={{ flex: "0 1 120px" }}>Série da NFC-e<input className="campo" name="nfce_serie" type="number" min={1} max={999} defaultValue={o.nfce_serie} /></label>
         </div>
         <p className="vazio">
@@ -55,7 +56,7 @@ export default async function ConfigOtica({ searchParams }: { searchParams: Prom
         <label className="rotulo">Sobre a ótica<textarea className="campo" name="site_sobre" rows={4} defaultValue={o.site_sobre ?? ""} /></label>
         <div className="linha">
           <label className="rotulo">Endereço<input className="campo" name="site_endereco" defaultValue={o.site_endereco ?? ""} /></label>
-          <label className="rotulo">WhatsApp do site<input className="campo" name="site_whatsapp" defaultValue={o.site_whatsapp ?? ""} inputMode="tel" /></label>
+          <label className="rotulo">WhatsApp do site<CampoMascara mascara="telefone" name="site_whatsapp" defaultValue={o.site_whatsapp} /></label>
         </div>
         <div className="linha">
           <label className="rotulo">Horário de funcionamento<textarea className="campo" name="site_horario" rows={2} defaultValue={o.site_horario ?? ""} placeholder={"Seg a sex 9h às 18h\nSáb 9h às 13h"} /></label>
@@ -75,7 +76,7 @@ export default async function ConfigOtica({ searchParams }: { searchParams: Prom
         ))}
         <form action={criarLoja} className="linha">
           <input className="campo" name="nome" placeholder="Nome da loja" aria-label="Nome da loja" required />
-          <input className="campo" name="telefone" placeholder="Telefone" aria-label="Telefone" />
+          <CampoMascara mascara="telefone" name="telefone" placeholder="Telefone" aria-label="Telefone" />
           <input className="campo" name="endereco" placeholder="Endereço" aria-label="Endereço" />
           <button className="botao-secundario" type="submit">Adicionar loja</button>
         </form>

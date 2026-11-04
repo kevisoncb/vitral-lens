@@ -147,7 +147,8 @@ begin
     select vi.*, c.ncm, c.origem, c.csosn, coalesce(c.cfop, '5102') as cfop, c.unidade,
            coalesce(nullif(c.codigo, ''), left(c.id::text, 8)) as codigo_produto,
            vi.quantidade * vi.preco_unitario as bruto,
-           row_number() over (order by vi.id) as n, count(*) over () as total
+           -- ordem estável dos itens na nota: do mais caro para o mais barato, depois pelo nome
+           row_number() over (order by vi.preco_unitario desc, vi.descricao, vi.id) as n, count(*) over () as total
     from venda_itens vi join catalogo_itens c on c.id = vi.catalogo_item_id
     where vi.venda_id = v.id
   ), rateio as (

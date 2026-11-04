@@ -550,3 +550,12 @@ a.linha-valor { text-decoration: none; color: inherit; }
 /* NFC-e no PDV */
 .nota-fiscal { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
 .ok-texto { color: var(--ok-texto); font-weight: 600; }
+
+/* Campo com máscara: "R$" na frente, "%" no fim */
+.campo-mascara { position: relative; display: block; min-width: 0; }
+.campo-mascara .campo { width: 100%; text-align: right; }
+.campo-mascara.com-prefixo .campo { padding-left: 40px; }
+.campo-mascara.com-sufixo .campo { padding-right: 32px; }
+.campo-mascara-prefixo, .campo-mascara-sufixo { position: absolute; top: 50%; transform: translateY(-50%); color: var(--texto-suave); font-weight: 600; font-size: 14px; pointer-events: none; }
+.campo-mascara-prefixo { left: 12px; }
+.campo-mascara-sufixo { right: 12px; }

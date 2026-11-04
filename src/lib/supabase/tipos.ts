@@ -440,8 +440,8 @@ export type Database = {
           aliquota_icms: number | null;
           cclass_trib: string | null;
           unidade: string;
-          custo_insumos: number;
-          custo_impostos: number;
+          insumos_pct: number;
+          impostos_pct: number;
           custo_final: number | null;
         };
         Insert: {
@@ -469,8 +469,8 @@ export type Database = {
           aliquota_icms?: number | null;
           cclass_trib?: string | null;
           unidade?: string;
-          custo_insumos?: number;
-          custo_impostos?: number;
+          insumos_pct?: number;
+          impostos_pct?: number;
           custo_final?: never;
         };
         Update: {
@@ -498,8 +498,8 @@ export type Database = {
           aliquota_icms?: number | null;
           cclass_trib?: string | null;
           unidade?: string;
-          custo_insumos?: number;
-          custo_impostos?: number;
+          insumos_pct?: number;
+          impostos_pct?: number;
           custo_final?: never;
         };
         Relationships: [

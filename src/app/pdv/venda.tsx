@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { moeda } from "@/lib/formatar";
 import { buscarClientes, registrarVenda, type PagamentoVenda, type ResultadoVenda } from "./actions";
 import { BotaoNota } from "./botao-nota";
+import { CampoMascara } from "@/components/campo-mascara";
 
 export type ProdutoPdv = { id: string; nome: string; codigo: string | null; preco: number; saldo: number | null };
 
@@ -196,7 +197,7 @@ export function Venda({ caixaId, produtos, notaFiscal = false }: { caixaId: stri
           )}
         </label>
         <label className="rotulo" style={{ flex: "0 1 140px" }}>Desconto (R$)
-          <input className="campo" inputMode="decimal" value={desconto} onChange={(e) => setDesconto(e.target.value)} placeholder="0,00" />
+          <CampoMascara mascara="moeda" value={desconto} onChange={setDesconto} placeholder="0,00" />
         </label>
       </div>
 
@@ -218,11 +219,10 @@ export function Venda({ caixaId, produtos, notaFiscal = false }: { caixaId: stri
               {Object.entries(FORMAS).map(([v, r]) => <option key={v} value={v}>{r}</option>)}
             </select>
             {i > 0 ? (
-              <input
-                className="campo"
-                inputMode="decimal"
+              <CampoMascara
+                mascara="moeda"
                 value={p.valor}
-                onChange={(e) => setPagamentos((ps) => ps.map((x, j) => (j === i ? { ...x, valor: e.target.value } : x)))}
+                onChange={(t) => setPagamentos((ps) => ps.map((x, j) => (j === i ? { ...x, valor: t } : x)))}
                 placeholder="Valor"
                 aria-label="Valor"
               />
@@ -264,7 +264,7 @@ export function Venda({ caixaId, produtos, notaFiscal = false }: { caixaId: stri
           </button>
           {emDinheiro > 0 && (
             <label className="rotulo" style={{ flex: "0 1 160px" }}>Recebido em dinheiro
-              <input className="campo" inputMode="decimal" value={recebido} onChange={(e) => setRecebido(e.target.value)} placeholder={texto(emDinheiro)} />
+              <CampoMascara mascara="moeda" value={recebido} onChange={setRecebido} placeholder={texto(emDinheiro)} />
             </label>
           )}
           {troco > 0 && <strong className="pdv-troco">Troco {moeda(troco)}</strong>}

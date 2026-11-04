@@ -4,6 +4,7 @@ import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { exigirArea } from "@/lib/sessao";
 import { dataHoraBR, moeda } from "@/lib/formatar";
 import { configurarItem, movimentar, transferir } from "../actions";
+import { CampoMascara } from "@/components/campo-mascara";
 
 const TIPOS: Record<string, string> = {
   entrada: "Entrada",
@@ -100,7 +101,7 @@ export default async function ProdutoNoEstoque({
             </label>
             {podeEntrada && (
               <label className="rotulo" style={{ flex: "1 1 110px" }}>Custo un. (entrada)
-                <input className="campo" name="custo" inputMode="decimal" placeholder="R$" />
+                <CampoMascara mascara="moeda" name="custo" />
               </label>
             )}
             {lojas.length > 1 && (

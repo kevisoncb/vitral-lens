@@ -3,6 +3,7 @@ import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { exigirArea } from "@/lib/sessao";
 import { dataBR, mesAnterior, mesDoParametro, moeda, nomeMes, proximoMes } from "@/lib/formatar";
 import { apagarRegra, pagarComissoes, salvarRegra } from "./actions";
+import { CampoMascara } from "@/components/campo-mascara";
 
 const CATEGORIAS: Record<string, string> = {
   armacao: "Armações",
@@ -205,7 +206,7 @@ export default async function PaginaComissoes({ searchParams }: { searchParams: 
               </select>
             </label>
             <label className="rotulo" style={{ flex: "0 1 120px" }}>Percentual
-              <input className="campo" name="percentual" inputMode="decimal" placeholder="5" required />
+              <CampoMascara mascara="porcentagem" name="percentual" placeholder="5,00" required />
             </label>
             <button className="botao" type="submit">Salvar regra</button>
           </form>

@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { entrarNaLista, type EstadoLista } from "./actions";
+import { CampoMascara } from "@/components/campo-mascara";
 
 const UFS = "AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO".split(" ");
 
@@ -31,7 +32,7 @@ export function FormularioLista() {
       </div>
       <div className="linha">
         <label className="rotulo" style={{ flex: "3 1 180px" }}>WhatsApp com DDD
-          <input className="campo" name="telefone" required inputMode="tel" autoComplete="tel" placeholder="(27) 99999-0000" />
+          <CampoMascara mascara="telefone" name="telefone" required autoComplete="tel" placeholder="(27) 99999-0000" />
         </label>
         <label className="rotulo" style={{ flex: "1 1 90px" }}>Lojas
           <input className="campo" name="lojas" type="number" min={1} max={500} defaultValue={1} />

@@ -3,6 +3,7 @@ import { obterSessao } from "@/lib/sessao";
 import { dataHoraBR, moeda } from "@/lib/formatar";
 import { abrirCaixa, fecharCaixa, movimentarCaixa } from "./actions";
 import { Venda, type ProdutoPdv } from "./venda";
+import { CampoMascara } from "@/components/campo-mascara";
 
 const FORMAS: Record<string, string> = { dinheiro: "Dinheiro", pix: "Pix", debito: "Débito", credito: "Crédito" };
 
@@ -47,7 +48,7 @@ export default async function PaginaCaixa({ searchParams }: { searchParams: Prom
             </label>
           )}
           <label className="rotulo">Dinheiro na gaveta (R$)
-            <input className="campo" name="valor" inputMode="decimal" placeholder="0,00" autoFocus />
+            <CampoMascara mascara="moeda" name="valor" defaultValue={100} autoFocus />
           </label>
           <button className="botao" type="submit">Abrir caixa</button>
         </form>
@@ -127,7 +128,7 @@ export default async function PaginaCaixa({ searchParams }: { searchParams: Prom
                   <option value="sangria">Sangria (tirar)</option>
                   <option value="suprimento">Suprimento (pôr)</option>
                 </select>
-                <input className="campo" name="valor" inputMode="decimal" placeholder="R$" aria-label="Valor" required />
+                <CampoMascara mascara="moeda" name="valor" aria-label="Valor" required />
               </div>
               <input className="campo" name="motivo" placeholder="Motivo (depósito, troco…)" aria-label="Motivo" />
               <button className="botao-secundario" type="submit">Lançar</button>
@@ -149,7 +150,7 @@ export default async function PaginaCaixa({ searchParams }: { searchParams: Prom
             <h2>Fechar o caixa</h2>
             <form action={fecharCaixa.bind(null, caixa.id)} className="formulario">
               <label className="rotulo">Dinheiro contado na gaveta (R$)
-                <input className="campo" name="contado" inputMode="decimal" required />
+                <CampoMascara mascara="moeda" name="contado" required />
               </label>
               <input className="campo" name="observacao" placeholder="Observação (opcional)" aria-label="Observação" />
               <button className="botao-secundario" type="submit">Fechar caixa</button>

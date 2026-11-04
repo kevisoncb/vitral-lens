@@ -9,8 +9,8 @@ export type ItemEntrada = {
   categoria: string;
   quantidade: number;
   custo: number;
-  insumos: number;
-  impostos: number;
+  insumos_pct: number; // % da compra
+  impostos_pct: number; // % da compra
   preco_venda: number | null;
   ncm: string | null;
   cest: string | null;

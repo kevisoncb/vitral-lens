@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { agendar, type Estado } from "../actions";
+import { CampoMascara } from "@/components/campo-mascara";
 
 export function FormularioAgendar({ slug, vagas }: { slug: string; vagas: { inicio: string; rotulo: string }[] }) {
   const [estado, enviar, enviando] = useActionState<Estado, FormData>(agendar.bind(null, slug), null);
@@ -23,7 +24,7 @@ export function FormularioAgendar({ slug, vagas }: { slug: string; vagas: { inic
         <input className="campo" name="nome" required autoComplete="name" />
       </label>
       <label className="rotulo">WhatsApp com DDD
-        <input className="campo" name="telefone" required inputMode="tel" autoComplete="tel" />
+        <CampoMascara mascara="telefone" name="telefone" required autoComplete="tel" />
       </label>
       <input type="text" name="site" tabIndex={-1} autoComplete="off" aria-hidden="true" className="site-isca" />
       <label className="marcar">

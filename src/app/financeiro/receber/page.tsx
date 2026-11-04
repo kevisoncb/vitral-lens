@@ -4,6 +4,7 @@ import { obterSessao } from "@/lib/sessao";
 import { dataBR, mesDoParametro, moeda, nomeMes, proximoMes } from "@/lib/formatar";
 import { linkWhatsApp, mensagemLembreteParcela } from "@/lib/whatsapp";
 import { criarContaReceber, desfazerRecebimento, excluirContaReceber, receberConta } from "../actions";
+import { CampoMascara } from "@/components/campo-mascara";
 
 const FORMAS: Record<string, string> = { dinheiro: "Dinheiro", pix: "Pix", debito: "Débito", credito: "Crédito", boleto: "Boleto", outro: "Outro" };
 
@@ -80,7 +81,7 @@ export default async function ContasAReceber({ searchParams }: Props) {
             </div>
             <div className="linha">
               <label className="rotulo">Valor total (R$)
-                <input className="campo" name="valor" inputMode="decimal" required />
+                <CampoMascara mascara="moeda" name="valor" required />
               </label>
               <label className="rotulo">Primeiro vencimento
                 <input className="campo" name="vencimento" type="date" required defaultValue={hoje} />
