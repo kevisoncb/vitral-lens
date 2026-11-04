@@ -70,7 +70,7 @@ export function Precificacao({ inicial, podeEditar }: { inicial: Inicial; podeEd
           <span className="campo campo-leitura">{moeda(final)}</span>
           <small className="ajuda-campo">compra + insumos + impostos</small>
         </label>
-        <label className="rotulo" title="% sobre o custo final: custo R$ 100 com margem 30% = venda R$ 130">Margem (% sobre o custo)
+        <label className="rotulo" title="Entra depois de somar compra, insumos e impostos: custo final R$ 100 com margem 30% = venda R$ 130">Margem (% sobre o custo final)
           <CampoMascara mascara="porcentagem" name="margem_pct" value={margem} disabled={!podeEditar}
             onChange={(t) => { setMargem(t); const m = lerDecimal(t); if (m !== null && final > 0) setPreco(formatarDecimal(precoPelaMargem(final, m))); }} />
           <small className="ajuda-campo">lucro de {moeda(lucro)} por peça</small>
