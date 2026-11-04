@@ -11,8 +11,14 @@ export type ItemNfe = {
   nome: string;
   ncm: string | null;
   unidade: string | null;
+  cest: string | null;
+  origem: number | null; // 0 nacional, 1 e 2 estrangeira etc. (tabela da NF-e)
   quantidade: number;
   custo: number; // valor unitário
+  /** por unidade: frete + seguro + outras despesas - desconto, rateados na nota */
+  insumos: number;
+  /** por unidade: IPI + ICMS-ST pagos na compra (entram no custo de quem é do Simples) */
+  impostos: number;
   categoria: string; // chave do catálogo, deduzida do NCM
 };
 
@@ -78,6 +84,13 @@ export function lerNfe(xml: string): NotaFiscal {
     const ean = eanValido(tag(prod, "cEAN")) ?? eanValido(tag(prod, "cEANTrib"));
     const codigoFornecedor = tag(prod, "cProd") ?? "";
     const ncm = tag(prod, "NCM");
+    const imposto = blocos(det, "imposto")[0] ?? "";
+    const quantidade = Number(tag(prod, "qCom") ?? 0);
+    const valor = (x: string | null) => Number(x ?? 0) || 0;
+    const porUnidade = (total: number) => (quantidade > 0 ? Math.round((total / quantidade) * 100) / 100 : 0);
+    const icms = blocos(imposto, "ICMS")[0] ?? "";
+    const ipi = blocos(imposto, "IPI")[0] ?? "";
+    const origem = tag(icms, "orig");
     return {
       codigo: (ean ?? codigoFornecedor).slice(0, 40),
       codigoFornecedor,
@@ -85,8 +98,12 @@ export function lerNfe(xml: string): NotaFiscal {
       nome: (tag(prod, "xProd") ?? "").slice(0, 160),
       ncm,
       unidade: tag(prod, "uCom"),
-      quantidade: Number(tag(prod, "qCom") ?? 0),
-      custo: Math.round(Number(tag(prod, "vUnCom") ?? 0) * 100) / 100,
+      cest: tag(prod, "CEST"),
+      origem: origem !== null && /^\d$/.test(origem) ? Number(origem) : null,
+      quantidade,
+      custo: Math.round(valor(tag(prod, "vUnCom")) * 100) / 100,
+      insumos: porUnidade(valor(tag(prod, "vFrete")) + valor(tag(prod, "vSeg")) + valor(tag(prod, "vOutro")) - valor(tag(prod, "vDesc"))),
+      impostos: porUnidade(valor(tag(ipi, "vIPI")) + valor(tag(icms, "vICMSST"))),
       categoria: categoriaPorNcm(ncm),
     };
   });

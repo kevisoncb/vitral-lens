@@ -83,10 +83,11 @@ export default async function PaginaCatalogo({ searchParams }: { searchParams: P
                   <input className="campo" name="preco" defaultValue={String(i.preco).replace(".", ",")} inputMode="decimal" aria-label="Preço" />
                   <label className="marcar"><input type="checkbox" name="ativo" defaultChecked={i.ativo} /> Ativo</label>
                   <button className="botao-secundario" type="submit">Salvar</button>
+                  <Link href={`/catalogo/${i.id}`}>Custo e impostos</Link>
                 </form>
               ) : (
                 <div key={i.id} className="linha-valor">
-                  <span>{i.nome}{i.ativo ? "" : " (inativo)"}</span>
+                  <span><Link href={`/catalogo/${i.id}`}>{i.nome}</Link>{i.ativo ? "" : " (inativo)"}</span>
                   <strong>{moeda(i.preco)}</strong>
                 </div>
               ),

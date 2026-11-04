@@ -13,7 +13,23 @@ const CATEGORIAS: Record<string, string> = {
   tratamento: "Tratamento",
 };
 
-type Linha = { codigo: string; nome: string; categoria: string; quantidade: number; custo: number; preco: string; existente: string | null };
+type Linha = {
+  codigo: string;
+  nome: string;
+  categoria: string;
+  quantidade: number;
+  custo: number;
+  insumos: string;
+  impostos: string;
+  preco: string;
+  existente: string | null;
+  ncm: string | null;
+  cest: string | null;
+  origem: number | null;
+  unidade: string | null;
+};
+
+const texto = (n: number) => n.toFixed(2).replace(".", ",");
 
 /** Preço de venda sugerido: custo × margem, terminando em ,90. */
 function sugerido(custo: number, margem: number): string {
@@ -60,8 +76,14 @@ export function EntradaPorNota({
         categoria: i.categoria,
         quantidade: Math.max(1, Math.round(i.quantidade)),
         custo: i.custo,
-        preco: sugerido(i.custo, m),
+        insumos: texto(i.insumos),
+        impostos: texto(i.impostos),
+        preco: sugerido(i.custo + i.insumos + i.impostos, m),
         existente: catalogo[i.codigo] ?? null,
+        ncm: i.ncm,
+        cest: i.cest,
+        origem: i.origem,
+        unidade: i.unidade,
       })));
     } catch (erro) {
       setNota(null);
@@ -73,7 +95,12 @@ export function EntradaPorNota({
   function aplicarMargem(valor: string) {
     setMargem(valor);
     const m = numero(valor);
-    if (m && m > 0) setLinhas((ls) => ls.map((l) => (l.existente ? l : { ...l, preco: sugerido(l.custo, m) })));
+    if (m && m > 0) setLinhas((ls) => ls.map((l) => (l.existente ? l : { ...l, preco: sugerido(custoFinal(l), m) })));
+  }
+
+  /** compra + insumos + impostos, por unidade */
+  function custoFinal(l: Linha): number {
+    return l.custo + (numero(l.insumos) ?? 0) + (numero(l.impostos) ?? 0);
   }
 
   function mudar(i: number, campo: Partial<Linha>) {
@@ -86,7 +113,20 @@ export function EntradaPorNota({
       const r = await lancarNota({
         nota: { chave: nota.chave, numero: nota.numero, fornecedor: nota.fornecedor, cnpj: nota.cnpj, emissao: nota.emissao, valor_total: nota.valorTotal },
         lojaId: loja || null,
-        itens: linhas.map((l) => ({ codigo: l.codigo, nome: l.nome, categoria: l.categoria, quantidade: l.quantidade, custo: l.custo, preco_venda: l.existente ? null : numero(l.preco) })),
+        itens: linhas.map((l) => ({
+          codigo: l.codigo,
+          nome: l.nome,
+          categoria: l.categoria,
+          quantidade: l.quantidade,
+          custo: l.custo,
+          insumos: numero(l.insumos) ?? 0,
+          impostos: Math.max(0, numero(l.impostos) ?? 0),
+          preco_venda: l.existente ? null : numero(l.preco),
+          ncm: l.ncm,
+          cest: l.cest,
+          origem: l.origem,
+          unidade: l.unidade,
+        })),
         duplicatas: lancarParcelas ? nota.duplicatas.map((d) => ({ vencimento: d.vencimento, valor: d.valor })) : [],
         categoriaCusto: categoriaCusto || null,
       });
@@ -137,14 +177,19 @@ export function EntradaPorNota({
             <div className="tabela-rolagem">
               <table className="tabela">
                 <thead>
-                  <tr><th>Produto</th><th>Categoria</th><th className="numero">Qtd.</th><th className="numero">Custo un.</th><th className="numero">Preço de venda</th></tr>
+                  <tr>
+                    <th>Produto</th><th>Categoria</th><th className="numero">Qtd.</th><th className="numero">Compra un.</th>
+                    <th className="numero" title="Frete, seguro e outras despesas, menos o desconto, por unidade">Insumos un.</th>
+                    <th className="numero" title="IPI e ICMS-ST pagos na compra, por unidade">Impostos un.</th>
+                    <th className="numero">Custo final</th><th className="numero">Preço de venda</th><th className="numero">Margem</th>
+                  </tr>
                 </thead>
                 <tbody>
                   {linhas.map((l, i) => (
                     <tr key={`${l.codigo}-${i}`}>
                       <td>
                         {l.existente ? <>{l.existente} <span className="etiqueta etiqueta-ok">no catálogo</span></> : <>{l.nome} <span className="etiqueta">novo</span></>}
-                        <br /><small className="vazio">código {l.codigo || "—"}</small>
+                        <br /><small className="vazio">código {l.codigo || "—"}{l.ncm ? ` · NCM ${l.ncm}` : ""}{l.cest ? ` · CEST ${l.cest}` : ""}</small>
                       </td>
                       <td>
                         {l.existente ? "—" : (
@@ -158,16 +203,28 @@ export function EntradaPorNota({
                       </td>
                       <td className="numero">{moeda(l.custo)}</td>
                       <td className="numero">
+                        <input className="campo" style={{ width: 90, textAlign: "right" }} inputMode="decimal" value={l.insumos} onChange={(e) => mudar(i, { insumos: e.target.value })} aria-label={`Insumos de ${l.nome}`} />
+                      </td>
+                      <td className="numero">
+                        <input className="campo" style={{ width: 90, textAlign: "right" }} inputMode="decimal" value={l.impostos} onChange={(e) => mudar(i, { impostos: e.target.value })} aria-label={`Impostos de ${l.nome}`} />
+                      </td>
+                      <td className="numero"><strong>{moeda(custoFinal(l))}</strong></td>
+                      <td className="numero">
                         {l.existente ? <small className="vazio">mantém o atual</small> : (
                           <input className="campo" style={{ width: 110, textAlign: "right" }} inputMode="decimal" value={l.preco} onChange={(e) => mudar(i, { preco: e.target.value })} aria-label={`Preço de venda de ${l.nome}`} />
                         )}
                       </td>
+                      <td className="numero">{!l.existente && numero(l.preco) && custoFinal(l) > 0 ? `${((numero(l.preco) as number) / custoFinal(l)).toFixed(2).replace(".", ",")}×` : "—"}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <small className="vazio">Caixa com várias peças (ex.: lente de contato “CX”)? Ajuste a quantidade para o que vai para a prateleira.</small>
+            <small className="vazio">
+              Insumos e impostos vêm da nota (frete, seguro, outras despesas e desconto; IPI e ICMS-ST) e podem ser ajustados, por exemplo para incluir
+              embalagem ou o frete que veio em outra nota. NCM, CEST e origem vão para o cadastro do produto quando ele ainda não tem.
+              Caixa com várias peças (ex.: lente de contato “CX”)? Ajuste a quantidade para o que vai para a prateleira.
+            </small>
           </section>
 
           <section className="bloco">

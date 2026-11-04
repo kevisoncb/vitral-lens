@@ -3,7 +3,20 @@
 import { revalidatePath } from "next/cache";
 import { criarClienteServidor } from "@/lib/supabase/servidor";
 
-export type ItemEntrada = { codigo: string; nome: string; categoria: string; quantidade: number; custo: number; preco_venda: number | null };
+export type ItemEntrada = {
+  codigo: string;
+  nome: string;
+  categoria: string;
+  quantidade: number;
+  custo: number;
+  insumos: number;
+  impostos: number;
+  preco_venda: number | null;
+  ncm: string | null;
+  cest: string | null;
+  origem: number | null;
+  unidade: string | null;
+};
 export type ResultadoEntrada = { ok: boolean; mensagem: string };
 
 export async function lancarNota(dados: {

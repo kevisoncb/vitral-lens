@@ -24,6 +24,13 @@ test("itens: EAN vira o código; sem GTIN usa o código do fornecedor; categoria
   assert.deepEqual([c.codigo, c.unidade, c.quantidade, c.custo, c.categoria], ["7890000000013", "CX", 10, 62.5, "lente_contato"]);
 });
 
+test("por unidade: frete/desconto viram insumos e IPI/ICMS-ST viram impostos; origem e CEST", () => {
+  const [a, b, c] = lerNfe(xml).itens;
+  assert.deepEqual([a.insumos, a.impostos, a.origem, a.cest], [5, 7.5, 0, "2805400"]); // frete 15/3; IPI 22,50/3
+  assert.deepEqual([b.insumos, b.impostos, b.origem], [-4.9, 6.2, 2]); // desconto 9,80/2; ST 12,40/2
+  assert.deepEqual([c.insumos, c.impostos, c.origem, c.cest], [0, 0, null, null]);
+});
+
 test("duplicatas viram as parcelas a pagar", () => {
   assert.deepEqual(lerNfe(xml).duplicatas, [
     { numero: "001", vencimento: "2026-12-03", valor: 418.27 },

@@ -431,6 +431,18 @@ export type Database = {
           controla_estoque: boolean;
           estoque_minimo: number;
           custo: number | null;
+          ncm: string | null;
+          cest: string | null;
+          origem: number | null;
+          cfop: string | null;
+          csosn: string | null;
+          cst_icms: string | null;
+          aliquota_icms: number | null;
+          cclass_trib: string | null;
+          unidade: string;
+          custo_insumos: number;
+          custo_impostos: number;
+          custo_final: number | null;
         };
         Insert: {
           id?: string;
@@ -448,6 +460,18 @@ export type Database = {
           controla_estoque?: boolean;
           estoque_minimo?: number;
           custo?: number | null;
+          ncm?: string | null;
+          cest?: string | null;
+          origem?: number | null;
+          cfop?: string | null;
+          csosn?: string | null;
+          cst_icms?: string | null;
+          aliquota_icms?: number | null;
+          cclass_trib?: string | null;
+          unidade?: string;
+          custo_insumos?: number;
+          custo_impostos?: number;
+          custo_final?: never;
         };
         Update: {
           id?: string;
@@ -465,6 +489,18 @@ export type Database = {
           controla_estoque?: boolean;
           estoque_minimo?: number;
           custo?: number | null;
+          ncm?: string | null;
+          cest?: string | null;
+          origem?: number | null;
+          cfop?: string | null;
+          csosn?: string | null;
+          cst_icms?: string | null;
+          aliquota_icms?: number | null;
+          cclass_trib?: string | null;
+          unidade?: string;
+          custo_insumos?: number;
+          custo_impostos?: number;
+          custo_final?: never;
         };
         Relationships: [
           {

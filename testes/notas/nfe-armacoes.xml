@@ -18,17 +18,19 @@
           <cProd>AR-ACT-52</cProd><cEAN>7891234567895</cEAN><xProd>ARMACAO ACETATO PRETA 52-18</xProd>
           <NCM>90031100</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>3.0000</qCom>
           <vUnCom>150.0000000000</vUnCom><vProd>450.00</vProd><cEANTrib>7891234567895</cEANTrib>
-          <uTrib>UN</uTrib><qTrib>3.0000</qTrib><vUnTrib>150.0000000000</vUnTrib><indTot>1</indTot>
+          <uTrib>UN</uTrib><qTrib>3.0000</qTrib><vUnTrib>150.0000000000</vUnTrib><vFrete>15.00</vFrete><indTot>1</indTot><CEST>2805400</CEST>
         </prod>
-        <imposto><ICMS><ICMSSN102><orig>0</orig><CSOSN>102</CSOSN></ICMSSN102></ICMS></imposto>
+        <imposto><ICMS><ICMSSN102><orig>0</orig><CSOSN>102</CSOSN></ICMSSN102></ICMS>
+          <IPI><cEnq>999</cEnq><IPITrib><CST>50</CST><vBC>450.00</vBC><pIPI>5.00</pIPI><vIPI>22.50</vIPI></IPITrib></IPI></imposto>
       </det>
       <det nItem="2">
         <prod>
           <cProd>SOL-AV-01</cProd><cEAN>SEM GTIN</cEAN><xProd>OCULOS SOL AVIADOR DOURADO</xProd>
           <NCM>90041000</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>2.0000</qCom>
           <vUnCom>89.9000000000</vUnCom><vProd>179.80</vProd><cEANTrib>SEM GTIN</cEANTrib>
-          <uTrib>UN</uTrib><qTrib>2.0000</qTrib><vUnTrib>89.9000000000</vUnTrib><indTot>1</indTot>
+          <uTrib>UN</uTrib><qTrib>2.0000</qTrib><vUnTrib>89.9000000000</vUnTrib><vDesc>9.80</vDesc><indTot>1</indTot>
         </prod>
+        <imposto><ICMS><ICMS10><orig>2</orig><CST>10</CST><vICMSST>12.40</vICMSST></ICMS10></ICMS></imposto>
       </det>
       <det nItem="3">
         <prod>

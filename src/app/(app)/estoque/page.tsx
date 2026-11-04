@@ -32,7 +32,7 @@ export default async function PaginaEstoque({ searchParams }: Props) {
 
   let consulta = supabase
     .from("catalogo_itens")
-    .select("id, nome, categoria, marca, codigo, estoque_minimo, custo, preco, ativo")
+    .select("id, nome, categoria, marca, codigo, estoque_minimo, custo_final, preco, ativo")
     .eq("controla_estoque", true)
     .order("nome")
     .limit(500);
@@ -56,7 +56,7 @@ export default async function PaginaEstoque({ searchParams }: Props) {
   const lista = baixo ? abaixo : todos;
   const podeEntrada = sessao.pode("estoque", "criar");
   const podeAjuste = sessao.pode("estoque", "editar");
-  const valorEmEstoque = todos.reduce((s, i) => s + Math.max(0, i.saldo) * Number(i.custo ?? 0), 0);
+  const valorEmEstoque = todos.reduce((s, i) => s + Math.max(0, i.saldo) * Number(i.custo_final ?? 0), 0);
   const filtro = (extra: Record<string, string | undefined>) => {
     const p = new URLSearchParams();
     for (const [k, v] of Object.entries({ q: busca || undefined, loja: loja?.id, baixo, ...extra })) if (v) p.set(k, v);
@@ -89,7 +89,7 @@ export default async function PaginaEstoque({ searchParams }: Props) {
         <Link className="resumo-cartao cartao-link" href={filtro({ baixo: baixo ? undefined : "1" })}>
           <span>Abaixo do mínimo</span><strong>{abaixo.length}</strong>
         </Link>
-        {podeEntrada && <div className="resumo-cartao"><span>Valor em estoque (custo)</span><strong>{moeda(valorEmEstoque)}</strong></div>}
+        {podeEntrada && <div className="resumo-cartao"><span>Valor em estoque (custo final)</span><strong>{moeda(valorEmEstoque)}</strong></div>}
       </div>
 
       {lojas.length > 1 && (

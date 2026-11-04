@@ -39,6 +39,7 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 | 0014 | Painel do Vitral: `vitral_admins` e funções `painel_*` (óticas, criar ótica com dono, adicionais, situação, lista de espera) | ✅ |
 | 0015 | Código interno para etiqueta (`gerar_codigos_catalogo()`: 2 + 9 dígitos, pula os já usados) | ✅ |
 | 0016 | Entrada pelo XML da NF-e do fornecedor (`notas_entrada`, `registrar_entrada_nfe()`): catálogo, estoque com custo e parcelas a pagar numa transação; a mesma nota não entra duas vezes | ✅ |
+| 0017 | Impostos e custo no produto: NCM, CEST, origem, CFOP, CSOSN/CST, alíquota ICMS, cClassTrib (IBS/CBS), unidade; custo em partes (compra + insumos + impostos = `custo_final`); entrada pela nota grava tudo e não sobrescreve o fiscal já corrigido | ✅ |
 
 ### Telas (`src/`): todas 🟡, compilam (`typecheck` e `build` passam) mas ainda não foram abertas com um Supabase de verdade
 
@@ -55,9 +56,10 @@ A venda do PDV (`src/app/pdv/venda.tsx`) foi aberta no navegador com produtos de
 | Loja e gestão | Ordens de serviço: acompanha, avisa e entrega; recados com o laboratório | `/laboratorio`, `/laboratorio/[id]` |
 | Loja e gestão | Agenda interna | `/agenda` |
 | Loja e gestão | Catálogo com fotos; foto da armação depois da venda | `/catalogo`, `/catalogo/fotos` |
+| Loja e gestão | Cadastro do produto: dados, custo (compra + insumos + impostos), preço e margem com a conta na hora, impostos para a nota fiscal (o balcão vê só o preço) | `/catalogo/[id]` |
 | Loja e gestão | Etiquetas com código de barras (Code 128) para impressora de etiquetas 50 × 25 mm ou folha A4 Pimaco; gera código interno para quem não tem | `/catalogo/etiquetas` |
 | Loja e gestão | Estoque por loja: saldo, abaixo do mínimo, entrada, contagem, perda, transferência, histórico | `/estoque`, `/estoque/[id]` |
-| Loja e gestão | Entrada pela nota do fornecedor: sobe o XML, confere, define o preço dos novos (margem sobre o custo) e lança | `/estoque/nota` |
+| Loja e gestão | Entrada pela nota do fornecedor: sobe o XML, confere compra, insumos (frete, desconto) e impostos (IPI, ICMS-ST) por unidade, define o preço dos novos pela margem sobre o custo final e lança | `/estoque/nota` |
 | Loja e gestão | Comissões do mês (vendedor vê as dele; gestão vê todas, regras e pagamento) | `/comissoes` |
 | Gestão | Relatórios do mês | `/relatorios` |
 | Gestão | Configurações: ótica e site, lojas, usuários, perfis (área + permissões), horários e bloqueios, funil e motivos | `/configuracoes/...` |
@@ -90,7 +92,7 @@ Marque com `[x]` quando terminar e anote no Histórico.
 
 - [x] `npm install`, `npm run typecheck`, corrigir os erros. Commitar `package-lock.json`.
 - [ ] `npm audit` aponta o `postcss` embutido no Next 15 (só afeta o build, não o site no ar); a correção só vem no Next 16. Avaliar a migração depois da Versão 1.
-- [ ] Criar o projeto no Supabase **na região São Paulo (sa-east-1)**, na conta do dono do produto, e rodar as migrações 0001 → 0016 no SQL Editor.
+- [ ] Criar o projeto no Supabase **na região São Paulo (sa-east-1)**, na conta do dono do produto, e rodar as migrações 0001 → 0017 no SQL Editor.
 - [ ] Cadastrar você em `vitral_admins` e criar as Óticas Nery pelo painel (`/painel`, seção 4).
 - [ ] Rodar `supabase/seed_catalogo.sql` (ajustar os preços antes).
 - [x] Conferir as consultas das telas contra o banco sem o Supabase (`conferir_consultas.mjs`, no CI).
@@ -109,6 +111,8 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - [x] Etiqueta com código de barras (`/catalogo/etiquetas`, gerador próprio em `src/lib/codigo-barras.ts`, conferido com a python-barcode).
 - [ ] Testar as etiquetas numa impressora de etiquetas de verdade e ler com o leitor do PDV.
 - [x] Entrada de produtos pelo XML da NF-e do fornecedor (`/estoque/nota`, leitor em `src/lib/nfe.ts`).
+- [x] Impostos e formação de custo no cadastro do produto (`/catalogo/[id]`).
+- [ ] Preencher NCM e CSOSN dos produtos das Óticas Nery com o contador (sem eles o produto não sai na nota fiscal).
 - [ ] Ideias da concorrência para depois: assinatura digital da OS pelo link, medida de DNP pela câmera.
 - [x] Versão 2: importação de planilha (clientes e produtos) e site do Vitral com lista de espera.
 - [ ] Importar a planilha de clientes das Óticas Nery (pedir o arquivo do sistema antigo) e conferir o relatório de erros.
@@ -153,6 +157,7 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - **Pagamento:** o primeiro pagamento move o card para a etapa ganha e cria a OS uma única vez.
 - **Agenda:** o mesmo horário nunca é marcado duas vezes. O site só vê horários livres.
 - **Site público:** só funções `security definer` liberadas para `anon`, com limite de uso e aceite LGPD.
+- **Custo do produto:** compra + insumos (frete, seguro, embalagem, outras despesas; desconto entra negativo) + impostos da compra (IPI, ICMS-ST) = custo final, base do preço e do valor do estoque. Custo e margem só para quem edita o catálogo ou dá entrada no estoque; o balcão vê o preço.
 - **Estoque:** por loja, só dos produtos com `controla_estoque` (padrão: armação, lente de contato, acessório; lente sob medida não). O livro `estoque_movimentos` nunca se altera; entrada, saída, contagem e transferência só pelas funções do banco. O primeiro pagamento da venda dá baixa uma vez. A venda nunca é bloqueada por falta de estoque (o saldo pode ficar negativo e aparece em vermelho).
 - **Comissões:** regra mais específica vale (vendedor + categoria > vendedor > categoria > todos). Calculadas no primeiro pagamento, para o responsável do atendimento. O vendedor vê só as dele; `comissoes:editar` vê todas e marca como pagas.
 - **PDV (Versão 4):** área própria (`pdv`, perfil Caixa). Venda só por `registrar_venda()`: preço vem do catálogo, desconto acima de 10% exige `pdv:editar`, a soma dos pagamentos tem de fechar com o total, crediário exige cliente e vira conta a receber. Um caixa aberto por operador. Só o gerente cancela venda (devolve ao estoque e cancela a comissão aberta).
@@ -238,6 +243,8 @@ src/app/conta/         minha conta (qualquer área)
 
 Mais recente em cima. Uma linha por sessão: data, o que mudou, o que ficou pendente.
 
+- **2026-11-04 (18)** — Impostos e custo no produto: migração 0017 (campos fiscais, custo em partes, `custo_final`; `registrar_entrada_nfe()` grava NCM/CEST/origem só onde estão vazios), leitor do XML traz insumos e impostos por unidade, tela `/catalogo/[id]` com precificação ao vivo, entrada pela nota com as colunas de custo, valor do estoque pelo custo final. Testes no `nfe_smoke.sql` e em `testes/nfe.test.mjs`.
+  - Pendente: guia da reforma tributária e emissão da NFC-e (em andamento).
 - **2026-11-04 (17)** — Entrada de mercadoria pelo XML da NF-e do fornecedor: leitor `src/lib/nfe.ts` (itens, EAN, NCM → categoria, duplicatas; testes com uma nota de exemplo em `testes/notas/`), migração 0016 (`notas_entrada`, `registrar_entrada_nfe()`), teste `nfe_smoke.sql` no CI e tela `/estoque/nota`.
   - Pendente: nada novo; próximos: clientes para chamar, assinatura da OS, emissão de nota fiscal.
 - **2026-11-04 (16)** — PWA: manifesto (`src/app/manifest.ts`), ícones em `public/icones/` (comum, maskable e do iPhone), `src/app/icon.svg`, metadados do iPhone; o middleware deixa manifesto e ícones passarem sem login. O Chrome não aponta nenhum erro de instalação.
