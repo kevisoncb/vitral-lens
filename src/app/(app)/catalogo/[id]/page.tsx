@@ -48,6 +48,8 @@ type Produto = {
   codigo: string | null;
   preco: number;
   ativo: boolean;
+  foto_path: string | null;
+  controla_estoque: boolean;
   unidade: string;
   custo: number | null;
   insumos_valor: number;
@@ -73,7 +75,7 @@ export default async function Produto({ params, searchParams }: { params: Promis
   const supabase = await criarClienteServidor();
   const { data } = await supabase
     .from("catalogo_itens")
-    .select("id, nome, categoria, marca, codigo, preco, ativo, unidade, custo, insumos_valor, insumos_tipo, impostos_valor, impostos_tipo, margem_pct, custo_final, ncm, cest, origem, cfop, csosn, cst_icms, aliquota_icms, cclass_trib")
+    .select("id, nome, categoria, marca, codigo, preco, ativo, foto_path, controla_estoque, unidade, custo, insumos_valor, insumos_tipo, impostos_valor, impostos_tipo, margem_pct, custo_final, ncm, cest, origem, cfop, csosn, cst_icms, aliquota_icms, cclass_trib")
     .eq("id", id)
     .returns<Produto[]>()
     .maybeSingle();
@@ -86,10 +88,23 @@ export default async function Produto({ params, searchParams }: { params: Promis
 
   return (
     <>
+      <Link href="/catalogo">← Produtos</Link>
+      <div className="produto-cabecalho">
+        {p.foto_path ? (
+          <img className="produto-foto" src={supabase.storage.from("produtos").getPublicUrl(p.foto_path).data.publicUrl} alt={`Foto de ${p.nome}`} />
+        ) : (
+          <span className="produto-foto produto-foto-vazia" aria-hidden>sem foto</span>
+        )}
+        <div>
+          <h1>{p.nome}</h1>
+          <p className="subtitulo">{CATEGORIAS[p.categoria] ?? p.categoria}{p.marca ? ` · ${p.marca}` : ""}{p.codigo ? ` · código ${p.codigo}` : ""} · {moeda(p.preco)}</p>
+          <p className="linha" style={{ gap: 16 }}>
+            {podeEditar && <Link href={`/catalogo/fotos?itens=${p.id}&voltar=/catalogo/${p.id}`}>{p.foto_path ? "Trocar a foto" : "Tirar a foto"}</Link>}
+            {p.controla_estoque && <Link href={`/estoque/${p.id}`}>Ver o estoque</Link>}
+          </p>
+        </div>
+      </div>
       <div>
-        <Link href="/catalogo">← Catálogo</Link>
-        <h1>{p.nome}</h1>
-        <p className="subtitulo">{CATEGORIAS[p.categoria] ?? p.categoria}{p.marca ? ` · ${p.marca}` : ""}{p.codigo ? ` · código ${p.codigo}` : ""} · {moeda(p.preco)}</p>
         {!p.ativo && <p className="aviso" role="status">Fora da venda. Preencha impostos, margem e preço de venda abaixo e marque “Ativo” para aparecer na venda.</p>}
       </div>
       {erro && <p className="erro" role="alert">{erro}</p>}

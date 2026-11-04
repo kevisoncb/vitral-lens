@@ -43,7 +43,7 @@ export default async function ConfigOtica({ searchParams }: { searchParams: Prom
           Emissão de NFC-e: {o.nfce_ambiente === "producao" ? "em produção (notas com valor fiscal)" : "em teste (homologação, sem valor fiscal)"}.
           O certificado digital e o código da SEFAZ (CSC) são configurados com o suporte do Vitral.
         </p>
-        <p className="vazio">Plano Vitral (tudo incluído) · situação: {o.status}. Adicionais (nota fiscal, lojas extras) são contratados com o suporte do Vitral.</p>
+        <p className="vazio">Plano Vitral (tudo incluído) · situação: {o.status}. Adicionais (notas fiscais: NFC-e no caixa e entrada pela nota do fornecedor; lojas extras) são contratados com o suporte do Vitral.</p>
 
         <h2>Site institucional</h2>
         <p className="vazio">

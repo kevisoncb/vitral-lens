@@ -9,7 +9,7 @@
 **consultório** (exame → receita) → **loja** (orçamento → pagamento) → **laboratório** (ficha técnica → construção do óculos → entrega).
 Tudo ligado ao mesmo cliente, sem redigitar nada, com os cards passando de uma área para outra em tempo real.
 
-Plano único de **R$ 99/mês** com tudo incluído. Adicionais pagos: nota fiscal e lojas extras. Foco inicial: óticas pequenas do interior; depois, cidades grandes.
+Plano único de **R$ 99/mês** com tudo incluído. Adicionais pagos: **notas fiscais** (NFC-e no caixa e entrada de mercadoria pelo XML da nota do fornecedor) e lojas extras. Foco inicial: óticas pequenas do interior; depois, cidades grandes.
 
 Stack: Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Storage, Realtime), Vercel. CSS puro em `src/app/globals.css`.
 
@@ -56,11 +56,12 @@ A venda do PDV (`src/app/pdv/venda.tsx`) foi aberta no navegador com produtos de
 | Loja e gestão | Clientes, ficha com **linha do tempo**, receitas, anotações | `/clientes`, `/clientes/[id]` |
 | Loja e gestão | Ordens de serviço: acompanha, avisa e entrega; recados com o laboratório | `/laboratorio`, `/laboratorio/[id]` |
 | Loja e gestão | Agenda interna | `/agenda` |
-| Loja e gestão | Catálogo com fotos; foto da armação depois da venda | `/catalogo`, `/catalogo/fotos` |
-| Loja e gestão | Cadastro do produto: compra em R$, insumos, impostos e markup em % (com o valor em reais ao lado), preço e margem com a conta na hora, impostos para a nota fiscal (o balcão vê só o preço) | `/catalogo/[id]` |
+| Loja e gestão | Menu por seções: Atendimento (vendas, agenda, OS), Clientes, Produtos (produtos, estoque, entrada pela nota, etiquetas), Equipe e resultados, Outras áreas, Ajustes; no celular, fechado num botão | menu lateral |
+| Loja e gestão | Produtos: lista só para achar e abrir (busca, categoria, fora da venda); cadastrar o básico abre a página do produto; foto da armação depois da venda | `/catalogo`, `/catalogo/fotos` |
+| Loja e gestão | Página do produto: foto, dados, compra, insumos e impostos em R$ ou %, margem e preço com a conta na hora, impostos para a nota fiscal (o balcão vê só o preço). Único lugar onde preço e custo mudam | `/catalogo/[id]` |
 | Loja e gestão | Etiquetas com código de barras (Code 128) para impressora de etiquetas 50 × 25 mm ou folha A4 Pimaco; gera código interno para quem não tem | `/catalogo/etiquetas` |
 | Loja e gestão | Estoque por loja: saldo, abaixo do mínimo, entrada, contagem, perda, transferência, histórico | `/estoque`, `/estoque/[id]` |
-| Loja e gestão | Entrada pela nota do fornecedor: sobe o XML, confere produtos, quantidades e compra, escolhe boleto (parcelas vão para contas a pagar) ou cartão/Pix/dinheiro (já pago) e lança. Impostos, margem e preço ficam na página do produto | `/estoque/nota` |
+| Loja e gestão | Entrada pela nota do fornecedor (**adicional Notas fiscais**; sem ele, a tela explica o adicional): sobe o XML, confere produtos, quantidades e compra, escolhe boleto (parcelas vão para contas a pagar) ou cartão/Pix/dinheiro (já pago) e lança. Impostos, margem e preço ficam na página do produto | `/estoque/nota` |
 | Loja e gestão | Comissões do mês (vendedor vê as dele; gestão vê todas, regras e pagamento) | `/comissoes` |
 | Gestão | Relatórios do mês | `/relatorios` |
 | Gestão | Configurações: ótica e site, lojas, usuários, perfis (área + permissões), horários e bloqueios, funil e motivos | `/configuracoes/...` |
@@ -127,7 +128,8 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - [ ] Contagem inicial do estoque das Óticas Nery (tela Estoque → Contagem, produto a produto) e cadastrar as regras de comissão.
 - [x] Emissão de NFC-e pelo caixa (Focus NFe), ligada ao adicional `nota_fiscal`.
 - [ ] Contratar a Focus NFe na conta do dono do produto, cadastrar a empresa das Óticas Nery (certificado A1, CSC com o suporte da Focus), pôr os tokens no painel e testar em homologação.
-- [ ] Decidir se a nota fiscal entra no plano de R$ 99 ou fica como adicional (hoje é adicional; basta ligar `nota_fiscal` para todas no painel ou mudar `recursos_adicionais`).
+- [x] Decidido: notas fiscais são adicional pago (NFC-e no caixa e entrada pela nota do fornecedor), nunca no plano básico.
+- [ ] Organizar do mesmo jeito os menus das outras áreas (PDV, financeiro, consultório, produção) e a tela de Início.
 - [ ] Conferir na documentação da Focus os campos de IBS/CBS da NFC-e para 2027 (o leitor da documentação não achou) e o código do Pix (hoje "17").
 - [ ] NF-e modelo 55 (venda para CNPJ, devolução ao fornecedor) e NFC-e no regime normal (CST com base de cálculo).
 - [x] Versão 4: PDV e financeiro, com áreas e menus próprios.
@@ -159,14 +161,15 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - **Exame concluído não muda mais** (é prontuário). Correção = novo exame.
 - **Multiempresa:** toda tabela de negócio tem `otica_id` e RLS. Receita e exame são dados de saúde (LGPD).
 - **Permissões:** perfil × módulo × ação (`ver`, `criar`, `editar`, `excluir`). Quem decide é o banco (`acesso()`); a tela só esconde botões. O perfil Dono não perde acesso e a ótica nunca fica sem Dono ativo.
-- **Plano único:** tudo incluído. Adicionais em `recursos_adicionais` / `otica_adicionais`: nota fiscal e lojas extras (o banco bloqueia a 2ª loja sem o adicional).
+- **Plano único:** tudo incluído. Adicionais em `recursos_adicionais` / `otica_adicionais`: notas fiscais (`nota_fiscal`: NFC-e no caixa **e** entrada pela nota do fornecedor; o banco recusa as duas sem o adicional) e lojas extras (o banco bloqueia a 2ª loja sem o adicional). O menu mostra o selo "adicional" no que a ótica não contratou.
+- **Cada coisa no seu lugar:** venda é venda, cliente é cliente, produto é produto. O menu é separado por assunto; preço, custo e impostos só mudam na página do produto (a lista de produtos não edita); a entrada pela nota só dá entrada.
 - **Produto na venda:** se não estiver no catálogo, o balcão cadastra ali mesmo e ele entra no catálogo. Armação pede foto (reduzida no aparelho antes de enviar); lente não.
 - **WhatsApp:** nunca automático. Só link `wa.me` com mensagem pronta (`src/lib/whatsapp.ts`).
 - **Funil:** Atendimento → Orçamento enviado → Sem retorno → Recuperado / Perdido. Perdido exige motivo. Card parado vai sozinho para a etapa seguinte.
 - **Pagamento:** o primeiro pagamento move o card para a etapa ganha e cria a OS uma única vez.
 - **Agenda:** o mesmo horário nunca é marcado duas vezes. O site só vê horários livres.
 - **Site público:** só funções `security definer` liberadas para `anon`, com limite de uso e aceite LGPD.
-- **Custo do produto:** em porcentagem sobre a compra, que é como a ótica sabe: custo final = compra × (1 + insumos% + impostos%). Insumos: frete, seguro, embalagem, outras despesas (desconto entra negativo). Impostos da compra: IPI, ICMS-ST. O preço sai do markup % sobre o custo final.
+- **Custo do produto:** na página do produto. Insumos (frete, seguro, embalagem; desconto negativo) e impostos da compra (IPI, ICMS-ST) em R$ ou em % da compra, com a chave R$ / %. Custo final = compra + insumos + impostos. Margem % sobre o custo final; mudou a margem, o preço muda, e o contrário.
 - **Máscaras:** todo campo de dinheiro, porcentagem, CPF, CNPJ, telefone, NCM, CEST e CFOP usa `<CampoMascara>` (`src/components/campo-mascara.tsx`, regras em `src/lib/mascaras.ts`); dinheiro e porcentagem enchem da direita, como na maquininha. No servidor, `numeroOuNulo()` lê "1.234,56". Custo e margem só para quem edita o catálogo ou dá entrada no estoque; o balcão vê o preço.
 - **Estoque:** por loja, só dos produtos com `controla_estoque` (padrão: armação, lente de contato, acessório; lente sob medida não). O livro `estoque_movimentos` nunca se altera; entrada, saída, contagem e transferência só pelas funções do banco. O primeiro pagamento da venda dá baixa uma vez. A venda nunca é bloqueada por falta de estoque (o saldo pode ficar negativo e aparece em vermelho).
 - **Comissões:** regra mais específica vale (vendedor + categoria > vendedor > categoria > todos). Calculadas no primeiro pagamento, para o responsável do atendimento. O vendedor vê só as dele; `comissoes:editar` vê todas e marca como pagas.
@@ -255,6 +258,7 @@ src/app/conta/         minha conta (qualquer área)
 
 Mais recente em cima. Uma linha por sessão: data, o que mudou, o que ficou pendente.
 
+- **2026-11-04 (23)** — Organização: menu da loja por seções (Atendimento, Clientes, Produtos, Equipe e resultados, Outras áreas, Ajustes), fechado num botão no celular e fixo no computador; "Catálogo" virou "Produtos". Lista de produtos não edita mais preço (busca, categoria, fora da venda; abrir leva à página do produto, que ganhou foto e link do estoque); cadastrar novo abre a página. Entrada pela nota passou a ser do adicional `nota_fiscal` (banco recusa sem ele; a tela explica; selo "adicional" no menu); nome do adicional: Notas fiscais. Pendente: organizar os menus de PDV, financeiro, consultório e produção do mesmo jeito.
 - **2026-11-04 (22)** — Separação: a entrada pela nota só dá entrada (produto, categoria, quantidade, compra); impostos, insumos, margem e preço ficam na página do produto (`/catalogo/[id]`), com chave R$ / % em insumos e impostos e margem % sobre o custo final (mudou a margem, o preço muda; mudou o preço, a margem muda; `src/lib/precificacao.ts`, `<ValorReaisOuPct>`). Produto novo da nota entra fora da venda até ter preço (links para completar). Pagamento ao fornecedor: boleto gera as parcelas em contas a pagar; cartão, Pix ou dinheiro não (lido do `<tPag>` da nota, dá para trocar). Tabela da entrada vira cartões no celular. Pendente: confirmar com o cliente se margem é sobre o custo (hoje) ou sobre o preço.
 - **2026-11-04 (21)** — Custo do produto em porcentagem sobre a compra (insumos %, impostos %, markup %; migração 0017 ajustada, nada estava em produção); entrada pela nota converte os reais do XML em % sem perder centavos. Máscaras em todos os campos de dinheiro, porcentagem, CPF, CNPJ, telefone, NCM, CEST, CFOP e códigos fiscais (`CampoMascara`, testes em `testes/mascaras.test.mjs`). Ordem dos itens da NFC-e estável (do mais caro para o mais barato).
   - Pendente: medidas da ficha técnica (DNP, aro) seguem sem máscara de propósito.

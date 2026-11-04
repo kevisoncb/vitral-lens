@@ -18,6 +18,28 @@ export default async function EntradaPelaNota() {
     );
   }
   const supabase = await criarClienteServidor();
+  const { data: contratado } = await supabase.rpc("recurso_ativo", { r: "nota_fiscal" });
+  if (!contratado) {
+    return (
+      <>
+        <div>
+          <Link href="/estoque">← Estoque</Link>
+          <h1>Entrada pela nota do fornecedor</h1>
+        </div>
+        <section className="bloco">
+          <span className="etiqueta" style={{ alignSelf: "flex-start" }}>Adicional pago</span>
+          <h2>Dê entrada na mercadoria subindo o XML da nota</h2>
+          <p>
+            Com o adicional <strong>Notas fiscais</strong>, você sobe o arquivo XML que o fornecedor manda e o sistema dá entrada em
+            todos os produtos de uma vez, com o custo de compra, cadastra os que faltam e lança os boletos em contas a pagar.
+            O mesmo adicional libera a emissão de NFC-e no caixa.
+          </p>
+          <p className="vazio">Para contratar, fale com o suporte do Vitral. Sem o adicional, a entrada continua pelo Estoque, produto a produto.</p>
+          <Link className="botao-secundario" href="/estoque" style={{ alignSelf: "flex-start", textDecoration: "none" }}>Ir para o Estoque</Link>
+        </section>
+      </>
+    );
+  }
   const podeFinanceiro = sessao.pode("financeiro", "criar");
   const [catalogoR, lojasR, categoriasR, notasR] = await Promise.all([
     supabase.from("catalogo_itens").select("codigo, nome").not("codigo", "is", null).limit(10000),
@@ -35,7 +57,7 @@ export default async function EntradaPelaNota() {
       <div>
         <Link href="/estoque">← Estoque</Link>
         <h1>Entrada pela nota do fornecedor</h1>
-        <p className="subtitulo">Suba o XML da NF-e: os produtos entram no estoque com o custo de compra e o que não existe vai para o catálogo. Impostos, margem e preço ficam na página do produto.</p>
+        <p className="subtitulo">Suba o XML da NF-e: os produtos entram no estoque com o custo de compra e o que não existe é cadastrado em Produtos. Impostos, margem e preço ficam na página do produto.</p>
       </div>
       <EntradaPorNota catalogo={catalogo} lojas={lojasR.data ?? []} categoriasCusto={categoriasR.data ?? []} podeFinanceiro={podeFinanceiro} />
       {(notasR.data ?? []).length > 0 && (

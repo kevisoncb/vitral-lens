@@ -154,7 +154,7 @@ export function EntradaPorNota({
                       <td>
                         <span className="produto-celula">
                           <strong style={{ fontWeight: 600 }}>{l.existente ? l.existente.nome : l.nome}</strong>
-                          {l.existente ? <span className="etiqueta etiqueta-ok">no catálogo</span> : <span className="etiqueta">produto novo</span>}
+                          {l.existente ? <span className="etiqueta etiqueta-ok">já cadastrado</span> : <span className="etiqueta">produto novo</span>}
                           <small className="vazio">código {l.codigo || "—"}{l.ncm ? ` · NCM ${l.ncm}` : ""}</small>
                         </span>
                       </td>

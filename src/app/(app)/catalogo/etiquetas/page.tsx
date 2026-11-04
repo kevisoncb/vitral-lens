@@ -26,7 +26,7 @@ export default async function PaginaEtiquetas() {
   return (
     <>
       <div className="nao-imprimir">
-        <Link href="/catalogo">← Catálogo</Link>
+        <Link href="/catalogo">← Produtos</Link>
         <h1>Etiquetas com código de barras</h1>
         <p className="subtitulo">Escolha quantas etiquetas de cada produto. No PDV, o leitor lê o código e o produto entra na venda.</p>
       </div>

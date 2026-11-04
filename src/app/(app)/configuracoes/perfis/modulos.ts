@@ -9,7 +9,7 @@ export const MODULOS_CONFIGURAVEIS: { modulo: Modulo; rotulo: string }[] = [
   { modulo: "vendas", rotulo: "Vendas (funil e valores)" },
   { modulo: "laboratorio", rotulo: "Laboratório (excluir = gerente do lab)" },
   { modulo: "agenda", rotulo: "Agenda" },
-  { modulo: "catalogo", rotulo: "Catálogo" },
+  { modulo: "catalogo", rotulo: "Produtos" },
   { modulo: "estoque", rotulo: "Estoque (criar = entrada; editar = saída, ajuste, transferência)" },
   { modulo: "comissoes", rotulo: "Comissões (ver = só as próprias; editar = todas, regras e pagamento)" },
   { modulo: "relatorios", rotulo: "Relatórios" },

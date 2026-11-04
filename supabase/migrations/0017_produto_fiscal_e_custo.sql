@@ -46,6 +46,9 @@ $$;
 --         (tipo: "reais" = R$ por unidade; "porcentagem" = % da compra)
 -- Produto que já existe: atualiza o custo (compra, insumos, impostos), a margem e o preço quando vierem,
 -- e só PREENCHE o fiscal que estiver vazio; o que o gerente já corrigiu no cadastro não é sobrescrito.
+-- O adicional de notas fiscais cobre a emissão no caixa (NFC-e) e a entrada pela nota do fornecedor.
+update recursos_adicionais set nome = 'Notas fiscais (NFC-e no caixa e entrada pela nota do fornecedor)' where recurso = 'nota_fiscal';
+
 create or replace function registrar_entrada_nfe(
   p_nota jsonb, p_loja uuid, p_itens jsonb, p_duplicatas jsonb, p_categoria_custo uuid default null
 ) returns jsonb
@@ -70,6 +73,11 @@ declare
 begin
   if v_otica is null or not acesso('estoque', 'criar') then
     raise exception 'Seu perfil não pode dar entrada no estoque' using errcode = 'insufficient_privilege';
+  end if;
+  -- entrada pela nota do fornecedor é paga à parte: faz parte do adicional de notas fiscais
+  if not recurso_ativo('nota_fiscal') then
+    raise exception 'A entrada pela nota do fornecedor faz parte do adicional Notas fiscais. Fale com o suporte do Vitral para contratar.'
+      using errcode = 'insufficient_privilege';
   end if;
   if v_numero = '' or v_forn = '' then
     raise exception 'A nota precisa de número e fornecedor';

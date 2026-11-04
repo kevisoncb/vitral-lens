@@ -13,6 +13,12 @@ set role authenticated; set request.jwt.claim.sub = 'ac200000-0000-0000-0000-000
 insert into catalogo_itens (id, categoria, nome, preco, codigo, ncm, custo, insumos_valor, insumos_tipo, impostos_valor, impostos_tipo, margem_pct) values
   ('ac300000-0000-0000-0000-000000000001', 'armacao', 'Armação acetato preta', 450, '7891234567895', '90031900', 120, 5, 'reais', 7.5, 'porcentagem', 30);
 
+-- sem o adicional de notas fiscais: recusado
+select registrar_entrada_nfe('{"numero": "1", "fornecedor": "X"}', null, '[{"codigo": "A", "nome": "A", "categoria": "acessorio", "quantidade": 1, "custo": 1}]', '[]');
+reset role;
+insert into otica_adicionais (otica_id, recurso) values ('ac000000-0000-0000-0000-000000000001', 'nota_fiscal');
+set role authenticated; set request.jwt.claim.sub = 'ac200000-0000-0000-0000-000000000001';
+
 select 'entrada' as teste, registrar_entrada_nfe(
   '{"chave": "32261112345678000190550010000088121000088120", "numero": "8812", "fornecedor": "Distribuidora", "cnpj": "12345678000190", "emissao": "2026-11-03", "valor_total": 1254.80}',
   null,

@@ -41,7 +41,7 @@ export async function lancarNota(dados: {
   revalidatePath("/financeiro");
   const partes = [
     `${r.unidades} ${r.unidades === 1 ? "unidade entrou" : "unidades entraram"} no estoque`,
-    r.produtos_novos ? `${r.produtos_novos} ${r.produtos_novos === 1 ? "produto novo" : "produtos novos"} no catálogo (fora da venda até ter preço)` : null,
+    r.produtos_novos ? `${r.produtos_novos} ${r.produtos_novos === 1 ? "produto novo" : "produtos novos"} cadastrados (fora da venda até ter preço)` : null,
     r.contas ? `${r.contas} ${r.contas === 1 ? "parcela lançada" : "parcelas lançadas"} em contas a pagar` : null,
     r.contas_sem_permissao ? "as parcelas não foram lançadas (seu perfil não lança no financeiro)" : null,
   ].filter(Boolean);

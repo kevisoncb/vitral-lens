@@ -157,6 +157,7 @@ jobs:
           grep -q 'Quantidade inválida em "Novo com erro"' nfe.txt
           grep -q "notas lancadas (esperado 1) | *1" nfe.txt
           grep -q "Seu perfil não pode dar entrada no estoque" nfe.txt
+          grep -q "A entrada pela nota do fornecedor faz parte do adicional Notas fiscais" nfe.txt
           grep -q "Armação acetato preta ncm=90031900 cest=2805400 orig=0 un=UN final=166.25" nfe.txt
           grep -q "Óculos sol aviador ncm=90041000 cest=- orig=2 un=UN final=91.20" nfe.txt
           grep -q "custo do movimento | 62.50,91.20,166.25" nfe.txt
