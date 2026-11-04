@@ -7,6 +7,7 @@ import {
   lerClientes,
   lerCsv,
   lerProdutos,
+  lerXlsx,
   type Leitura,
   type LinhaCliente,
   type LinhaProduto,
@@ -51,14 +52,21 @@ export function Importador({ tipos }: { tipos: TipoImportacao[] }) {
     const f = e.target.files?.[0];
     setResultado(null);
     if (!f) return;
-    if (/\.xlsx?$/i.test(f.name)) {
+    if (/\.xls$/i.test(f.name)) {
       setMatriz(null);
       setArquivo("");
-      setResultado({ ok: false, mensagem: 'Salve a planilha como CSV antes: no Excel, "Salvar como" → "CSV (separado por vírgulas)"; no Google Planilhas, "Arquivo" → "Fazer download" → "CSV".', inseridos: 0, repetidos: 0, erros: [] });
+      setResultado({ ok: false, mensagem: 'Esse é o formato antigo do Excel (.xls). Abra no Excel e use "Salvar como" → "Pasta de Trabalho do Excel (.xlsx)" ou "CSV".', inseridos: 0, repetidos: 0, erros: [] });
       return;
     }
-    setArquivo(f.name);
-    setMatriz(lerCsv(decodificar(await f.arrayBuffer())));
+    try {
+      const bytes = await f.arrayBuffer();
+      setMatriz(/\.xlsx$/i.test(f.name) ? await lerXlsx(bytes) : lerCsv(decodificar(bytes)));
+      setArquivo(f.name);
+    } catch (erro) {
+      setMatriz(null);
+      setArquivo("");
+      setResultado({ ok: false, mensagem: erro instanceof Error ? erro.message : "Não consegui ler a planilha.", inseridos: 0, repetidos: 0, erros: [] });
+    }
   }
 
   function baixarModelo() {
@@ -125,7 +133,7 @@ export function Importador({ tipos }: { tipos: TipoImportacao[] }) {
       </section>
 
       <section className="bloco">
-        <h2>2. Escolha o arquivo (CSV)</h2>
+        <h2>2. Escolha o arquivo (Excel .xlsx ou CSV)</h2>
         <input className="campo" type="file" accept=".csv,text/csv,.txt,.xlsx,.xls" onChange={aoEscolher} aria-label="Arquivo da planilha" />
         <small className="vazio">
           {tipo === "clientes"

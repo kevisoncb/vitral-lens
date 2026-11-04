@@ -60,7 +60,7 @@ A venda do PDV (`src/app/pdv/venda.tsx`) foi aberta no navegador com produtos de
 | Consultório | Fila do dia, exame (anamnese, AV, refração, conduta), histórico do paciente | `/consultorio`, `/consultorio/exame/[id]`, `/consultorio/paciente/[id]` |
 | Laboratório | Quadro de produção (ao vivo), OS com ficha técnica editável, etapas da construção, recados | `/producao`, `/producao/os/[id]` |
 | Laboratório (gerente) | Indicadores: prazo, retrabalho, espera, produção por pessoa | `/producao/indicadores` |
-| Gestão | Importar planilha (CSV do Excel ou do Google): clientes e produtos, com prévia e relatório de erros | `/configuracoes/importar` |
+| Gestão | Importar planilha (Excel `.xlsx` ou CSV): clientes e produtos, com prévia e relatório de erros | `/configuracoes/importar` |
 | Público | Site da ótica + pedido de orçamento; agendamento online | `/site/[slug]`, `/site/[slug]/agendar` |
 | Público | Site do Vitral com preço e lista de espera (quem está logado vai para o sistema) | `/` |
 | PDV | Caixa: abrir, venda rápida (código de barras, várias formas, crediário, troco), sangria/suprimento, fechar com conferência | `/pdv` |
@@ -104,7 +104,7 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - [ ] Ideias da concorrência para depois: assinatura digital da OS pelo link, medida de DNP pela câmera, entrada de produtos por XML, etiqueta com código de barras.
 - [x] Versão 2: importação de planilha (clientes e produtos) e site do Vitral com lista de espera.
 - [ ] Importar a planilha de clientes das Óticas Nery (pedir o arquivo do sistema antigo) e conferir o relatório de erros.
-- [ ] Planilha `.xlsx` direto (hoje pede salvar como CSV; precisaria de uma biblioteca de leitura de Excel).
+- [x] Planilha `.xlsx` direto, sem biblioteca externa (`lerXlsx()` em `src/lib/planilha.ts`, testes em `testes/`).
 - [x] Ler a lista de espera: `/painel/espera`, com o botão de chamar no WhatsApp.
 - [x] Versão 3 (sem nota fiscal): estoque por loja e comissões.
 - [ ] Contagem inicial do estoque das Óticas Nery (tela Estoque → Contagem, produto a produto) e cadastrar as regras de comissão.
@@ -196,6 +196,7 @@ psql -f supabase/tests/versao3_smoke.sql      # estoque e comissões
 psql -f supabase/tests/versao4_smoke.sql      # PDV e financeiro
 node supabase/tests/conferir_consultas.mjs    # as consultas das telas batem com o banco (precisa do npm install)
 node supabase/gerar_tipos.mjs --conferir      # src/lib/supabase/tipos.ts em dia com as migrações
+npm test                                      # testes do código (leitura de planilhas CSV e Excel)
 ```
 
 Cada teste imprime as linhas esperadas e alguns erros de propósito: eles provam que o bloqueio funciona. O GitHub Actions (`.github/workflows/ci.yml`) roda tudo a cada push e confere as linhas. O teste de carga (1.000 óticas) está em `supabase/carga/` e os resultados em `docs/ESCALA.md`.
@@ -228,6 +229,8 @@ src/app/conta/         minha conta (qualquer área)
 
 Mais recente em cima. Uma linha por sessão: data, o que mudou, o que ficou pendente.
 
+- **2026-11-04 (14)** — Importação aceita Excel `.xlsx` direto (leitor próprio: ZIP + XML, datas do Excel, CPF que perdeu os zeros). `npm test` com os primeiros testes do código (`testes/planilha.test.mjs`, planilhas de exemplo em `testes/planilhas/`), rodando no CI.
+  - Pendente: `.xls` antigo continua pedindo para salvar como `.xlsx` ou CSV.
 - **2026-10-29 (13)** — Nome do produto: **Vitral** (era Vitra) em toda a interface, documentos e banco (`vitral_admins`, `sou_admin_vitral()`, pasta `src/app/_vitral`, migração `0014_painel_do_vitral.sql`); nada estava em produção. Primeiro cliente: **Óticas Nery** (no lugar da Ótica Ômega, que não existe); site de exemplo `/site/nery`.
   - Pendente: domínio do Vitral e das Óticas Nery.
 - **2026-10-29 (12)** — Painel do Vitral: migração 0014 (`vitral_admins`, `sou_admin_vitral()`, `painel_oticas()`, `painel_criar_otica()`, `painel_definir_adicional()`, `painel_mudar_status()`, `painel_lista_espera()`), teste `painel_smoke.sql` no CI, telas `/painel` e `/painel/espera`. Admin sem ótica que entra no sistema vai direto para o painel. A seção 4 agora cria a Ômega pelo painel.
