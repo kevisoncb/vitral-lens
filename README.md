@@ -11,7 +11,7 @@ Tudo ligado ao mesmo cliente, sem redigitar nada, com os cards passando de uma �
 
 Plano único de **R$ 99/mês** com tudo incluído. Adicionais pagos: **notas fiscais** (NFC-e no caixa e entrada de mercadoria pelo XML da nota do fornecedor) e lojas extras. Foco inicial: óticas pequenas do interior; depois, cidades grandes.
 
-Stack: Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Storage, Realtime), Vercel. CSS puro em `src/app/globals.css`.
+Stack: Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Storage, Realtime), Firebase App Hosting (servidor do Next.js; `apphosting.yaml`). CSS puro em `src/app/globals.css`.
 
 ---
 
@@ -109,7 +109,8 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - [ ] Testar o site: `/site/nery` publicado, pedido de orçamento vira card; cadastrar horários e testar `/site/nery/agendar`.
 - [ ] Testar no celular e no tablet: mover cards pelo botão "Mover para" (arrastar não funciona no toque) e instalar o app ("Adicionar à tela de início").
 - [ ] (Opcional) pg_cron: `select cron.schedule('sem-retorno', '0 * * * *', 'select mover_sem_retorno()');`
-- [ ] Deploy na Vercel (conta do dono, região `gru1`), variáveis de ambiente, domínio das Óticas Nery em `SITE_DOMINIOS`.
+- [ ] Publicar no Firebase App Hosting (seção 4, passo 6): projeto **separado** só do Vitral, alerta de orçamento, chaves no Secret Manager, domínio das Óticas Nery em `SITE_DOMINIOS`.
+- [ ] Backup diário do banco (o Supabase gratuito não tem): rotina no GitHub Actions com `pg_dump`.
 - [x] Gerar os tipos do banco e usar nos clientes (`npm run tipos`; achou o bug do cadastro de horários, corrigido na 0013).
 - [ ] Definir o preço dos adicionais: nota fiscal (sugestão: +R$ 50) e loja extra.
 - [x] Etiqueta com código de barras (`/catalogo/etiquetas`, gerador próprio em `src/lib/codigo-barras.ts`, conferido com a python-barcode).
@@ -183,13 +184,13 @@ Marque com `[x]` quando terminar e anote no Histórico.
   - toda regra de segurança nova usa `(select função())`, para não ficar lenta com muitas óticas.
 - **Nota fiscal (NFC-e):** só pelo adicional `nota_fiscal`; produto sem NCM, origem e CSOSN não sai na nota. O token da Focus é por ótica, cadastrado pela equipe do Vitral no painel; `preparar_nfce()` o entrega a quem tem `pdv:criar` daquela ótica, para o servidor chamar a Focus (quem tem esse acesso já pode emitir pela tela; o token não serve para outra ótica). Nota sem resposta é retomada com a mesma referência, sem duplicar. Cancelamento só pelo gerente, em até 30 minutos.
 - **Service role** só no servidor e só para o Auth (criar login). O painel do Vitral também segue isso: os dados passam pelas funções `painel_*`, que conferem `vitral_admins` no banco.
-- Código, domínio, Supabase e Vercel ficam no nome do dono do produto.
+- Código, domínio, Supabase e hospedagem (Firebase) ficam no nome do dono do produto. O Vitral tem projeto próprio no Firebase, nunca dentro do projeto de outro cliente.
 
 ---
 
 ## 4. Como rodar
 
-1. Supabase (região São Paulo) → SQL Editor: rode `supabase/migrations/0001` a `0014`, em ordem.
+1. Supabase (região São Paulo) → SQL Editor: rode `supabase/migrations/0001` a `0018`, em ordem.
 2. Primeira ótica e usuário dono, pelo **painel do Vitral**:
    - Authentication → Users → crie o seu login (o da equipe do Vitral) e, no SQL Editor:
      `insert into vitral_admins (usuario_id, email) values ('<id do seu usuário no Auth>', 'voce@exemplo.com');`
@@ -206,7 +207,21 @@ from perfis where otica_id = '<id da ótica>' and chave = 'dono';
 
 3. `supabase/seed_catalogo.sql` para o catálogo de exemplo.
 4. `cp .env.example .env.local`, preencher as chaves, `npm install`, `npm run dev`.
-5. Funcionários: o dono cria em **Configurações → Usuários** e escolhe o perfil. A área do perfil decide a tela da pessoa. O sistema gera uma senha temporária; a pessoa troca em **Minha conta**.
+6. Publicar no **Firebase App Hosting** (o servidor do Next.js; o banco continua no Supabase):
+   - No console do Firebase, crie um projeto **novo, só do Vitral** (não use o projeto de outro sistema). Ele pode usar a mesma conta de cobrança (plano Blaze).
+   - No Google Cloud do projeto: **Faturamento → Orçamentos e alertas**, crie um alerta (ex.: R$ 50/mês) para não ter surpresa.
+   - Cadastre as chaves (pede o valor de cada uma):
+     ```bash
+     npm install -g firebase-tools && firebase login
+     firebase apphosting:secrets:set supabase-url
+     firebase apphosting:secrets:set supabase-anon-key
+     firebase apphosting:secrets:set supabase-service-role-key
+     firebase apphosting:secrets:set site-dominios
+     ```
+   - Console do Firebase → **App Hosting → Começar**: ligue ao repositório do GitHub, branch de produção, pasta raiz `/`. Escolha a região mais perto do Brasil que aparecer (o banco está em São Paulo). Cada push nessa branch publica sozinho.
+   - Na primeira vez, o console pede para dar acesso do backend às chaves: aceite (ou `firebase apphosting:secrets:grantaccess`).
+   - Domínio próprio: App Hosting → **Domínios personalizados**. No Supabase, em Authentication → URL Configuration, ponha esse endereço como Site URL.
+7. Funcionários: o dono cria em **Configurações → Usuários** e escolhe o perfil. A área do perfil decide a tela da pessoa. O sistema gera uma senha temporária; a pessoa troca em **Minha conta**.
 
 ## 5. Testar o banco sem Supabase
 
@@ -258,6 +273,7 @@ src/app/conta/         minha conta (qualquer área)
 
 Mais recente em cima. Uma linha por sessão: data, o que mudou, o que ficou pendente.
 
+- **2026-11-05 (25)** — Hospedagem trocada da Vercel para o Firebase App Hosting (o dono já paga o Blaze; Vercel gratuita não permite uso comercial): `apphosting.yaml` com as chaves no Secret Manager (a service role só no servidor) e passo a passo na seção 4. O banco continua no Supabase (gratuito no piloto, Pro quando houver 2 ou 3 óticas pagando). Pendente: backup diário do banco pelo GitHub Actions; conferir se o App Hosting tem região em São Paulo.
 - **2026-11-04 (24)** — Confirmado com o cliente: a margem entra depois de somar todos os custos (compra + insumos + impostos), como já estava; rótulo do campo ficou "Margem (% sobre o custo final)".
 - **2026-11-04 (23)** — Organização: menu da loja por seções (Atendimento, Clientes, Produtos, Equipe e resultados, Outras áreas, Ajustes), fechado num botão no celular e fixo no computador; "Catálogo" virou "Produtos". Lista de produtos não edita mais preço (busca, categoria, fora da venda; abrir leva à página do produto, que ganhou foto e link do estoque); cadastrar novo abre a página. Entrada pela nota passou a ser do adicional `nota_fiscal` (banco recusa sem ele; a tela explica; selo "adicional" no menu); nome do adicional: Notas fiscais. Pendente: organizar os menus de PDV, financeiro, consultório e produção do mesmo jeito.
 - **2026-11-04 (22)** — Separação: a entrada pela nota só dá entrada (produto, categoria, quantidade, compra); impostos, insumos, margem e preço ficam na página do produto (`/catalogo/[id]`), com chave R$ / % em insumos e impostos e margem % sobre o custo final (mudou a margem, o preço muda; mudou o preço, a margem muda; `src/lib/precificacao.ts`, `<ValorReaisOuPct>`). Produto novo da nota entra fora da venda até ter preço (links para completar). Pagamento ao fornecedor: boleto gera as parcelas em contas a pagar; cartão, Pix ou dinheiro não (lido do `<tPag>` da nota, dá para trocar). Tabela da entrada vira cartões no celular. Pendente: confirmar com o cliente se margem é sobre o custo (hoje) ou sobre o preço.

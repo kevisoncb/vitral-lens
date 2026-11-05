@@ -79,6 +79,8 @@ Uma pessoa trabalhando no balcão abre ou atualiza uma tela a cada 10 segundos, 
 
 ## 2. Plano de crescimento (Supabase + Vercel)
 
+> **Atualização de 05/11/2026:** a hospedagem passou para o **Firebase App Hosting** (o dono já paga o plano Blaze; cobra por uso, com cota grátis). Onde a tabela diz "Vercel", leia "Firebase App Hosting"; o custo dessa coluna no piloto tende a ficar perto de zero. O Supabase começa no plano **gratuito** e passa para o Pro quando houver 2 ou 3 óticas pagando. Confira os preços do Firebase antes de crescer.
+
 Preços de outubro de 2026 em dólar. Confira antes de fechar contrato.
 
 | Fase | Óticas | Supabase | Vercel | Custo/mês (aprox.) | Receita a R$ 99 |

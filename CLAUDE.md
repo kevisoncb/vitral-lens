@@ -14,7 +14,7 @@ Idioma: português do Brasil em tudo (interface, tabelas, colunas, nomes de vari
 
 ## Stack
 
-Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Storage), hospedagem na Vercel. CSS simples em `src/app/globals.css` (sem Tailwind). Somente web, responsivo (computador, tablet, celular), instalável como app (PWA: `src/app/manifest.ts`, ícones em `public/icones/`).
+Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Storage), hospedagem no Firebase App Hosting (`apphosting.yaml`, chaves no Secret Manager; o banco fica no Supabase). CSS simples em `src/app/globals.css` (sem Tailwind). Somente web, responsivo (computador, tablet, celular), instalável como app (PWA: `src/app/manifest.ts`, ícones em `public/icones/`).
 
 ## Regras do produto (não mudar sem combinar)
 
@@ -37,7 +37,7 @@ Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Stora
 - **Custo e impostos do produto:** ficam na página do produto. Insumos e impostos em R$ ou em % da compra (chave R$ / %); `custo_final` = compra + insumos + impostos; margem % sobre o custo final, e preço e margem se recalculam um pelo outro. Custo só para gerente/estoque; o balcão vê o preço.
 - **Entrada pela nota:** do adicional `nota_fiscal` (o banco recusa sem ele); só dá entrada (quantidade e compra). Produto que existe tem só a compra atualizada (com margem, o preço acompanha); produto novo entra fora da venda até ter preço; não sobrescreve dado fiscal já corrigido. Boleto gera parcelas em contas a pagar; cartão, Pix ou dinheiro não.
 - **Importação de planilha:** nunca apaga nem sobrescreve; repetidos (telefone/CPF do cliente, código ou nome do produto) são pulados (`importar_clientes()`, `importar_produtos()`).
-- Código, domínio, Supabase e Vercel ficam no nome do dono do produto, nunca do freelancer.
+- Código, domínio, Supabase e hospedagem (Firebase) ficam no nome do dono do produto, nunca do freelancer. O Vitral tem projeto próprio no Firebase, nunca dentro do projeto de outro cliente.
 
 ## Fases
 
