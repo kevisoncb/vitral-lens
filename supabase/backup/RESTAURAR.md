@@ -9,7 +9,7 @@ Ele tem:
 - `auth.dump`: os logins (`auth.users` e `auth.identities`); as senhas continuam as mesmas;
 - `LEIA.txt`: dia e número de tabelas.
 
-As **fotos** (armações, receitas) ficam no Storage do Supabase e não entram neste backup.
+As **fotos** (armações, receitas) têm backup separado, todo domingo (`vitral-fotos-AAAA-MM-DD.tar.gpg`, guardado 14 dias). Veja a seção 4.
 
 ## 1. Baixar
 
@@ -40,5 +40,19 @@ As migrações **não** precisam ser rodadas: o backup já traz tudo. O CI testa
 ## 3. Depois de restaurar
 
 - Ponha a URL e as chaves do projeto novo no Firebase (`firebase apphosting:secrets:set supabase-url` e as outras; README, seção 4) e no segredo `SUPABASE_DB_URL` do GitHub.
-- Rode de novo as migrações 0003 e 0007, que criam as pastas do Storage (receitas e fotos). As fotos antigas não estão no backup.
+- Rode de novo as migrações 0003 e 0007, que criam as pastas do Storage (receitas e fotos), e devolva as fotos (seção 4).
 - Entre com um login de dono e confira clientes, vendas e estoque.
+
+## 4. Fotos (receitas e armações)
+
+Baixe o artefato `fotos-...` do dia (Actions → Backup do banco), descompacte e, com as chaves S3 do Storage do projeto de destino
+(Storage → S3 Connection), rode:
+
+```bash
+SUPABASE_S3_ENDPOINT="https://SEU-PROJETO.supabase.co/storage/v1/s3" SUPABASE_S3_REGIAO=sa-east-1 \
+AWS_ACCESS_KEY_ID="..." AWS_SECRET_ACCESS_KEY="..." \
+supabase/backup/restaurar_fotos.sh vitral-fotos-AAAA-MM-DD.tar.gpg
+```
+
+Ele pede a `BACKUP_SENHA`, não apaga nada do que já está lá e só envia o que falta. Precisa do `aws` (AWS CLI) instalado.
+O CI testa esse caminho contra um S3 falso (`supabase/tests/backup_fotos_teste.sh`).

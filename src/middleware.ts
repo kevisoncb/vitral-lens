@@ -26,6 +26,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
   if (request.nextUrl.pathname.startsWith("/site/")) return NextResponse.next();
+  // assinatura da OS pelo link: o cliente abre sem login (o código do link é a chave)
+  if (request.nextUrl.pathname.startsWith("/assinar/")) return NextResponse.next();
 
   let response = NextResponse.next({ request });
 

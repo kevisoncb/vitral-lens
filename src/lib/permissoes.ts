@@ -45,7 +45,13 @@ export const MENU: SecaoMenu[] = [
       { modulo: "laboratorio", rotulo: "Ordens de serviço", href: "/laboratorio" },
     ],
   },
-  { titulo: "Clientes", itens: [{ modulo: "clientes", rotulo: "Clientes", href: "/clientes" }] },
+  {
+    titulo: "Clientes",
+    itens: [
+      { modulo: "clientes", rotulo: "Clientes", href: "/clientes" },
+      { modulo: "clientes", rotulo: "Para chamar", href: "/clientes/chamar" },
+    ],
+  },
   {
     titulo: "Produtos",
     itens: [

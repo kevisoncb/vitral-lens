@@ -10,7 +10,7 @@ export default async function LayoutFinanceiro({ children }: { children: React.R
     { href: "/financeiro/receber", rotulo: "Contas a receber" },
     { href: "/financeiro/categorias", rotulo: "Categorias de custo" },
   ];
-  if (sessao.pode("pdv")) abas.push({ href: "/pdv/caixas", rotulo: "Caixas" });
+  if (sessao.pode("pdv")) abas.push({ href: "/pdv/caixas", rotulo: "Caixas do PDV" });
   return (
     <div className="area">
       <BarraArea sessao={sessao} titulo="Financeiro" abas={abas} />

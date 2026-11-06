@@ -183,6 +183,51 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: Teste de clientes para chamar
+        run: |
+          psql -q -f supabase/tests/chamar_smoke.sql 2>&1 | tee chamar.txt
+          grep -q "lista | Bruno Aniversário:aniversario:faz aniversário em 03/03 | Ana Receita:receita_vencendo:receita vence em 10/03/2027 | Davi Óculos:oculos_um_ano:recebeu os óculos em 05/03/2026 | Elisa Perdido:orcamento_perdido:orçamento perdido em 15/01/2027" chamar.txt
+          grep -q "bissexto | Carla Bissexto:faz aniversário em 28/02" chamar.txt
+          grep -q "depois de chamar a Ana | Bruno Aniversário,Davi Óculos,Elisa Perdido" chamar.txt
+          grep -q "permission denied for table cliente_contatos" chamar.txt
+          grep -q "contatos (esperado 1) | *1" chamar.txt
+          grep -q 'new row violates row-level security policy for table "cliente_contatos"' chamar.txt
+          grep -q "outra otica | Iara Outra Ótica:aniversario" chamar.txt
+          grep -q "permission denied for function clientes_para_chamar" chamar.txt
+      - name: Teste da LGPD do cliente (registro de acesso, exportar, anonimizar)
+        run: |
+          psql -q -f supabase/tests/lgpd_smoke.sql 2>&1 | tee lgpd.txt
+          grep -q "balcao ve registro (esperado 0) | *0" lgpd.txt
+          grep -q "Só o dono ou o gerente exporta os dados do cliente" lgpd.txt
+          grep -q "Só o dono ou o gerente anonimiza um cliente" lgpd.txt
+          grep -q "Cliente não encontrado" lgpd.txt
+          grep -q "exportar | Maria da Silva | *1 | *1 | t *| f" lgpd.txt
+          grep -q "Digite o nome do cliente exatamente como está para confirmar" lgpd.txt
+          grep -q "cliente | Cliente anonimizado | *| *| *| *| *| t" lgpd.txt
+          grep -q "receita fica | *1 | Dr. João" lgpd.txt
+          grep -q "anotacoes (esperado 0) | *0" lgpd.txt
+          grep -q "Este cliente já foi anonimizado" lgpd.txt
+          grep -q "registro | viu_receita,exportou,anonimizou" lgpd.txt
+          grep -q "permission denied for table acessos_dados_cliente" lgpd.txt
+          grep -q "auditoria sem dados pessoais | *0 | *3" lgpd.txt
+      - name: Teste da assinatura da OS pelo link
+        run: |
+          psql -q -f supabase/tests/assinatura_smoke.sql 2>&1 | tee assinatura.txt
+          grep -q "mesmo link | t" assinatura.txt
+          grep -q "Seu perfil não pode pedir a assinatura do cliente" assinatura.txt
+          grep -q "lab ve assinaturas (esperado 0) | *0" assinatura.txt
+          grep -q "resumo | pendente | Rosa Lima | 940.00 | 400.00 | *2 | *2" assinatura.txt
+          grep -q "token errado | t" assinatura.txt
+          grep -q "permission denied for table os_assinaturas" assinatura.txt
+          grep -q "permission denied for function gerar_link_assinatura" assinatura.txt
+          grep -q "Faça a sua assinatura no quadro." assinatura.txt
+          grep -q "Escreva seu nome completo." assinatura.txt
+          grep -q "depois | assinada | Rosa Lima" assinatura.txt
+          grep -q "Esta OS já foi assinada." assinatura.txt
+          grep -q "recado na OS | Cliente conferiu e assinou a OS pelo link (Rosa Lima)." assinatura.txt
+          grep -q "Esta OS já foi assinada pelo cliente" assinatura.txt
+          grep -q "vencido | expirada" assinatura.txt
+          grep -q "Este link venceu. Peça um novo à ótica." assinatura.txt
       - name: Consultas das telas batem com o banco (tabelas, colunas, relações, rpc)
         run: |
           npm ci
@@ -192,6 +237,16 @@ jobs:
       # por último: cria as tabelas de login de exemplo no banco de teste
       - name: Backup e restauração (restaurado igual ao original, com as permissões)
         run: supabase/tests/backup_teste.sh
+
+  fotos:
+    name: Backup das fotos (S3 falso)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar o S3 falso (moto)
+        run: pipx install "moto[server]"
+      - name: Backup e restauração das fotos
+        run: supabase/tests/backup_fotos_teste.sh
 
   web:
     name: Aplicativo (tipos e build)

@@ -23,6 +23,9 @@ Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Stora
 - **Cards que conversam:** exame concluído → card na loja (`card_do_exame`); pagamento → OS em "Pago" no lab; lab até "Chegou na loja" → loja avisa e entrega; recados em `os_mensagens`. Etapa da OS tem `area` e o banco confere quem move (`os_etapa_permitida`). Telas com cards usam `<AoVivo tabelas={[...]}/>`.
 - **Permissões:** por perfil e por módulo (`ver`, `criar`, `editar`, `excluir`) em `perfis.permissoes`; adicionais pagos em `otica_adicionais`. A checagem real é no banco (`acesso()`); o menu só esconde o que não pode.
 - **WhatsApp:** nunca automático. Só link `wa.me` com mensagem pronta (`src/lib/whatsapp.ts`). Confirmação de consulta também é manual.
+- **Clientes para chamar:** `clientes_para_chamar()` (aniversário, receita vencendo, óculos há 1 ano, orçamento perdido); marcar o contato em `cliente_contatos` tira o cliente da lista daquele motivo.
+- **LGPD do cliente:** tela que mostra receita ou exame chama `registrarAcessoSaude()` (`src/lib/lgpd.ts`). Exportar (`exportar_cliente()`) e anonimizar (`anonimizar_cliente()`, limpa também a auditoria) só com `clientes:excluir`. Tabela nova com dado pessoal do cliente entra no exportar e no anonimizar.
+- **Assinatura da OS:** `gerar_link_assinatura()` (loja), página pública `/assinar/[token]` com `os_para_assinar()` e `assinar_os()`; vale 7 dias, assina uma vez, guarda o retrato do que foi mostrado.
 - **Funil de vendas:** Atendimento → Orçamento enviado → Sem retorno → Recuperado / Perdido. Mover para Perdido exige motivo (regra no banco, trigger `atendimento_mudou`).
 - **Laboratório:** Pago → No laboratório → Em montagem → Chegou na loja → Cliente avisado → Entregue. Ao registrar o pagamento, a OS é criada (`registrar_pagamento()` → `criar_os_do_atendimento()`) com a ficha técnica preenchida pela receita e pelo orçamento. Pago, Cliente avisado e Entregue são da loja; No laboratório, Em montagem e Chegou na loja são do laboratório. Exame concluído não muda mais (prontuário).
 - **Agenda:** o mesmo horário nunca é marcado duas vezes (constraint `consulta_sem_conflito`). O site de agendamento usa `horarios_ocupados()`, que expõe só os horários.
@@ -48,7 +51,7 @@ Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Stora
 
 ## Estado atual e próximos passos
 
-Ficam no `README.md` (seções 1 e 2), para não ter duas versões. Resumo: banco testado (0001 a 0018); o `src/` já compila (`npm run typecheck` e `npm run build` passam), mas as telas ainda não foram abertas com um Supabase real; o próximo passo é criar o projeto no Supabase, `.env.local` e `npm run dev`.
+Ficam no `README.md` (seções 1 e 2), para não ter duas versões. Resumo: banco testado (0001 a 0021); o `src/` já compila (`npm run typecheck` e `npm run build` passam), mas as telas ainda não foram abertas com um Supabase real; o próximo passo é criar o projeto no Supabase, `.env.local` e `npm run dev`.
 
 ## Telas de referência
 
@@ -57,7 +60,7 @@ O desenho das telas (login, funil, laboratório, ficha do cliente, agenda, agend
 ## Como trabalhar aqui
 
 - Mudou o banco? Crie uma nova migração em `supabase/migrations/` (nunca edite a antiga depois de aplicada em produção), rode os testes da seção 5 do README, acrescente um teste novo em `supabase/tests/` (e no CI) para a regra que criou e rode `npm run tipos` para atualizar `src/lib/supabase/tipos.ts` (o CI confere).
-- **Backup:** diário pelo GitHub Actions (`supabase/backup/`). Mudou o banco? O CI roda `supabase/tests/backup_teste.sh`, que restaura num banco vazio e confere dados e permissões; extensão nova entra sozinha. Fotos do Storage não entram.
+- **Backup:** banco todo dia e fotos todo domingo pelo GitHub Actions (`supabase/backup/`). Mudou o banco? O CI roda `supabase/tests/backup_teste.sh`, que restaura num banco vazio e confere dados e permissões; extensão nova entra sozinha. Fotos pela interface S3 do Storage, nunca com a service_role.
 - Toda tabela nova de negócio: `otica_id`, RLS e entrada na lista do bloco `do $$` do final da migração (ou política própria).
 - Nunca expor `SUPABASE_SERVICE_ROLE_KEY` no navegador; no servidor, só para o Auth. O painel do Vitral (`/painel`) lê e grava pelas funções `painel_*`, que conferem `vitral_admins`. Nunca commitar `.env*` (só `.env.example`).
 - **Desempenho:** em política de RLS, sempre `(select minha_otica())`, `(select acesso(...))`, `(select auth.uid())` (a 0008 converteu as existentes). Índice para toda coluna usada em filtro de tela. Depois de mudança grande no banco, rode `supabase/carga/` e atualize `docs/ESCALA.md`.

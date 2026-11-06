@@ -9,6 +9,7 @@ import { moverOSFormulario, registrarProducao, salvarFicha } from "@/app/acoes/o
 import { AoVivo } from "@/components/ao-vivo";
 import { FichaTecnica, TabelaGrau, TIPO_ARMACAO } from "./ficha-tecnica";
 import { RecadosOS } from "./recados";
+import { AssinaturaOS } from "./assinatura-os";
 
 /**
  * Detalhe da OS. A loja vê a ficha para conferir e entregar; o laboratório edita a ficha
@@ -132,6 +133,10 @@ export async function PainelOS({ id, sessao, modo, voltar }: { id: string; sessa
           </form>
         )}
       </section>
+
+      {modo === "loja" && sessao.pode("vendas") && (
+        <AssinaturaOS osId={os.id} clienteId={os.cliente_id} clienteNome={os.cliente_nome ?? ""} oticaNome={sessao.oticaNome} podePedir={sessao.pode("vendas", "editar")} />
+      )}
 
       <RecadosOS osId={os.id} />
 

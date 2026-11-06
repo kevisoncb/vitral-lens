@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { dataBR, dataHoraBR, grau, moeda } from "@/lib/formatar";
 import { linkWhatsApp } from "@/lib/whatsapp";
-import { adicionarAnotacao } from "./actions";
+import { adicionarAnotacao, anonimizar } from "./actions";
+import { obterSessao } from "@/lib/sessao";
+import { registrarAcessoSaude, ROTULO_ACESSO } from "@/lib/lgpd";
 import { LinhaDoTempo } from "@/components/linha-do-tempo";
 
 type Olho = {
@@ -25,8 +27,11 @@ type Receita = {
   receita_olhos: Olho[];
 };
 
-export default async function FichaCliente({ params }: { params: Promise<{ id: string }> }) {
+export default async function FichaCliente({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ erro?: string; ok?: string }> }) {
   const { id } = await params;
+  const { erro, ok } = await searchParams;
+  const sessao = await obterSessao();
+  const donoDosDados = sessao?.pode("clientes", "excluir") ?? false;
   const supabase = await criarClienteServidor();
 
   const [clienteR, receitasR, anotacoesR, atendimentosR, oticaR] = await Promise.all([
@@ -54,6 +59,16 @@ export default async function FichaCliente({ params }: { params: Promise<{ id: s
 
   const cliente = clienteR.data;
   if (!cliente) notFound();
+  if ((receitasR.data ?? []).length > 0) await registrarAcessoSaude(supabase, id, "viu_receita", "ficha do cliente");
+  const acessos = donoDosDados
+    ? (await supabase
+        .from("acessos_dados_cliente")
+        .select("id, acao, origem, criado_em, usuarios(nome)")
+        .eq("cliente_id", id)
+        .order("criado_em", { ascending: false })
+        .limit(20)
+        .returns<{ id: string; acao: string; origem: string | null; criado_em: string; usuarios: { nome: string } | null }[]>()).data ?? []
+    : [];
   const zap = linkWhatsApp(cliente.telefone, `Olá ${cliente.nome.split(" ")[0]}, tudo bem? Aqui é da ${oticaR.data?.nome ?? "ótica"}.`);
   const adicionar = adicionarAnotacao.bind(null, id);
 
@@ -74,6 +89,14 @@ export default async function FichaCliente({ params }: { params: Promise<{ id: s
           <Link className="botao" href={`/clientes/${id}/receita/nova`}>+ Nova receita</Link>
         </div>
       </div>
+
+      {erro && <p className="erro" role="alert">{erro}</p>}
+      {ok && <p className="ok" role="status">{ok}</p>}
+      {cliente.anonimizado_em && (
+        <p className="aviso" role="status">
+          Cliente anonimizado em {dataBR(cliente.anonimizado_em)} a pedido dele (LGPD). Receitas, exames e vendas ficam guardados sem o nome, pelo prazo da lei.
+        </p>
+      )}
 
       <LinhaDoTempo clienteId={id} />
 
@@ -127,6 +150,42 @@ export default async function FichaCliente({ params }: { params: Promise<{ id: s
           </p>
         ))}
       </section>
+
+      {donoDosDados && (
+        <section className="bloco">
+          <h2>Dados do cliente (LGPD)</h2>
+          <p className="vazio">Só o dono e o gerente veem esta parte. O cliente tem direito de pedir uma cópia dos dados dele e de pedir para ser esquecido.</p>
+          <div className="linha" style={{ gap: 12 }}>
+            <a className="botao-secundario" href={`/clientes/${id}/exportar`} download>Baixar todos os dados do cliente</a>
+          </div>
+          {!cliente.anonimizado_em && (
+            <details>
+              <summary className="resumo-abrir" style={{ color: "var(--erro-texto)" }}>Anonimizar (o cliente pediu para ser esquecido)</summary>
+              <form action={anonimizar.bind(null, id)} className="formulario" style={{ marginTop: 12, maxWidth: 460 }}>
+                <p>
+                  Apaga nome, telefone, e-mail, CPF, nascimento, endereço e anotações. Receitas, exames e vendas continuam, sem o nome,
+                  porque a lei manda guardar. <strong>Não tem como desfazer.</strong> Baixe os dados antes, se o cliente pediu uma cópia.
+                </p>
+                <label className="rotulo">Para confirmar, digite o nome do cliente: <em>{cliente.nome}</em>
+                  <input className="campo" name="confirmacao" required autoComplete="off" />
+                </label>
+                <button className="botao-perigo" type="submit">Anonimizar para sempre</button>
+              </form>
+            </details>
+          )}
+          <h3 style={{ marginTop: 8 }}>Quem acessou os dados de saúde</h3>
+          {acessos.length === 0 ? (
+            <p className="vazio">Ninguém registrado ainda.</p>
+          ) : (
+            acessos.map((a) => (
+              <div key={a.id} className="linha-valor">
+                <span>{a.usuarios?.nome ?? "?"} {ROTULO_ACESSO[a.acao] ?? a.acao}{a.origem ? ` (${a.origem})` : ""}</span>
+                <small>{dataHoraBR(a.criado_em)}</small>
+              </div>
+            ))
+          )}
+        </section>
+      )}
     </>
   );
 }

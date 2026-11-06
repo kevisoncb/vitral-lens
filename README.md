@@ -40,6 +40,9 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 | 0015 | Código interno para etiqueta (`gerar_codigos_catalogo()`: 2 + 9 dígitos, pula os já usados) | ✅ |
 | 0016 | Entrada pelo XML da NF-e do fornecedor (`notas_entrada`, `registrar_entrada_nfe()`): catálogo, estoque com custo e parcelas a pagar numa transação; a mesma nota não entra duas vezes | ✅ |
 | 0017 | Impostos e custo no produto: NCM, CEST, origem, CFOP, CSOSN/CST, alíquota ICMS, cClassTrib (IBS/CBS), unidade; insumos e impostos em R$ ou em % da compra (`insumos_valor/tipo`, `impostos_valor/tipo`), `custo_final` gerado, `margem_pct` (% sobre o custo final). A entrada pela nota só atualiza a compra do produto que existe (com margem definida, o preço acompanha); produto novo entra fora da venda (sem preço); não sobrescreve o fiscal já corrigido | ✅ |
+| 0019 | Clientes para chamar: `clientes_para_chamar()` (aniversário em 7 dias, receita vencendo, óculos há 1 ano, orçamento perdido há 1 a 6 meses; só quem tem telefone; 29/02 vira 28/02) e `cliente_contatos` (marcou "chamei", sai da lista do ciclo; só se acrescenta) | ✅ |
+| 0020 | LGPD do cliente: `acessos_dados_cliente` (quem viu receita ou exame, exportou ou anonimizou; só se acrescenta; só o dono vê), `exportar_cliente()` (tudo num JSON), `anonimizar_cliente()` (some o que identifica, inclusive das cópias da auditoria; receita, exame e vendas ficam sem nome), `clientes.anonimizado_em` | ✅ |
+| 0021 | Assinatura da OS pelo link: `os_assinaturas` (retrato do que o cliente viu, vale 7 dias, assina uma vez), `gerar_link_assinatura()` (loja), `os_para_assinar()` e `assinar_os()` para o público só com o código do link; recado na OS quando assina | ✅ |
 | 0018 | NFC-e pelo caixa via Focus NFe: configuração fiscal da ótica, `nfe_credenciais` (token por ótica, só o servidor usa), `notas_fiscais`, `preparar_nfce()` (confere adicional, cadastro fiscal, rateia o desconto, retoma nota sem resposta), `registrar_retorno_nfce()`, cancelamento em 30 min só pelo gerente | ✅ |
 
 ### Telas (`src/`): todas 🟡, compilam (`typecheck` e `build` passam) mas ainda não foram abertas com um Supabase de verdade
@@ -49,12 +52,15 @@ A venda do PDV (`src/app/pdv/venda.tsx`) foi aberta no navegador com produtos de
 | Área | Tela | Rota |
 |---|---|---|
 | Todas | Login, Minha conta | `/login`, `/conta` |
-| Loja e gestão | Início (consultas de hoje, saídos do consultório, pedidos do site, óculos para avisar, sem retorno) | `/inicio` |
+| Consultório, laboratório, PDV, financeiro | Barra da área com a aba atual marcada, menu num botão no celular e, para a gestão, "Ir para" outra área (aberta no navegador, computador e celular) | topo de cada área |
+| Loja e gestão | Início: números do dia no topo (consultas, óculos para avisar, OS atrasadas, clientes para chamar) e um cartão por assunto | `/inicio` |
 | Loja e gestão | Funil de vendas (Kanban ao vivo, motivo de perda, WhatsApp) | `/vendas` |
 | Loja e gestão | Novo atendimento (catálogo ou **produto novo na hora**, receita do cliente) | `/vendas/novo` |
 | Loja e gestão | Atendimento: orçamento, sinal/saldo, mover etapa (para celular) | `/vendas/[id]` |
-| Loja e gestão | Clientes, ficha com **linha do tempo**, receitas, anotações | `/clientes`, `/clientes/[id]` |
-| Loja e gestão | Ordens de serviço: acompanha, avisa e entrega; recados com o laboratório | `/laboratorio`, `/laboratorio/[id]` |
+| Loja e gestão | Clientes, ficha com **linha do tempo**, receitas, anotações; para o dono, seção LGPD: baixar todos os dados do cliente, anonimizar (digitando o nome) e quem viu os dados de saúde | `/clientes`, `/clientes/[id]`, `/clientes/[id]/exportar` |
+| Loja e gestão | Clientes para chamar: aniversário, receita vencendo, óculos há 1 ano, orçamento perdido; botão abre o WhatsApp com a mensagem pronta e marca como chamado | `/clientes/chamar` |
+| Loja e gestão | Ordens de serviço: acompanha, avisa e entrega; recados com o laboratório; pedir a assinatura do cliente pelo link (WhatsApp) e ver a assinatura | `/laboratorio`, `/laboratorio/[id]` |
+| Público | Conferir e assinar a OS no celular (receita, lentes, armação, prazo, valor; assina com o dedo). Quadro de assinatura aberto no navegador, no celular | `/assinar/[token]` |
 | Loja e gestão | Agenda interna | `/agenda` |
 | Loja e gestão | Menu por seções: Atendimento (vendas, agenda, OS), Clientes, Produtos (produtos, estoque, entrada pela nota, etiquetas), Equipe e resultados, Outras áreas, Ajustes; no celular, fechado num botão | menu lateral |
 | Loja e gestão | Produtos: lista só para achar e abrir (busca, categoria, fora da venda); cadastrar o básico abre a página do produto; foto da armação depois da venda | `/catalogo`, `/catalogo/fotos` |
@@ -112,7 +118,12 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - [ ] Publicar no Firebase App Hosting (seção 4, passo 6): projeto **separado** só do Vitral, alerta de orçamento, chaves no Secret Manager, domínio das Óticas Nery em `SITE_DOMINIOS`.
 - [x] Backup diário do banco pelo GitHub Actions (`.github/workflows/backup.yml`), criptografado, 30 dias; restauração testada no CI.
 - [ ] Ligar o backup: criar os segredos `SUPABASE_DB_URL` (Session pooler) e `BACKUP_SENHA` no GitHub (seção 4, passo 8), guardar a senha fora do GitHub e rodar uma vez pelo botão "Run workflow".
-- [ ] Backup das fotos do Storage (armações e receitas): hoje não entram no backup do banco.
+- [x] Backup das fotos do Storage (armações e receitas): todo domingo, pela interface S3 do Storage (chaves só de arquivos, não a service_role), testado no CI contra um S3 falso.
+- [ ] Ligar o backup das fotos: no Supabase, Storage → S3 Connection, gerar as chaves e criar os segredos `SUPABASE_S3_ENDPOINT`, `SUPABASE_S3_CHAVE`, `SUPABASE_S3_SEGREDO` no GitHub.
+- [x] Clientes para chamar (`/clientes/chamar`), LGPD do cliente (exportar, anonimizar, registro de acesso) e assinatura da OS pelo link (`/assinar/[token]`).
+- [x] Menus das áreas (PDV, financeiro, consultório, produção) no mesmo padrão da loja e Início com um cartão por assunto.
+- [ ] Testar com o Supabase real: assinar uma OS pelo celular, baixar e anonimizar um cliente de teste, conferir a lista de quem chamar.
+- [ ] Quando as fotos passarem de uns 200 MB, guardar o backup delas no Google Cloud Storage (os artefatos do GitHub têm limite).
 - [x] Gerar os tipos do banco e usar nos clientes (`npm run tipos`; achou o bug do cadastro de horários, corrigido na 0013).
 - [ ] Definir o preço dos adicionais: nota fiscal (sugestão: +R$ 50) e loja extra.
 - [x] Etiqueta com código de barras (`/catalogo/etiquetas`, gerador próprio em `src/lib/codigo-barras.ts`, conferido com a python-barcode).
@@ -122,7 +133,7 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - [x] Guia da reforma tributária (`/reforma-tributaria`, atualizado em 04/11/2026).
 - [ ] Revisar o guia quando o Senado confirmar a alíquota da CBS de 2027 (até dezembro) e se o prazo de desistência do híbrido (30/11) for adiado.
 - [ ] Preencher NCM e CSOSN dos produtos das Óticas Nery com o contador (sem eles o produto não sai na nota fiscal).
-- [ ] Ideias da concorrência para depois: assinatura digital da OS pelo link, medida de DNP pela câmera.
+- [ ] Ideias da concorrência para depois: medida de DNP pela câmera.
 - [x] Versão 2: importação de planilha (clientes e produtos) e site do Vitral com lista de espera.
 - [ ] Importar a planilha de clientes das Óticas Nery (pedir o arquivo do sistema antigo) e conferir o relatório de erros.
 - [x] Planilha `.xlsx` direto, sem biblioteca externa (`lerXlsx()` em `src/lib/planilha.ts`, testes em `testes/`).
@@ -168,6 +179,9 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - **Cada coisa no seu lugar:** venda é venda, cliente é cliente, produto é produto. O menu é separado por assunto; preço, custo e impostos só mudam na página do produto (a lista de produtos não edita); a entrada pela nota só dá entrada.
 - **Produto na venda:** se não estiver no catálogo, o balcão cadastra ali mesmo e ele entra no catálogo. Armação pede foto (reduzida no aparelho antes de enviar); lente não.
 - **WhatsApp:** nunca automático. Só link `wa.me` com mensagem pronta (`src/lib/whatsapp.ts`).
+- **Clientes para chamar:** a lista sai do banco (`clientes_para_chamar()`); o botão abre o WhatsApp e marca o contato, e o cliente sai da lista daquele motivo no ciclo. Só entra quem tem telefone.
+- **LGPD do cliente:** quem abre receita ou exame fica registrado (`acessos_dados_cliente`, só se acrescenta). Exportar e anonimizar só pelo dono ou gerente (`clientes:excluir`). Anonimizar apaga o que identifica (inclusive na auditoria) e não tem volta; receita, exame e vendas ficam, sem nome, pelo prazo da lei.
+- **Assinatura da OS:** link de 7 dias, assina uma vez, guarda o retrato do que o cliente viu (`os_assinaturas.resumo`). O público só alcança `os_para_assinar` e `assinar_os` com o código do link. O laboratório não vê as assinaturas (têm valores).
 - **Funil:** Atendimento → Orçamento enviado → Sem retorno → Recuperado / Perdido. Perdido exige motivo. Card parado vai sozinho para a etapa seguinte.
 - **Pagamento:** o primeiro pagamento move o card para a etapa ganha e cria a OS uma única vez.
 - **Agenda:** o mesmo horário nunca é marcado duas vezes. O site só vê horários livres.
@@ -227,6 +241,7 @@ from perfis where otica_id = '<id da ótica>' and chave = 'dono';
 8. **Backup diário** (o Supabase gratuito não faz): no GitHub, **Settings → Secrets and variables → Actions → New repository secret**:
    - `SUPABASE_DB_URL`: no Supabase, **Connect → Session pooler** (a connection string com a senha do banco). Use o Session pooler: o GitHub não alcança a conexão direta.
    - `BACKUP_SENHA`: uma senha longa só para o backup. **Guarde fora do GitHub** (gerenciador de senhas): sem ela o backup não abre.
+   - Fotos (opcional, todo domingo): no Supabase, **Storage → S3 Connection**, gere as chaves e crie `SUPABASE_S3_ENDPOINT`, `SUPABASE_S3_CHAVE` e `SUPABASE_S3_SEGREDO`. São chaves só de arquivos; nunca use a service_role.
    - Depois, **Actions → Backup do banco → Run workflow** para testar. Ele roda sozinho todo dia às 03:17 e guarda 30 dias. Para restaurar: `supabase/backup/RESTAURAR.md`.
 
 ## 5. Testar o banco sem Supabase
@@ -246,7 +261,11 @@ node supabase/tests/conferir_consultas.mjs    # as consultas das telas batem com
 node supabase/gerar_tipos.mjs --conferir      # src/lib/supabase/tipos.ts em dia com as migrações
 psql -f supabase/tests/nfe_smoke.sql         # entrada pelo XML da NF-e do fornecedor
 psql -f supabase/tests/nfce_smoke.sql        # emissão de NFC-e: preparação, retorno, cancelamento
+psql -f supabase/tests/chamar_smoke.sql       # clientes para chamar
+psql -f supabase/tests/lgpd_smoke.sql         # LGPD: registro de acesso, exportar, anonimizar
+psql -f supabase/tests/assinatura_smoke.sql   # assinatura da OS pelo link
 supabase/tests/backup_teste.sh                # backup e restauração: restaurado igual ao original, com as permissões
+supabase/tests/backup_fotos_teste.sh          # backup das fotos contra um S3 falso (pipx install "moto[server]")
 npm test                                      # testes do código (planilhas, código de barras, XML da NF-e, Focus NFe, máscaras)
 ```
 
@@ -257,7 +276,8 @@ Cada teste imprime as linhas esperadas e alguns erros de propósito: eles provam
 ```
 supabase/migrations/   uma migração por mudança; nunca editar uma já aplicada em produção
 supabase/tests/        testes do banco (stub do Supabase + testes de fumaça)
-supabase/backup/       backup diário (fazer_backup.sh), restauração (restaurar.sh) e o passo a passo (RESTAURAR.md)
+supabase/backup/       backup do banco (fazer_backup.sh, restaurar.sh) e das fotos (fotos.sh, restaurar_fotos.sh); passo a passo em RESTAURAR.md
+src/app/assinar/       página pública para o cliente conferir e assinar a OS (sem login)
 supabase/carga/        teste de carga (gerar dados, medir telas, usuários simultâneos)
 docs/ESCALA.md         capacidade medida, custo por fase, plano de crescimento
 src/lib/               supabase (servidor, navegador, público, admin), sessão e áreas, permissões, OS, formatação, WhatsApp
@@ -281,6 +301,7 @@ src/app/conta/         minha conta (qualquer área)
 
 Mais recente em cima. Uma linha por sessão: data, o que mudou, o que ficou pendente.
 
+- **2026-11-06 (27)** — Cinco frentes. (1) Clientes para chamar: migração 0019, tela `/clientes/chamar` com WhatsApp pronto por motivo e "Já chamei". (2) LGPD: migração 0020, ficha com baixar dados, anonimizar e quem viu receita/exame (registrado também no consultório); a anonimização limpa até as cópias da auditoria (achado no teste). (3) Assinatura da OS pelo link: migração 0021, bloco na OS da loja e página pública `/assinar/[token]` com quadro para o dedo. (4) Backup das fotos pela interface S3 do Storage, semanal, testado contra S3 falso no CI. (5) Barras das áreas com aba atual, menu no celular e "Ir para" da gestão; Início com números do dia e um cartão por assunto. Testes novos: `chamar_smoke`, `lgpd_smoke`, `assinatura_smoke`, `backup_fotos_teste`. Pendente: abrir essas telas num Supabase real; segredos do backup das fotos.
 - **2026-11-06 (26)** — Backup diário do banco pelo GitHub Actions (`.github/workflows/backup.yml`, 03:17, guarda 30 dias): dados das óticas, logins e extensões num arquivo criptografado com senha (AES-256), conferido antes de guardar. Restauração por `supabase/backup/restaurar.sh`, tudo ou nada, só em banco vazio; zera as permissões padrão do projeto novo antes de aplicar as do backup (sem isso, estoque, comissões, vendas e notas voltavam aceitando gravação direta: achado no teste). `supabase/tests/backup_teste.sh` no CI restaura num banco vazio e compara dados, regras, gatilhos, funções e permissões. Pendente: criar os segredos no GitHub; fotos do Storage fora do backup.
 - **2026-11-05 (25)** — Hospedagem trocada da Vercel para o Firebase App Hosting (o dono já paga o Blaze; Vercel gratuita não permite uso comercial): `apphosting.yaml` com as chaves no Secret Manager (a service role só no servidor) e passo a passo na seção 4. O banco continua no Supabase (gratuito no piloto, Pro quando houver 2 ou 3 óticas pagando). Pendente: backup diário do banco pelo GitHub Actions; conferir se o App Hosting tem região em São Paulo.
 - **2026-11-04 (24)** — Confirmado com o cliente: a margem entra depois de somar todos os custos (compra + insumos + impostos), como já estava; rótulo do campo ficou "Margem (% sobre o custo final)".
