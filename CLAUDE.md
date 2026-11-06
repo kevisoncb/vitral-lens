@@ -57,6 +57,7 @@ O desenho das telas (login, funil, laboratório, ficha do cliente, agenda, agend
 ## Como trabalhar aqui
 
 - Mudou o banco? Crie uma nova migração em `supabase/migrations/` (nunca edite a antiga depois de aplicada em produção), rode os testes da seção 5 do README, acrescente um teste novo em `supabase/tests/` (e no CI) para a regra que criou e rode `npm run tipos` para atualizar `src/lib/supabase/tipos.ts` (o CI confere).
+- **Backup:** diário pelo GitHub Actions (`supabase/backup/`). Mudou o banco? O CI roda `supabase/tests/backup_teste.sh`, que restaura num banco vazio e confere dados e permissões; extensão nova entra sozinha. Fotos do Storage não entram.
 - Toda tabela nova de negócio: `otica_id`, RLS e entrada na lista do bloco `do $$` do final da migração (ou política própria).
 - Nunca expor `SUPABASE_SERVICE_ROLE_KEY` no navegador; no servidor, só para o Auth. O painel do Vitral (`/painel`) lê e grava pelas funções `painel_*`, que conferem `vitral_admins`. Nunca commitar `.env*` (só `.env.example`).
 - **Desempenho:** em política de RLS, sempre `(select minha_otica())`, `(select acesso(...))`, `(select auth.uid())` (a 0008 converteu as existentes). Índice para toda coluna usada em filtro de tela. Depois de mudança grande no banco, rode `supabase/carga/` e atualize `docs/ESCALA.md`.

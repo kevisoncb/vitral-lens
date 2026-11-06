@@ -189,6 +189,9 @@ jobs:
           node supabase/tests/conferir_consultas.mjs
       - name: Tipos do banco em dia (src/lib/supabase/tipos.ts)
         run: node supabase/gerar_tipos.mjs --conferir
+      # por último: cria as tabelas de login de exemplo no banco de teste
+      - name: Backup e restauração (restaurado igual ao original, com as permissões)
+        run: supabase/tests/backup_teste.sh
 
   web:
     name: Aplicativo (tipos e build)

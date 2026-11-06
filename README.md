@@ -110,7 +110,9 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - [ ] Testar no celular e no tablet: mover cards pelo botão "Mover para" (arrastar não funciona no toque) e instalar o app ("Adicionar à tela de início").
 - [ ] (Opcional) pg_cron: `select cron.schedule('sem-retorno', '0 * * * *', 'select mover_sem_retorno()');`
 - [ ] Publicar no Firebase App Hosting (seção 4, passo 6): projeto **separado** só do Vitral, alerta de orçamento, chaves no Secret Manager, domínio das Óticas Nery em `SITE_DOMINIOS`.
-- [ ] Backup diário do banco (o Supabase gratuito não tem): rotina no GitHub Actions com `pg_dump`.
+- [x] Backup diário do banco pelo GitHub Actions (`.github/workflows/backup.yml`), criptografado, 30 dias; restauração testada no CI.
+- [ ] Ligar o backup: criar os segredos `SUPABASE_DB_URL` (Session pooler) e `BACKUP_SENHA` no GitHub (seção 4, passo 8), guardar a senha fora do GitHub e rodar uma vez pelo botão "Run workflow".
+- [ ] Backup das fotos do Storage (armações e receitas): hoje não entram no backup do banco.
 - [x] Gerar os tipos do banco e usar nos clientes (`npm run tipos`; achou o bug do cadastro de horários, corrigido na 0013).
 - [ ] Definir o preço dos adicionais: nota fiscal (sugestão: +R$ 50) e loja extra.
 - [x] Etiqueta com código de barras (`/catalogo/etiquetas`, gerador próprio em `src/lib/codigo-barras.ts`, conferido com a python-barcode).
@@ -222,6 +224,10 @@ from perfis where otica_id = '<id da ótica>' and chave = 'dono';
    - Na primeira vez, o console pede para dar acesso do backend às chaves: aceite (ou `firebase apphosting:secrets:grantaccess`).
    - Domínio próprio: App Hosting → **Domínios personalizados**. No Supabase, em Authentication → URL Configuration, ponha esse endereço como Site URL.
 7. Funcionários: o dono cria em **Configurações → Usuários** e escolhe o perfil. A área do perfil decide a tela da pessoa. O sistema gera uma senha temporária; a pessoa troca em **Minha conta**.
+8. **Backup diário** (o Supabase gratuito não faz): no GitHub, **Settings → Secrets and variables → Actions → New repository secret**:
+   - `SUPABASE_DB_URL`: no Supabase, **Connect → Session pooler** (a connection string com a senha do banco). Use o Session pooler: o GitHub não alcança a conexão direta.
+   - `BACKUP_SENHA`: uma senha longa só para o backup. **Guarde fora do GitHub** (gerenciador de senhas): sem ela o backup não abre.
+   - Depois, **Actions → Backup do banco → Run workflow** para testar. Ele roda sozinho todo dia às 03:17 e guarda 30 dias. Para restaurar: `supabase/backup/RESTAURAR.md`.
 
 ## 5. Testar o banco sem Supabase
 
@@ -240,6 +246,7 @@ node supabase/tests/conferir_consultas.mjs    # as consultas das telas batem com
 node supabase/gerar_tipos.mjs --conferir      # src/lib/supabase/tipos.ts em dia com as migrações
 psql -f supabase/tests/nfe_smoke.sql         # entrada pelo XML da NF-e do fornecedor
 psql -f supabase/tests/nfce_smoke.sql        # emissão de NFC-e: preparação, retorno, cancelamento
+supabase/tests/backup_teste.sh                # backup e restauração: restaurado igual ao original, com as permissões
 npm test                                      # testes do código (planilhas, código de barras, XML da NF-e, Focus NFe, máscaras)
 ```
 
@@ -250,6 +257,7 @@ Cada teste imprime as linhas esperadas e alguns erros de propósito: eles provam
 ```
 supabase/migrations/   uma migração por mudança; nunca editar uma já aplicada em produção
 supabase/tests/        testes do banco (stub do Supabase + testes de fumaça)
+supabase/backup/       backup diário (fazer_backup.sh), restauração (restaurar.sh) e o passo a passo (RESTAURAR.md)
 supabase/carga/        teste de carga (gerar dados, medir telas, usuários simultâneos)
 docs/ESCALA.md         capacidade medida, custo por fase, plano de crescimento
 src/lib/               supabase (servidor, navegador, público, admin), sessão e áreas, permissões, OS, formatação, WhatsApp
@@ -273,6 +281,7 @@ src/app/conta/         minha conta (qualquer área)
 
 Mais recente em cima. Uma linha por sessão: data, o que mudou, o que ficou pendente.
 
+- **2026-11-06 (26)** — Backup diário do banco pelo GitHub Actions (`.github/workflows/backup.yml`, 03:17, guarda 30 dias): dados das óticas, logins e extensões num arquivo criptografado com senha (AES-256), conferido antes de guardar. Restauração por `supabase/backup/restaurar.sh`, tudo ou nada, só em banco vazio; zera as permissões padrão do projeto novo antes de aplicar as do backup (sem isso, estoque, comissões, vendas e notas voltavam aceitando gravação direta: achado no teste). `supabase/tests/backup_teste.sh` no CI restaura num banco vazio e compara dados, regras, gatilhos, funções e permissões. Pendente: criar os segredos no GitHub; fotos do Storage fora do backup.
 - **2026-11-05 (25)** — Hospedagem trocada da Vercel para o Firebase App Hosting (o dono já paga o Blaze; Vercel gratuita não permite uso comercial): `apphosting.yaml` com as chaves no Secret Manager (a service role só no servidor) e passo a passo na seção 4. O banco continua no Supabase (gratuito no piloto, Pro quando houver 2 ou 3 óticas pagando). Pendente: backup diário do banco pelo GitHub Actions; conferir se o App Hosting tem região em São Paulo.
 - **2026-11-04 (24)** — Confirmado com o cliente: a margem entra depois de somar todos os custos (compra + insumos + impostos), como já estava; rótulo do campo ficou "Margem (% sobre o custo final)".
 - **2026-11-04 (23)** — Organização: menu da loja por seções (Atendimento, Clientes, Produtos, Equipe e resultados, Outras áreas, Ajustes), fechado num botão no celular e fixo no computador; "Catálogo" virou "Produtos". Lista de produtos não edita mais preço (busca, categoria, fora da venda; abrir leva à página do produto, que ganhou foto e link do estoque); cadastrar novo abre a página. Entrada pela nota passou a ser do adicional `nota_fiscal` (banco recusa sem ele; a tela explica; selo "adicional" no menu); nome do adicional: Notas fiscais. Pendente: organizar os menus de PDV, financeiro, consultório e produção do mesmo jeito.
