@@ -81,3 +81,10 @@ export async function registrarProducao(osId: string, formulario: FormData) {
   });
   atualizarTelas(osId);
 }
+
+/** Gera (ou reaproveita) o link para o cliente conferir e assinar a OS. */
+export async function pedirAssinatura(osId: string) {
+  const supabase = await criarClienteServidor();
+  await supabase.rpc("gerar_link_assinatura", { p_os: osId });
+  atualizarTelas(osId);
+}

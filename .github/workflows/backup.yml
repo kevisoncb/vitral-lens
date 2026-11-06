@@ -1,0 +1,108 @@
+# Backup do Vitral (o plano gratuito do Supabase não faz backup):
+#   banco: todo dia, guardado 30 dias;
+#   fotos (receitas e armações): todo domingo, guardado 14 dias (fotos ocupam mais espaço).
+# Os arquivos saem criptografados e ficam nos artefatos do GitHub Actions.
+# Segredos do repositório (Settings → Secrets and variables → Actions):
+#   SUPABASE_DB_URL        connection string do "Session pooler" do Supabase (com a senha do banco)
+#   BACKUP_SENHA           senha longa para criptografar; guarde fora do GitHub (sem ela o backup não abre)
+#   SUPABASE_S3_ENDPOINT   Storage → S3 Connection → Endpoint (só para as fotos)
+#   SUPABASE_S3_CHAVE      Storage → S3 Access Keys → Access key ID
+#   SUPABASE_S3_SEGREDO    Storage → S3 Access Keys → Secret access key
+# Restaurar: supabase/backup/RESTAURAR.md
+name: Backup do banco
+
+on:
+  schedule:
+    - cron: "17 6 * * *" # banco: todo dia às 03:17 de Brasília
+    - cron: "47 6 * * 0" # fotos: domingo às 03:47
+  workflow_dispatch: {} # botão "Run workflow" para fazer um agora
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '17 6 * * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      BACKUP_SENHA: ${{ secrets.BACKUP_SENHA }}
+    steps:
+      - name: Conferir os segredos
+        id: segredos
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ] || [ -z "$BACKUP_SENHA" ]; then
+            echo "::notice::Backup não configurado ainda (faltam os segredos SUPABASE_DB_URL e BACKUP_SENHA). Nada a fazer."
+            echo "pronto=nao" >> "$GITHUB_OUTPUT"
+          else
+            echo "pronto=sim" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.segredos.outputs.pronto == 'sim'
+
+      # pg_dump 17: o Supabase usa Postgres 15 ou 17, e o pg_dump precisa ser igual ou mais novo que o banco
+      - name: Instalar o pg_dump 17
+        if: steps.segredos.outputs.pronto == 'sim'
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+
+      - name: Fazer o backup
+        if: steps.segredos.outputs.pronto == 'sim'
+        run: supabase/backup/fazer_backup.sh backup
+
+      - name: Guardar por 30 dias
+        if: steps.segredos.outputs.pronto == 'sim'
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-${{ github.run_id }}
+          path: backup/*.tar.gpg
+          retention-days: 30
+          if-no-files-found: error
+
+  fotos:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '47 6 * * 0'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      SUPABASE_S3_ENDPOINT: ${{ secrets.SUPABASE_S3_ENDPOINT }}
+      SUPABASE_S3_REGIAO: sa-east-1
+      AWS_ACCESS_KEY_ID: ${{ secrets.SUPABASE_S3_CHAVE }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.SUPABASE_S3_SEGREDO }}
+      BACKUP_SENHA: ${{ secrets.BACKUP_SENHA }}
+    steps:
+      - name: Conferir os segredos
+        id: segredos
+        run: |
+          if [ -z "$SUPABASE_S3_ENDPOINT" ] || [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$BACKUP_SENHA" ]; then
+            echo "::notice::Backup das fotos não configurado ainda (faltam os segredos do S3 do Storage). Nada a fazer."
+            echo "pronto=nao" >> "$GITHUB_OUTPUT"
+          else
+            echo "pronto=sim" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.segredos.outputs.pronto == 'sim'
+
+      - name: Baixar as fotos
+        if: steps.segredos.outputs.pronto == 'sim'
+        run: supabase/backup/fotos.sh backup
+
+      - name: Guardar por 14 dias
+        if: steps.segredos.outputs.pronto == 'sim'
+        uses: actions/upload-artifact@v4
+        with:
+          name: fotos-${{ github.run_id }}
+          path: backup/*.tar.gpg
+          retention-days: 14
+          if-no-files-found: error

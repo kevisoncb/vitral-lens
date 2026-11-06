@@ -4,23 +4,23 @@
 \set ON_ERROR_STOP off
 -- duas óticas (o trigger cria perfis, etapas e motivos)
 insert into oticas (id, nome, plano, status) values
-  ('a0000000-0000-0000-0000-000000000001', 'Ótica Ômega', 'profissional', 'ativa'),
+  ('a0000000-0000-0000-0000-000000000001', 'Óticas Nery', 'profissional', 'ativa'),
   ('b0000000-0000-0000-0000-000000000002', 'Ótica Concorrente', 'essencial', 'ativa');
 insert into lojas (id, otica_id, nome) values
   ('a1000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', 'Centro');
--- usuários: dono e vendedor da Ômega, dono da outra
+-- usuários: dono e vendedor da Nery, dono da outra
 insert into usuarios (id, otica_id, perfil_id, nome, email)
 select ('c0000000-0000-0000-0000-00000000000' || n)::uuid, o, (select id from perfis where otica_id = o and chave = k), nm, nm || '@x.com'
-from (values (1, 'a0000000-0000-0000-0000-000000000001'::uuid, 'dono', 'dono_omega'),
-             (2, 'a0000000-0000-0000-0000-000000000001'::uuid, 'vendedor', 'vend_omega'),
+from (values (1, 'a0000000-0000-0000-0000-000000000001'::uuid, 'dono', 'dono_nery'),
+             (2, 'a0000000-0000-0000-0000-000000000001'::uuid, 'vendedor', 'vend_nery'),
              (3, 'b0000000-0000-0000-0000-000000000002'::uuid, 'dono', 'dono_outra'),
-             (4, 'a0000000-0000-0000-0000-000000000001'::uuid, 'laboratorio', 'lab_omega')) v(n, o, k, nm);
+             (4, 'a0000000-0000-0000-0000-000000000001'::uuid, 'laboratorio', 'lab_nery')) v(n, o, k, nm);
 
 select 'padrões criados' as teste, (select count(*) from perfis where otica_id = 'a0000000-0000-0000-0000-000000000001') as perfis,
        (select count(*) from funil_etapas where otica_id = 'a0000000-0000-0000-0000-000000000001') as etapas,
        (select count(*) from os_etapas where otica_id = 'a0000000-0000-0000-0000-000000000001') as os_etapas;
 
--- vendedor da Ômega cria cliente e atendimento
+-- vendedor da Nery cria cliente e atendimento
 set role authenticated; set request.jwt.claim.sub = 'c0000000-0000-0000-0000-000000000002';
 insert into clientes (otica_id, nome, telefone) values ('a0000000-0000-0000-0000-000000000001', 'Ana Paula', '27999990000');
 select 'vendedor vê 1 cliente' as teste, count(*) from clientes;
@@ -56,7 +56,7 @@ reset role; set role authenticated; set request.jwt.claim.sub = 'c0000000-0000-0
 update ordens_servico set etapa_id = (select id from os_etapas where nome = 'Entregue' and otica_id = ordens_servico.otica_id);
 select 'entregue' as teste, data_entrega is not null as entrega, garantia_ate is not null as garantia, (select count(*) from os_historico) as historico from ordens_servico;
 
--- dono da outra ótica não vê nada da Ômega
+-- dono da outra ótica não vê nada da Nery
 reset role; set role authenticated; set request.jwt.claim.sub = 'c0000000-0000-0000-0000-000000000003';
 select 'outra ótica: clientes (esperado 0)' as teste, count(*) from clientes;
 select 'outra ótica: OS (esperado 0)' as teste, count(*) from ordens_servico;
@@ -64,7 +64,7 @@ select 'outra ótica: usuarios (esperado 1)' as teste, count(*) from usuarios;
 -- plano essencial não tem agenda
 insert into consultas (otica_id, loja_id, inicio, fim) values ('b0000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000001', now(), now() + interval '1 hour');
 
--- dono da Ômega: auditoria, PDV/financeiro (plano profissional) e agenda sem conflito
+-- dono da Nery: auditoria, PDV/financeiro (plano profissional) e agenda sem conflito
 reset role; set role authenticated; set request.jwt.claim.sub = 'c0000000-0000-0000-0000-000000000001';
 select 'dono vê auditoria' as teste, count(*) > 0 as ok from auditoria;
 insert into contas_pagar (otica_id, descricao, valor, vencimento) values ('a0000000-0000-0000-0000-000000000001', 'Aluguel', 3200, current_date);

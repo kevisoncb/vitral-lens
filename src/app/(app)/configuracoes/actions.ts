@@ -9,6 +9,19 @@ function voltar(caminho: string, erro?: string): never {
   redirect(erro ? `${caminho}?erro=${encodeURIComponent(erro)}` : `${caminho}?ok=1`);
 }
 
+const REGIMES = ["simples", "simples_excesso", "normal"] as const;
+
+/** Regime, inscrição estadual e série da NFC-e (o ambiente de teste/produção é a equipe do Vitral que liga). */
+function dadosFiscais(formulario: FormData) {
+  const regime = REGIMES.find((r) => r === formulario.get("regime_tributario"));
+  const serie = Number(formulario.get("nfce_serie"));
+  return {
+    ...(regime ? { regime_tributario: regime } : {}),
+    inscricao_estadual: textoOuNulo(formulario.get("inscricao_estadual")),
+    ...(Number.isInteger(serie) && serie >= 1 && serie <= 999 ? { nfce_serie: serie } : {}),
+  };
+}
+
 export async function salvarOtica(formulario: FormData) {
   const supabase = await criarClienteServidor();
   const { data: otica } = await supabase.from("oticas").select("id").maybeSingle();
@@ -28,6 +41,7 @@ export async function salvarOtica(formulario: FormData) {
       site_horario: textoOuNulo(formulario.get("site_horario")),
       site_instagram: textoOuNulo(formulario.get("site_instagram")),
       site_cor: cor && /^#[0-9a-fA-F]{6}$/.test(cor) ? cor : null,
+      ...dadosFiscais(formulario),
     })
     .eq("id", otica.id);
   if (error) voltar("/configuracoes", error.message);

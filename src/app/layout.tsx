@@ -2,8 +2,13 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Vitra",
+  title: "Vitral",
   description: "Vendas, laboratório, receitas e agenda da sua ótica em um só lugar.",
+  applicationName: "Vitral",
+  // iPhone e iPad: abrir em tela cheia quando adicionado à tela de início
+  appleWebApp: { capable: true, title: "Vitral", statusBarStyle: "default" },
+  icons: { apple: "/icones/apple-touch-icon.png" },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {

@@ -5,6 +5,7 @@ import { dataHoraBR, moeda } from "@/lib/formatar";
 import { linkWhatsApp, mensagemCobrarRetorno } from "@/lib/whatsapp";
 import { pagar } from "./actions";
 import { moverAtendimentoFormulario } from "../actions";
+import { CampoMascara } from "@/components/campo-mascara";
 
 type Atendimento = {
   id: string;
@@ -108,7 +109,7 @@ export default async function DetalheAtendimento({
           <form action={registrar} className="linha">
             {erro && <p className="erro" role="alert">{erro}</p>}
             <label className="rotulo">Valor (R$)
-              <input className="campo" name="valor" inputMode="decimal" defaultValue={saldo.toFixed(2).replace(".", ",")} required />
+              <CampoMascara mascara="moeda" name="valor" defaultValue={saldo} required />
             </label>
             <label className="rotulo">Forma
               <select className="campo" name="forma" defaultValue="pix">

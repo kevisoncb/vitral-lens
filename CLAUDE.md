@@ -1,4 +1,4 @@
-# Vitra: contexto do projeto
+# Vitral: contexto do projeto
 
 ## Regra número 1: o README.md é o mapa
 
@@ -6,43 +6,53 @@
 - **Ao terminar**, atualize o `README.md` no mesmo commit: a tabela de Estado (✅ testado, 🟡 escrito sem rodar, ⬜ não existe), o Checklist (marque o que fez, acrescente o que descobriu) e uma linha nova no topo do Histórico com data, o que mudou e o que ficou pendente.
 - Se uma regra do produto mudar, mude nos dois lugares (README e aqui).
 
-**Diferencial:** consultório (exame → receita) + loja (orçamento → pagamento) + laboratório (construção do óculos → entrega) num fluxo só, cada área com tela própria e os cards conversando entre elas em tempo real. Plano único de R$ 99 com adicionais (nota fiscal, lojas extras). Foco: óticas pequenas do interior, depois cidade grande.
+**Diferencial:** consultório (exame → receita) + loja (orçamento → pagamento) + laboratório (construção do óculos → entrega) num fluxo só, cada área com tela própria e os cards conversando entre elas em tempo real. Plano de R$ 99, Plano Especial com o PDV e adicionais (nota fiscal, lojas extras). Foco: óticas pequenas do interior, depois cidade grande.
 
-Sistema web (SaaS) para óticas, criado por um freelancer para o cliente piloto **Ótica Ômega** e depois vendido a outras óticas. Nome do produto: **Vitra**. Repositório: `vitral-lens` ("lens" é só diferencial do nome do repositório).
+Sistema web (SaaS) para óticas, criado por um freelancer para o cliente piloto **Óticas Nery** e depois vendido a outras óticas. Nome do produto: **Vitral**. Repositório: `vitral-lens` ("lens" é só diferencial do nome do repositório).
 
 Idioma: português do Brasil em tudo (interface, tabelas, colunas, nomes de variáveis do domínio, commits).
 
 ## Stack
 
-Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Storage), hospedagem na Vercel. CSS simples em `src/app/globals.css` (sem Tailwind). Somente web, responsivo (computador, tablet, celular), com PWA no futuro.
+Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Storage), hospedagem no Firebase App Hosting (`apphosting.yaml`, chaves no Secret Manager; o banco fica no Supabase). CSS simples em `src/app/globals.css` (sem Tailwind). Somente web, responsivo (computador, tablet, celular), instalável como app (PWA: `src/app/manifest.ts`, ícones em `public/icones/`).
 
 ## Regras do produto (não mudar sem combinar)
 
 - **Multiempresa:** toda tabela de negócio tem `otica_id` e RLS. Uma ótica nunca vê dados de outra. Receita é dado de saúde (LGPD).
-- **Áreas:** todo perfil tem `area` (loja, consultorio, laboratorio, gestao). Consultório e laboratório têm telas próprias (`/consultorio`, `/producao`) e não abrem a da loja; gestão entra em todas. Use `exigirArea()` em toda tela de área. Laboratório não vê valores nem a tabela de clientes (nome vem em `ordens_servico.cliente_nome`).
+- **Áreas:** todo perfil tem `area` (loja, consultorio, laboratorio, gestao, pdv, financeiro). Consultório, laboratório, PDV e financeiro têm telas próprias (`/consultorio`, `/producao`, `/pdv`, `/financeiro`) e não abrem a da loja; gestão entra em todas. Use `exigirArea()` em toda tela de área. Laboratório não vê valores nem a tabela de clientes (nome vem em `ordens_servico.cliente_nome`).
 - **Cards que conversam:** exame concluído → card na loja (`card_do_exame`); pagamento → OS em "Pago" no lab; lab até "Chegou na loja" → loja avisa e entrega; recados em `os_mensagens`. Etapa da OS tem `area` e o banco confere quem move (`os_etapa_permitida`). Telas com cards usam `<AoVivo tabelas={[...]}/>`.
 - **Permissões:** por perfil e por módulo (`ver`, `criar`, `editar`, `excluir`) em `perfis.permissoes`; adicionais pagos em `otica_adicionais`. A checagem real é no banco (`acesso()`); o menu só esconde o que não pode.
 - **WhatsApp:** nunca automático. Só link `wa.me` com mensagem pronta (`src/lib/whatsapp.ts`). Confirmação de consulta também é manual.
+- **Clientes para chamar:** `clientes_para_chamar()` (aniversário, receita vencendo, óculos há 1 ano, orçamento perdido); marcar o contato em `cliente_contatos` tira o cliente da lista daquele motivo.
+- **LGPD do cliente:** tela que mostra receita ou exame chama `registrarAcessoSaude()` (`src/lib/lgpd.ts`). Exportar (`exportar_cliente()`) e anonimizar (`anonimizar_cliente()`, limpa também a auditoria) só com `clientes:excluir`. Tabela nova com dado pessoal do cliente entra no exportar e no anonimizar.
+- **Assinatura da OS:** `gerar_link_assinatura()` (loja), página pública `/assinar/[token]` com `os_para_assinar()` e `assinar_os()`; vale 7 dias, assina uma vez, guarda o retrato do que foi mostrado.
 - **Funil de vendas:** Atendimento → Orçamento enviado → Sem retorno → Recuperado / Perdido. Mover para Perdido exige motivo (regra no banco, trigger `atendimento_mudou`).
 - **Laboratório:** Pago → No laboratório → Em montagem → Chegou na loja → Cliente avisado → Entregue. Ao registrar o pagamento, a OS é criada (`registrar_pagamento()` → `criar_os_do_atendimento()`) com a ficha técnica preenchida pela receita e pelo orçamento. Pago, Cliente avisado e Entregue são da loja; No laboratório, Em montagem e Chegou na loja são do laboratório. Exame concluído não muda mais (prontuário).
 - **Agenda:** o mesmo horário nunca é marcado duas vezes (constraint `consulta_sem_conflito`). O site de agendamento usa `horarios_ocupados()`, que expõe só os horários.
-- **Plano único (R$ 99):** tudo incluído. Adicionais em `recursos_adicionais`/`otica_adicionais` (nota fiscal, lojas extras); `recurso_ativo()` só bloqueia o que é adicional. `oticas.plano` e `plano_recursos` ficaram só por compatibilidade.
+- **Plano Especial:** PDV e caixa (adicional `plano_especial`; gatilho `exige_plano_especial()` em `caixas` e `vendas`). Sem ele não abre caixa nem vende; fechar, cancelar e o histórico seguem liberados. Nunca dê a um adicional o nome de um módulo (`acesso()` desliga o módulo inteiro).
+- **Plano único (R$ 99):** tudo incluído, menos o PDV. Adicionais em `recursos_adicionais`/`otica_adicionais` (notas fiscais: NFC-e no caixa e entrada pela nota do fornecedor; lojas extras); `recurso_ativo()` só bloqueia o que é adicional. Nota fiscal nunca é grátis.
+- **Cada coisa no seu lugar:** venda é venda, cliente é cliente, produto é produto. Menu por seções (`MENU` em `src/lib/permissoes.ts`); preço, custo e impostos só mudam na página do produto; telas não editam dado de outro assunto. `oticas.plano` e `plano_recursos` ficaram só por compatibilidade.
 - **Produto na venda:** não achou no catálogo, cadastra na hora (`criado_na_venda`); armação pede foto (`/catalogo/fotos`, reduzida no navegador); lente não.
-- **PDV e financeiro (Versão 4):** módulos separados no mesmo projeto, com login e menu próprios. O PDV mostra só vendas; o financeiro (gerente) tem contas a pagar e a receber, custos, impostos e acesso do contador. As tabelas já existem; as telas ainda não.
+- **PDV e financeiro (Versão 4):** módulos separados no mesmo projeto, com login e menu próprios. O PDV mostra só vendas; o financeiro (gerente) tem contas a pagar e a receber, custos, impostos e acesso do contador (perfil Contador, só leitura). Venda do PDV só por `registrar_venda()` (preço do catálogo; desconto acima de 10% exige `pdv:editar`; crediário vira conta a receber); só o gerente cancela (`cancelar_venda()` devolve ao estoque).
 - **Pagamento:** o primeiro pagamento move o card para a etapa ganha e cria a OS uma única vez (`registrar_pagamento()`).
-- **Site público:** só funções liberadas para `anon` (`site_da_otica`, `pedido_orcamento_site`, `horarios_livres`, `agendar_pelo_site`), com limite de uso e aceite LGPD. O perfil Dono não perde acesso e a ótica nunca fica sem Dono ativo.
-- Código, domínio, Supabase e Vercel ficam no nome do dono do produto, nunca do freelancer.
+- **Site público:** só funções liberadas para `anon` (`site_da_otica`, `pedido_orcamento_site`, `horarios_livres`, `agendar_pelo_site`, e `entrar_lista_espera` do site do Vitral em `/`), com limite de uso e aceite LGPD. O perfil Dono não perde acesso e a ótica nunca fica sem Dono ativo.
+- **Estoque e comissões (Versão 3):** o primeiro pagamento do atendimento dá baixa no estoque (só itens com `controla_estoque`) e gera a comissão (trigger `venda_fechada`). O livro `estoque_movimentos` e `comissoes` só mudam por funções do banco. A venda nunca é bloqueada por falta de estoque.
+- **Nota fiscal (NFC-e):** pela Focus NFe (`src/lib/focus-nfe.ts`), só com o adicional `nota_fiscal`; token por ótica em `nfe_credenciais`, cadastrado no painel e usado só pelo servidor; `preparar_nfce()` exige NCM, origem e CSOSN em todo item; nota sem resposta é retomada com a mesma referência; cancelamento só pelo gerente em 30 min.
+- **Custo e impostos do produto:** ficam na página do produto. Insumos e impostos em R$ ou em % da compra (chave R$ / %); `custo_final` = compra + insumos + impostos; margem % sobre o custo final, e preço e margem se recalculam um pelo outro. Custo só para gerente/estoque; o balcão vê o preço.
+- **Entrada pela nota:** do adicional `nota_fiscal` (o banco recusa sem ele); só dá entrada (quantidade e compra). Produto que existe tem só a compra atualizada (com margem, o preço acompanha); produto novo entra fora da venda até ter preço; não sobrescreve dado fiscal já corrigido. Boleto gera parcelas em contas a pagar; cartão, Pix ou dinheiro não.
+- **Importação de planilha:** nunca apaga nem sobrescreve; repetidos (telefone/CPF do cliente, código ou nome do produto) são pulados (`importar_clientes()`, `importar_produtos()`).
+- Código, domínio, Supabase e hospedagem (Firebase) ficam no nome do dono do produto, nunca do freelancer. O Vitral tem projeto próprio no Firebase, nunca dentro do projeto de outro cliente.
 
 ## Fases
 
-1. **Versão 1 (Ótica Ômega):** contas e permissões, clientes e receitas, funil, laboratório, agenda interna, site institucional da ótica.
-2. **Versão 2:** agendamento online pelo site, relatórios, multiloja, importação de planilhas, site e lista de espera do Vitra.
-3. **Versão 3:** nota fiscal, estoque, comissões.
-4. **Versão 4:** PDV e financeiro.
+1. **Versão 1 (Óticas Nery):** contas e permissões, clientes e receitas, funil, laboratório, agenda interna, site institucional da ótica.
+2. **Versão 2:** agendamento online pelo site, relatórios, multiloja, importação de planilhas, site e lista de espera do Vitral (prontos).
+3. **Versão 3:** nota fiscal, estoque, comissões (prontos; NFC-e pela Focus NFe, falta a conta e o teste em homologação; NF-e modelo 55 depois).
+4. **Versão 4:** PDV e financeiro (prontos).
 
 ## Estado atual e próximos passos
 
-Ficam no `README.md` (seções 1 e 2), para não ter duas versões. Resumo: banco testado (0001 a 0009); todo o `src/` foi escrito sem npm e ainda não foi compilado nem executado, então o primeiro passo é `npm install` + `npm run typecheck` + `npm run dev`.
+Ficam no `README.md` (seções 1 e 2), para não ter duas versões. Resumo: banco testado (0001 a 0022); o `src/` já compila (`npm run typecheck` e `npm run build` passam), mas as telas ainda não foram abertas com um Supabase real; o próximo passo é criar o projeto no Supabase, `.env.local` e `npm run dev`.
 
 ## Telas de referência
 
@@ -50,10 +60,12 @@ O desenho das telas (login, funil, laboratório, ficha do cliente, agenda, agend
 
 ## Como trabalhar aqui
 
-- Mudou o banco? Crie uma nova migração em `supabase/migrations/` (nunca edite a antiga depois de aplicada em produção) e rode os testes da seção 5 do README e acrescente um teste novo em `supabase/tests/` (e no CI) para a regra que criou.
+- Mudou o banco? Crie uma nova migração em `supabase/migrations/` (nunca edite a antiga depois de aplicada em produção), rode os testes da seção 5 do README, acrescente um teste novo em `supabase/tests/` (e no CI) para a regra que criou e rode `npm run tipos` para atualizar `src/lib/supabase/tipos.ts` (o CI confere).
+- **Backup:** banco todo dia e fotos todo domingo pelo GitHub Actions (`supabase/backup/`). Mudou o banco? O CI roda `supabase/tests/backup_teste.sh`, que restaura num banco vazio e confere dados e permissões; extensão nova entra sozinha. Fotos pela interface S3 do Storage, nunca com a service_role.
 - Toda tabela nova de negócio: `otica_id`, RLS e entrada na lista do bloco `do $$` do final da migração (ou política própria).
-- Nunca expor `SUPABASE_SERVICE_ROLE_KEY` no navegador. Nunca commitar `.env*` (só `.env.example`).
+- Nunca expor `SUPABASE_SERVICE_ROLE_KEY` no navegador; no servidor, só para o Auth. O painel do Vitral (`/painel`) lê e grava pelas funções `painel_*`, que conferem `vitral_admins`. Nunca commitar `.env*` (só `.env.example`).
 - **Desempenho:** em política de RLS, sempre `(select minha_otica())`, `(select acesso(...))`, `(select auth.uid())` (a 0008 converteu as existentes). Índice para toda coluna usada em filtro de tela. Depois de mudança grande no banco, rode `supabase/carga/` e atualize `docs/ESCALA.md`.
 - **Agilidade:** card muda na tela antes de o banco confirmar (atualização otimista), `loading.tsx` em cada área, e botão "Mover para" além de arrastar (toque não arrasta).
 - Funções para o público (site): `security definer`, `grant execute ... to anon`, validação e limite de uso dentro da função. Funções internas: `revoke execute ... from anon` (no Supabase, funções novas nascem executáveis por anon).
+- **Campos:** dinheiro, porcentagem, CPF, CNPJ, telefone e códigos fiscais sempre com `<CampoMascara>` (`src/components/campo-mascara.tsx`); no servidor, `numeroOuNulo()` lê o valor com máscara.
 - Commits e comentários em português.

@@ -1,4 +1,4 @@
--- Catálogo inicial de exemplo para a ótica de nome 'Ótica Ômega'. Rode no SQL Editor do Supabase.
+-- Catálogo inicial de exemplo para a ótica de nome 'Óticas Nery'. Rode no SQL Editor do Supabase.
 -- Ajuste os preços na tela de catálogo (a tela ainda não existe) ou direto aqui antes de rodar.
 insert into catalogo_itens (otica_id, categoria, nome, preco)
 select o.id, v.categoria, v.nome, v.preco
@@ -15,5 +15,5 @@ from oticas o,
        ('acessorio',     'Estojo e flanela',                20.00),
        ('servico',       'Ajuste e montagem',               60.00)
      ) as v(categoria, nome, preco)
-where o.nome = 'Ótica Ômega'
+where o.nome = 'Óticas Nery'
   and not exists (select 1 from catalogo_itens c where c.otica_id = o.id);

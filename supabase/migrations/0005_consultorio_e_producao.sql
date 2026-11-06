@@ -1,6 +1,6 @@
--- Vitra — migração 0005: consultório e construção do óculos
+-- Vitral — migração 0005: consultório e construção do óculos
 --
--- O diferencial do Vitra é um fluxo só, do exame à entrega:
+-- O diferencial do Vitral é um fluxo só, do exame à entrega:
 --   consultório (exame -> receita) -> loja (orçamento -> pagamento) -> laboratório (ficha técnica -> produção -> entrega)
 -- tudo ligado ao mesmo cliente, sem redigitar nada.
 --
@@ -258,9 +258,9 @@ alter table perfis enable trigger proteger_perfil_dono;
 create or replace function preparar_otica_consultorio() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
-  perform set_config('vitra.preparando_otica', 'sim', true);
+  perform set_config('vitral.preparando_otica', 'sim', true);
   perform permissoes_consultorio(new.id);
-  perform set_config('vitra.preparando_otica', '', true);
+  perform set_config('vitral.preparando_otica', '', true);
   return new;
 end $$;
 create trigger trg_preparar_otica_v5 after insert on oticas
@@ -279,7 +279,7 @@ begin
     end if;
     return old;
   end if;
-  if old.chave = 'dono' and coalesce(current_setting('vitra.preparando_otica', true), '') <> 'sim'
+  if old.chave = 'dono' and coalesce(current_setting('vitral.preparando_otica', true), '') <> 'sim'
      and (new.permissoes is distinct from old.permissoes or new.chave <> old.chave) then
     raise exception 'O perfil Dono sempre tem acesso total';
   end if;

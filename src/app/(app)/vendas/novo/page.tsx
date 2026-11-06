@@ -2,6 +2,7 @@ import Link from "next/link";
 import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { dataBR, moeda } from "@/lib/formatar";
 import { criarAtendimento } from "./actions";
+import { CampoMascara } from "@/components/campo-mascara";
 
 const LINHAS = [0, 1, 2, 3, 4];
 const CATEGORIAS: Record<string, string> = {
@@ -94,7 +95,7 @@ export default async function NovoAtendimento({
               <input className="campo" name={`qtd_${i}`} inputMode="decimal" defaultValue="1" />
             </label>
             <label className="rotulo" style={{ flex: "1 1 110px" }}>Preço (R$)
-              <input className="campo" name={`preco_${i}`} inputMode="decimal" placeholder="do catálogo" />
+              <CampoMascara mascara="moeda" name={`preco_${i}`} placeholder="do catálogo" />
             </label>
           </div>
         ))}

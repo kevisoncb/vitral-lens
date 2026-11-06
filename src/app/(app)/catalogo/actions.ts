@@ -7,31 +7,21 @@ import { numeroOuNulo, textoOuNulo } from "@/lib/formatar";
 
 const CATEGORIAS = ["lente", "tratamento", "armacao", "lente_contato", "acessorio", "servico"];
 
+/** Cadastra o básico e abre a página do produto para completar custo, impostos e foto. Sem preço, fica fora da venda. */
 export async function criarItem(formulario: FormData) {
   const nome = textoOuNulo(formulario.get("nome"));
   const preco = numeroOuNulo(formulario.get("preco"));
   const categoria = String(formulario.get("categoria") ?? "");
-  if (!nome || preco === null || preco < 0 || !CATEGORIAS.includes(categoria)) {
-    redirect("/catalogo?erro=Preencha nome, categoria e preço");
+  if (!nome || (preco !== null && preco < 0) || !CATEGORIAS.includes(categoria)) {
+    redirect("/catalogo?erro=Preencha nome e categoria");
   }
   const supabase = await criarClienteServidor();
-  const { error } = await supabase.from("catalogo_itens").insert({ nome, preco, categoria });
-  if (error) redirect(`/catalogo?erro=${encodeURIComponent(error.message)}`);
-  revalidatePath("/catalogo");
-  redirect("/catalogo");
-}
-
-export async function salvarItem(id: string, formulario: FormData) {
-  const preco = numeroOuNulo(formulario.get("preco"));
-  const supabase = await criarClienteServidor();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("catalogo_itens")
-    .update({
-      nome: textoOuNulo(formulario.get("nome")) ?? undefined,
-      preco: preco ?? undefined,
-      ativo: formulario.get("ativo") === "on",
-    })
-    .eq("id", id);
-  if (error) redirect(`/catalogo?erro=${encodeURIComponent(error.message)}`);
+    .insert({ nome, preco: preco ?? 0, ativo: preco !== null && preco > 0, categoria })
+    .select("id")
+    .single();
+  if (error || !data) redirect(`/catalogo?erro=${encodeURIComponent(error?.message ?? "Não foi possível cadastrar")}`);
   revalidatePath("/catalogo");
+  redirect(`/catalogo/${data.id}`);
 }

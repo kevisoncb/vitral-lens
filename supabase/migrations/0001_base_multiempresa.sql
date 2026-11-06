@@ -1,4 +1,4 @@
--- Vitra — estrutura base multiempresa (Postgres / Supabase)
+-- Vitral — estrutura base multiempresa (Postgres / Supabase)
 --
 -- Princípios:
 --   1. Toda tabela de negócio tem otica_id e RLS: uma ótica nunca enxerga outra.

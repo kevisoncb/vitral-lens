@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { criarCliente } from "./actions";
+import { CampoMascara } from "@/components/campo-mascara";
 
 export default async function NovoCliente({ searchParams }: { searchParams: Promise<{ erro?: string }> }) {
   const { erro } = await searchParams;
@@ -12,14 +13,14 @@ export default async function NovoCliente({ searchParams }: { searchParams: Prom
           <input className="campo" name="nome" required autoFocus />
         </label>
         <label className="rotulo">Telefone (WhatsApp)
-          <input className="campo" name="telefone" inputMode="tel" placeholder="(27) 99999-0000" />
+          <CampoMascara mascara="telefone" name="telefone" placeholder="(27) 99999-0000" />
         </label>
         <label className="rotulo">E-mail
           <input className="campo" name="email" type="email" />
         </label>
         <div className="linha">
           <label className="rotulo">CPF
-            <input className="campo" name="cpf" inputMode="numeric" />
+            <CampoMascara mascara="cpf" name="cpf" placeholder="000.000.000-00" />
           </label>
           <label className="rotulo">Nascimento
             <input className="campo" name="nascimento" type="date" />

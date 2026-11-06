@@ -3,6 +3,7 @@ import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { exigirArea } from "@/lib/sessao";
 import { AoVivo } from "@/components/ao-vivo";
 import { iniciarExameDaConsulta, novoPaciente } from "./actions";
+import { CampoMascara } from "@/components/campo-mascara";
 
 const FUSO = "-03:00";
 function hojeBR(): string {
@@ -107,7 +108,7 @@ export default async function FilaDoConsultorio({ searchParams }: { searchParams
           <form action={novoPaciente} className="formulario">
             <label className="rotulo">Nome<input className="campo" name="nome" required /></label>
             <div className="linha">
-              <label className="rotulo">Telefone<input className="campo" name="telefone" inputMode="tel" /></label>
+              <label className="rotulo">Telefone<CampoMascara mascara="telefone" name="telefone" /></label>
               <label className="rotulo">Nascimento<input className="campo" type="date" name="nascimento" /></label>
             </div>
             <label className="marcar"><input type="checkbox" name="lgpd" /> Paciente autorizou o uso dos dados de saúde (LGPD)</label>

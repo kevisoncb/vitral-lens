@@ -1,3 +1,4 @@
+import { registrarAcessoSaude } from "@/lib/lgpd";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { criarClienteServidor } from "@/lib/supabase/servidor";
@@ -50,6 +51,7 @@ export default async function Exame({
   ]);
   const e = exameR.data;
   if (!e) notFound();
+  await registrarAcessoSaude(supabase, e.cliente_id, "viu_exame", "consultório: exame");
   const travado = e.status === "concluido";
   const olho = (o: "OD" | "OE") => (olhosR.data ?? []).find((x) => x.olho === o);
   const salvar = salvarExame.bind(null, id);

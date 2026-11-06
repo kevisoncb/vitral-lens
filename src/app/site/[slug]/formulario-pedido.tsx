@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { enviarPedido, type Estado } from "./actions";
+import { CampoMascara } from "@/components/campo-mascara";
 
 export function FormularioPedido({ slug }: { slug: string }) {
   const [estado, enviar, enviando] = useActionState<Estado, FormData>(enviarPedido.bind(null, slug), null);
@@ -14,7 +15,7 @@ export function FormularioPedido({ slug }: { slug: string }) {
         <input className="campo" name="nome" required autoComplete="name" />
       </label>
       <label className="rotulo">WhatsApp com DDD
-        <input className="campo" name="telefone" required inputMode="tel" autoComplete="tel" placeholder="(27) 99999-0000" />
+        <CampoMascara mascara="telefone" name="telefone" required autoComplete="tel" placeholder="(27) 99999-0000" />
       </label>
       <label className="rotulo">O que você procura?
         <textarea className="campo" name="mensagem" rows={3} placeholder="Ex.: óculos multifocal, lente de contato, tenho receita…" />

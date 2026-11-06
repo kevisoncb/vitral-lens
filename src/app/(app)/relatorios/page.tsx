@@ -1,5 +1,5 @@
 import { criarClienteServidor } from "@/lib/supabase/servidor";
-import { moeda } from "@/lib/formatar";
+import { mesAtual, moeda, proximoMes } from "@/lib/formatar";
 
 const FUSO = "-03:00";
 
@@ -10,14 +10,6 @@ type Atend = {
   funil_etapas: { tipo: "aberta" | "ganha" | "perdida" } | null;
   motivos_perda: { nome: string } | null;
 };
-
-function mesAtual(): string {
-  return new Date(Date.now() - 3 * 3600_000).toISOString().slice(0, 7);
-}
-function proximoMes(mes: string): string {
-  const [a, m] = mes.split("-").map(Number);
-  return m === 12 ? `${a + 1}-01` : `${a}-${String(m + 1).padStart(2, "0")}`;
-}
 
 export default async function Relatorios({ searchParams }: { searchParams: Promise<{ mes?: string }> }) {
   const { mes: mesParam } = await searchParams;

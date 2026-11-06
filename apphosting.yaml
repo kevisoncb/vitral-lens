@@ -1,0 +1,35 @@
+# Firebase App Hosting: configuração do servidor do Vitral (Next.js).
+# As chaves ficam no Secret Manager do Google Cloud, nunca neste arquivo. Para cadastrar:
+#   firebase apphosting:secrets:set supabase-url
+#   firebase apphosting:secrets:set supabase-anon-key
+#   firebase apphosting:secrets:set supabase-service-role-key
+#   firebase apphosting:secrets:set site-dominios
+# Passo a passo no README, seção 4.
+
+runConfig:
+  # 0 = sem servidor parado cobrando; a primeira visita depois de um tempo parado demora uns segundos a mais.
+  # Com várias óticas usando o dia todo, subir para 1 deixa sempre rápido (custa um pouco por mês).
+  minInstances: 0
+  maxInstances: 4
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 512
+
+env:
+  # NEXT_PUBLIC_* entram no build (vão para o navegador): só a URL e a chave pública (anon)
+  - variable: NEXT_PUBLIC_SUPABASE_URL
+    secret: supabase-url
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_SUPABASE_ANON_KEY
+    secret: supabase-anon-key
+    availability: [BUILD, RUNTIME]
+  # só no servidor: nunca BUILD, para não ir parar no navegador
+  - variable: SUPABASE_SERVICE_ROLE_KEY
+    secret: supabase-service-role-key
+    availability: [RUNTIME]
+  - variable: SITE_DOMINIOS
+    secret: site-dominios
+    availability: [RUNTIME]
+  - variable: NEXT_TELEMETRY_DISABLED
+    value: "1"
+    availability: [BUILD, RUNTIME]

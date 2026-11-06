@@ -2,6 +2,7 @@ import Link from "next/link";
 import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { linkWhatsApp } from "@/lib/whatsapp";
 import { marcarConsulta, mudarStatus } from "./actions";
+import { CampoMascara } from "@/components/campo-mascara";
 
 const FUSO = "-03:00";
 const STATUS: Record<string, string> = {
@@ -148,7 +149,7 @@ export default async function PaginaAgenda({
               <input className="campo" name="nome_contato" />
             </label>
             <label className="rotulo">Telefone
-              <input className="campo" name="telefone_contato" inputMode="tel" />
+              <CampoMascara mascara="telefone" name="telefone_contato" />
             </label>
           </div>
           <div className="janela-botoes">

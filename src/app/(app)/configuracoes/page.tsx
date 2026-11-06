@@ -1,6 +1,7 @@
 import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { Abas } from "./abas";
 import { criarLoja, salvarOtica } from "./actions";
+import { CampoMascara } from "@/components/campo-mascara";
 
 export default async function ConfigOtica({ searchParams }: { searchParams: Promise<{ erro?: string; ok?: string }> }) {
   const { erro, ok } = await searchParams;
@@ -23,27 +24,43 @@ export default async function ConfigOtica({ searchParams }: { searchParams: Prom
         <h2>Dados da ótica</h2>
         <div className="linha">
           <label className="rotulo">Nome<input className="campo" name="nome" defaultValue={o.nome} required /></label>
-          <label className="rotulo">CNPJ<input className="campo" name="cnpj" defaultValue={o.cnpj ?? ""} /></label>
-          <label className="rotulo">Telefone<input className="campo" name="telefone" defaultValue={o.telefone ?? ""} /></label>
+          <label className="rotulo">CNPJ<CampoMascara mascara="cnpj" name="cnpj" defaultValue={o.cnpj} /></label>
+          <label className="rotulo">Telefone<CampoMascara mascara="telefone" name="telefone" defaultValue={o.telefone} /></label>
         </div>
-        <p className="vazio">Plano Vitra (tudo incluído) · situação: {o.status}. Adicionais (nota fiscal, lojas extras) são contratados com o suporte do Vitra.</p>
+        <h2>Dados fiscais (nota fiscal)</h2>
+        <div className="linha">
+          <label className="rotulo">Regime tributário
+            <select className="campo" name="regime_tributario" defaultValue={o.regime_tributario}>
+              <option value="simples">Simples Nacional</option>
+              <option value="simples_excesso">Simples Nacional, acima do sublimite</option>
+              <option value="normal">Regime normal (Lucro Presumido ou Real)</option>
+            </select>
+          </label>
+          <label className="rotulo">Inscrição estadual<CampoMascara mascara="digitos" name="inscricao_estadual" defaultValue={o.inscricao_estadual} /></label>
+          <label className="rotulo" style={{ flex: "0 1 120px" }}>Série da NFC-e<input className="campo" name="nfce_serie" type="number" min={1} max={999} defaultValue={o.nfce_serie} /></label>
+        </div>
+        <p className="vazio">
+          Emissão de NFC-e: {o.nfce_ambiente === "producao" ? "em produção (notas com valor fiscal)" : "em teste (homologação, sem valor fiscal)"}.
+          O certificado digital e o código da SEFAZ (CSC) são configurados com o suporte do Vitral.
+        </p>
+        <p className="vazio">Plano Vitral (tudo incluído) · situação: {o.status}. Plano Especial (PDV e caixa) e adicionais (notas fiscais: NFC-e no caixa e entrada pela nota do fornecedor; lojas extras) são contratados com o suporte do Vitral.</p>
 
         <h2>Site institucional</h2>
         <p className="vazio">
           {o.slug
             ? <>Endereço: <a href={`/site/${o.slug}`} target="_blank" rel="noreferrer">/site/{o.slug}</a> (o domínio próprio é ligado pelo suporte).</>
-            : "O endereço do site ainda não foi definido. Peça ao suporte do Vitra."}
+            : "O endereço do site ainda não foi definido. Peça ao suporte do Vitral."}
         </p>
         <label className="marcar"><input type="checkbox" name="site_publicado" defaultChecked={o.site_publicado} /> Site publicado</label>
         <label className="rotulo">Frase de destaque<input className="campo" name="site_titulo" defaultValue={o.site_titulo ?? ""} placeholder="Óculos e lentes com atendimento de verdade" /></label>
         <label className="rotulo">Sobre a ótica<textarea className="campo" name="site_sobre" rows={4} defaultValue={o.site_sobre ?? ""} /></label>
         <div className="linha">
           <label className="rotulo">Endereço<input className="campo" name="site_endereco" defaultValue={o.site_endereco ?? ""} /></label>
-          <label className="rotulo">WhatsApp do site<input className="campo" name="site_whatsapp" defaultValue={o.site_whatsapp ?? ""} inputMode="tel" /></label>
+          <label className="rotulo">WhatsApp do site<CampoMascara mascara="telefone" name="site_whatsapp" defaultValue={o.site_whatsapp} /></label>
         </div>
         <div className="linha">
           <label className="rotulo">Horário de funcionamento<textarea className="campo" name="site_horario" rows={2} defaultValue={o.site_horario ?? ""} placeholder={"Seg a sex 9h às 18h\nSáb 9h às 13h"} /></label>
-          <label className="rotulo">Instagram<input className="campo" name="site_instagram" defaultValue={o.site_instagram ?? ""} placeholder="@oticaomega" /></label>
+          <label className="rotulo">Instagram<input className="campo" name="site_instagram" defaultValue={o.site_instagram ?? ""} placeholder="@oticasnery" /></label>
           <label className="rotulo">Cor principal<input className="campo" type="color" name="site_cor" defaultValue={o.site_cor ?? "#0f6e64"} /></label>
         </div>
         <div className="janela-botoes"><button className="botao" type="submit">Salvar</button></div>
@@ -59,7 +76,7 @@ export default async function ConfigOtica({ searchParams }: { searchParams: Prom
         ))}
         <form action={criarLoja} className="linha">
           <input className="campo" name="nome" placeholder="Nome da loja" aria-label="Nome da loja" required />
-          <input className="campo" name="telefone" placeholder="Telefone" aria-label="Telefone" />
+          <CampoMascara mascara="telefone" name="telefone" placeholder="Telefone" aria-label="Telefone" />
           <input className="campo" name="endereco" placeholder="Endereço" aria-label="Endereço" />
           <button className="botao-secundario" type="submit">Adicionar loja</button>
         </form>
