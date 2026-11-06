@@ -82,7 +82,7 @@ export default function SiteDoVitral() {
         <p style={{ fontSize: 32, fontWeight: 700 }}>R$ 99<span style={{ fontSize: 16, fontWeight: 500 }}> por mês</span></p>
         <p>
           Plano único com tudo incluído: consultório, vendas, laboratório, agenda, clientes e receitas, produtos e estoque,
-          relatórios, site da ótica e usuários à vontade. Adicionais só para quem precisa: notas fiscais (emissão de NFC-e no caixa e entrada de mercadoria pelo XML da nota do fornecedor) e lojas extras.
+          relatórios, site da ótica e usuários à vontade. Para quem quer mais: o Plano Especial traz o PDV completo (caixa com troco, venda rápida pelo código de barras, sangria, suprimento e fechamento conferido). Adicionais: notas fiscais (NFC-e no caixa e entrada de mercadoria pelo XML da nota do fornecedor) e lojas extras.
         </p>
       </section>
 

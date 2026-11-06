@@ -31,6 +31,24 @@ export default async function PaginaCaixa({ searchParams }: { searchParams: Prom
     .maybeSingle();
 
   if (!caixa) {
+    // sem o Plano Especial não abre caixa (o banco recusa); com caixa aberto, segue até fechar
+    const { data: planoEspecial } = await supabase.rpc("recurso_ativo", { r: "plano_especial" });
+    if (!planoEspecial) {
+      return (
+        <>
+          <h1>Caixa</h1>
+          <section className="bloco">
+            <span className="etiqueta" style={{ alignSelf: "flex-start" }}>Plano Especial</span>
+            <h2>PDV e caixa fazem parte do Plano Especial</h2>
+            <p>
+              Com o Plano Especial a ótica tem o caixa completo: abrir com o troco, venda rápida pelo código de barras, várias formas
+              de pagamento e crediário, sangria e suprimento, fechamento com conferência da gaveta e cupom.
+            </p>
+            <p className="vazio">Para contratar, fale com o suporte do Vitral. O histórico de vendas e caixas continua aberto para consulta.</p>
+          </section>
+        </>
+      );
+    }
     const { data: lojas } = await supabase.from("lojas").select("id, nome").eq("ativa", true).order("criado_em");
     return (
       <>

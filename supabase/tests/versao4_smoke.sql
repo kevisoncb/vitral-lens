@@ -22,6 +22,13 @@ insert into comissao_regras (percentual) values (5);
 insert into clientes (id, nome) values ('a9400000-0000-0000-0000-000000000001', 'Cliente PDV');
 reset role;
 
+-- sem o Plano Especial (0022): não abre caixa
+set role authenticated; set request.jwt.claim.sub = 'a9200000-0000-0000-0000-000000000002';
+select abrir_caixa(null, 100);
+select 'caixas sem plano (esperado 0)' as teste, count(*) from caixas;
+reset role;
+insert into otica_adicionais (otica_id, recurso) values ('a9000000-0000-0000-0000-000000000001', 'plano_especial');
+
 -- caixa abre o caixa (abrir de novo devolve o mesmo) e vende
 set role authenticated; set request.jwt.claim.sub = 'a9200000-0000-0000-0000-000000000002';
 select 'abre caixa' as teste, abrir_caixa(null, 100) = abrir_caixa(null, 999) as mesmo;
@@ -87,3 +94,14 @@ insert into horarios_trabalho (loja_id, dia_semana, inicio, fim) values ('a91000
 insert into motivos_perda (nome) values ('Sem dinheiro agora');
 reset role;
 select 'horario sem otica_id (esperado 1)' as teste, count(*) from horarios_trabalho where otica_id = 'a9000000-0000-0000-0000-000000000001';
+
+-- o plano acaba com o caixa aberto: fecha normalmente (o dinheiro nunca fica preso), mas não vende nem abre outro
+set role authenticated; set request.jwt.claim.sub = 'a9200000-0000-0000-0000-000000000002';
+select abrir_caixa(null, 10) is not null as reabriu;
+reset role;
+delete from otica_adicionais where otica_id = 'a9000000-0000-0000-0000-000000000001' and recurso = 'plano_especial';
+set role authenticated; set request.jwt.claim.sub = 'a9200000-0000-0000-0000-000000000002';
+select registrar_venda((select id from caixas where fechado_em is null and operador_id = 'a9200000-0000-0000-0000-000000000002'), null,
+  '[{"item_id": "a9300000-0000-0000-0000-000000000001", "quantidade": 1}]', 0, '[{"forma": "dinheiro", "valor": 50}]');
+select 'fecha sem plano' as teste, (fechar_caixa((select id from caixas where fechado_em is null and operador_id = 'a9200000-0000-0000-0000-000000000002'), 10) ->> 'diferenca') is not null as ok;
+reset role;

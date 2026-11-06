@@ -73,7 +73,7 @@ export const MENU: SecaoMenu[] = [
     itens: [
       { modulo: "consultorio", rotulo: "Consultório", href: "/consultorio", soGestao: true },
       { modulo: "laboratorio", rotulo: "Produção (laboratório)", href: "/producao", soGestao: true },
-      { modulo: "pdv", rotulo: "PDV (caixa)", href: "/pdv", soGestao: true },
+      { modulo: "pdv", rotulo: "PDV (caixa)", href: "/pdv", soGestao: true, adicional: "plano_especial" },
       { modulo: "financeiro", rotulo: "Financeiro", href: "/financeiro", soGestao: true },
     ],
   },

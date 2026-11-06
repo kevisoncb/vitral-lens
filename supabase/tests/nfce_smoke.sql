@@ -18,6 +18,7 @@ insert into clientes (id, nome, cpf) values ('ad400000-0000-0000-0000-0000000000
 reset role;
 
 -- caixa vende: 1 armação + 2 estojos = 400, desconto 10 (até 10% pode), Pix 190 + crédito 200
+insert into otica_adicionais (otica_id, recurso) values ('ad000000-0000-0000-0000-000000000001', 'plano_especial');
 set role authenticated; set request.jwt.claim.sub = 'ad200000-0000-0000-0000-000000000002';
 select abrir_caixa(null, 0) is not null as caixa;
 select registrar_venda((select id from caixas where fechado_em is null), 'ad400000-0000-0000-0000-000000000001',

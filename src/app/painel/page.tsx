@@ -64,6 +64,7 @@ export default async function PainelOticas({ searchParams }: { searchParams: Pro
                       </td>
                       <td>
                         <form action={salvarAdicionais.bind(null, o.id)} className="linha" style={{ flexWrap: "nowrap" }}>
+                          <label className="marcar"><input type="checkbox" name="plano_especial" defaultChecked={!!adicionais.plano_especial} /> Plano Especial (PDV)</label>
                           <label className="marcar"><input type="checkbox" name="nota_fiscal" defaultChecked={!!adicionais.nota_fiscal} /> Notas fiscais</label>
                           <label className="marcar">Lojas extras
                             <input className="campo" name="multiloja" type="number" min={0} max={50} defaultValue={adicionais.multiloja ?? 0} style={{ width: 70 }} />

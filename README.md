@@ -9,7 +9,7 @@
 **consultório** (exame → receita) → **loja** (orçamento → pagamento) → **laboratório** (ficha técnica → construção do óculos → entrega).
 Tudo ligado ao mesmo cliente, sem redigitar nada, com os cards passando de uma área para outra em tempo real.
 
-Plano único de **R$ 99/mês** com tudo incluído. Adicionais pagos: **notas fiscais** (NFC-e no caixa e entrada de mercadoria pelo XML da nota do fornecedor) e lojas extras. Foco inicial: óticas pequenas do interior; depois, cidades grandes.
+Plano de **R$ 99/mês** com o fluxo completo (consultório, loja, laboratório). **Plano Especial**: o PDV e o caixa. Adicionais pagos: **notas fiscais** (NFC-e no caixa e entrada de mercadoria pelo XML da nota do fornecedor) e lojas extras. Foco inicial: óticas pequenas do interior; depois, cidades grandes.
 
 Stack: Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Storage, Realtime), Firebase App Hosting (servidor do Next.js; `apphosting.yaml`). CSS puro em `src/app/globals.css`.
 
@@ -43,6 +43,7 @@ Legenda: ✅ testado · 🟡 escrito, nunca executado · ⬜ não existe
 | 0019 | Clientes para chamar: `clientes_para_chamar()` (aniversário em 7 dias, receita vencendo, óculos há 1 ano, orçamento perdido há 1 a 6 meses; só quem tem telefone; 29/02 vira 28/02) e `cliente_contatos` (marcou "chamei", sai da lista do ciclo; só se acrescenta) | ✅ |
 | 0020 | LGPD do cliente: `acessos_dados_cliente` (quem viu receita ou exame, exportou ou anonimizou; só se acrescenta; só o dono vê), `exportar_cliente()` (tudo num JSON), `anonimizar_cliente()` (some o que identifica, inclusive das cópias da auditoria; receita, exame e vendas ficam sem nome), `clientes.anonimizado_em` | ✅ |
 | 0021 | Assinatura da OS pelo link: `os_assinaturas` (retrato do que o cliente viu, vale 7 dias, assina uma vez), `gerar_link_assinatura()` (loja), `os_para_assinar()` e `assinar_os()` para o público só com o código do link; recado na OS quando assina | ✅ |
+| 0022 | PDV e caixa só no **Plano Especial** (adicional `plano_especial`): gatilho `exige_plano_especial()` em `caixas` e `vendas` recusa abrir caixa e gravar venda sem ele; fechar caixa, cancelar venda e o histórico continuam liberados (o dinheiro da gaveta nunca fica preso) | ✅ |
 | 0018 | NFC-e pelo caixa via Focus NFe: configuração fiscal da ótica, `nfe_credenciais` (token por ótica, só o servidor usa), `notas_fiscais`, `preparar_nfce()` (confere adicional, cadastro fiscal, rateia o desconto, retoma nota sem resposta), `registrar_retorno_nfce()`, cancelamento em 30 min só pelo gerente | ✅ |
 
 ### Telas (`src/`): todas 🟡, compilam (`typecheck` e `build` passam) mas ainda não foram abertas com um Supabase de verdade
@@ -79,7 +80,7 @@ A venda do PDV (`src/app/pdv/venda.tsx`) foi aberta no navegador com produtos de
 | Público | Site do Vitral com preço e lista de espera (quem está logado vai para o sistema) | `/` |
 | Público | Guia da reforma tributária para óticas (linha do tempo, Simples híbrido e prazos, nota fiscal, checklist, fontes); link no site, no financeiro e no cadastro do produto | `/reforma-tributaria` |
 | Todas | Instalar como app (PWA): ícone na tela inicial, tela cheia, atalhos para Vendas, Caixa e Produção | `/manifest.webmanifest` |
-| PDV | Caixa: abrir, venda rápida (código de barras, várias formas, crediário, troco), sangria/suprimento, fechar com conferência | `/pdv` |
+| PDV | Caixa (**Plano Especial**): abrir, venda rápida (código de barras, várias formas, crediário, troco), sangria/suprimento, fechar com conferência; sem o plano, a tela explica o Plano Especial | `/pdv` |
 | PDV | Vendas do dia (gerente cancela e devolve ao estoque), caixas fechados com diferença | `/pdv/vendas`, `/pdv/caixas` |
 | PDV | NFC-e: emitir depois de finalizar a venda ou na lista de vendas, DANFCe, cancelamento pelo gerente em até 30 min (com o adicional `nota_fiscal`; só Simples Nacional nesta versão) | `/pdv`, `/pdv/vendas` |
 | PDV | Cupom sem valor fiscal (impressora térmica de 80 mm), aberto ao finalizar a venda | `/cupom/[id]` |
@@ -142,6 +143,9 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - [ ] Contagem inicial do estoque das Óticas Nery (tela Estoque → Contagem, produto a produto) e cadastrar as regras de comissão.
 - [x] Emissão de NFC-e pelo caixa (Focus NFe), ligada ao adicional `nota_fiscal`.
 - [ ] Contratar a Focus NFe na conta do dono do produto, cadastrar a empresa das Óticas Nery (certificado A1, CSC com o suporte da Focus), pôr os tokens no painel e testar em homologação.
+- [x] Decidido: PDV e caixa só no Plano Especial (adicional `plano_especial`, ligado no painel).
+- [ ] Definir o preço do Plano Especial e se ele inclui as notas fiscais (hoje são separados).
+- [ ] PDV: receber no caixa o sinal e o saldo dos óculos (hoje o pagamento do funil não entra na gaveta), troca e devolução de parte da venda, comprovante impresso do fechamento.
 - [x] Decidido: notas fiscais são adicional pago (NFC-e no caixa e entrada pela nota do fornecedor), nunca no plano básico.
 - [ ] Organizar do mesmo jeito os menus das outras áreas (PDV, financeiro, consultório, produção) e a tela de Início.
 - [ ] Conferir na documentação da Focus os campos de IBS/CBS da NFC-e para 2027 (o leitor da documentação não achou) e o código do Pix (hoje "17").
@@ -175,7 +179,8 @@ Marque com `[x]` quando terminar e anote no Histórico.
 - **Exame concluído não muda mais** (é prontuário). Correção = novo exame.
 - **Multiempresa:** toda tabela de negócio tem `otica_id` e RLS. Receita e exame são dados de saúde (LGPD).
 - **Permissões:** perfil × módulo × ação (`ver`, `criar`, `editar`, `excluir`). Quem decide é o banco (`acesso()`); a tela só esconde botões. O perfil Dono não perde acesso e a ótica nunca fica sem Dono ativo.
-- **Plano único:** tudo incluído. Adicionais em `recursos_adicionais` / `otica_adicionais`: notas fiscais (`nota_fiscal`: NFC-e no caixa **e** entrada pela nota do fornecedor; o banco recusa as duas sem o adicional) e lojas extras (o banco bloqueia a 2ª loja sem o adicional). O menu mostra o selo "adicional" no que a ótica não contratou.
+- **Plano Especial:** PDV e caixa (adicional `plano_especial`). Sem ele o banco não abre caixa nem grava venda do PDV; fechar caixa, cancelar venda e consultar o histórico seguem liberados. O nome não é `pdv` de propósito: `acesso()` desliga o módulo inteiro quando o adicional tem o nome do módulo.
+- **Plano único:** tudo incluído (menos o PDV, do Plano Especial). Adicionais em `recursos_adicionais` / `otica_adicionais`: notas fiscais (`nota_fiscal`: NFC-e no caixa **e** entrada pela nota do fornecedor; o banco recusa as duas sem o adicional) e lojas extras (o banco bloqueia a 2ª loja sem o adicional). O menu mostra o selo "adicional" no que a ótica não contratou.
 - **Cada coisa no seu lugar:** venda é venda, cliente é cliente, produto é produto. O menu é separado por assunto; preço, custo e impostos só mudam na página do produto (a lista de produtos não edita); a entrada pela nota só dá entrada.
 - **Produto na venda:** se não estiver no catálogo, o balcão cadastra ali mesmo e ele entra no catálogo. Armação pede foto (reduzida no aparelho antes de enviar); lente não.
 - **WhatsApp:** nunca automático. Só link `wa.me` com mensagem pronta (`src/lib/whatsapp.ts`).
@@ -301,6 +306,7 @@ src/app/conta/         minha conta (qualquer área)
 
 Mais recente em cima. Uma linha por sessão: data, o que mudou, o que ficou pendente.
 
+- **2026-11-06 (28)** — PDV e caixa só no Plano Especial: migração 0022 (adicional `plano_especial`, gatilho em `caixas` e `vendas`), tela do caixa explica o plano, selo "adicional" no menu, caixa no painel do Vitral, textos do site e das configurações. Teste no `versao4_smoke` (sem plano não abre; plano acaba com o caixa aberto: fecha, não vende). Revisão do PDV: abrir, vender, sangria, suprimento, fechar, cancelar, cupom e NFC-e estão prontos. Pendente: preço do Plano Especial; receber o pagamento dos óculos no caixa; troca/devolução parcial; comprovante do fechamento.
 - **2026-11-06 (27)** — Cinco frentes. (1) Clientes para chamar: migração 0019, tela `/clientes/chamar` com WhatsApp pronto por motivo e "Já chamei". (2) LGPD: migração 0020, ficha com baixar dados, anonimizar e quem viu receita/exame (registrado também no consultório); a anonimização limpa até as cópias da auditoria (achado no teste). (3) Assinatura da OS pelo link: migração 0021, bloco na OS da loja e página pública `/assinar/[token]` com quadro para o dedo. (4) Backup das fotos pela interface S3 do Storage, semanal, testado contra S3 falso no CI. (5) Barras das áreas com aba atual, menu no celular e "Ir para" da gestão; Início com números do dia e um cartão por assunto. Testes novos: `chamar_smoke`, `lgpd_smoke`, `assinatura_smoke`, `backup_fotos_teste`. Pendente: abrir essas telas num Supabase real; segredos do backup das fotos.
 - **2026-11-06 (26)** — Backup diário do banco pelo GitHub Actions (`.github/workflows/backup.yml`, 03:17, guarda 30 dias): dados das óticas, logins e extensões num arquivo criptografado com senha (AES-256), conferido antes de guardar. Restauração por `supabase/backup/restaurar.sh`, tudo ou nada, só em banco vazio; zera as permissões padrão do projeto novo antes de aplicar as do backup (sem isso, estoque, comissões, vendas e notas voltavam aceitando gravação direta: achado no teste). `supabase/tests/backup_teste.sh` no CI restaura num banco vazio e compara dados, regras, gatilhos, funções e permissões. Pendente: criar os segredos no GitHub; fotos do Storage fora do backup.
 - **2026-11-05 (25)** — Hospedagem trocada da Vercel para o Firebase App Hosting (o dono já paga o Blaze; Vercel gratuita não permite uso comercial): `apphosting.yaml` com as chaves no Secret Manager (a service role só no servidor) e passo a passo na seção 4. O banco continua no Supabase (gratuito no piloto, Pro quando houver 2 ou 3 óticas pagando). Pendente: backup diário do banco pelo GitHub Actions; conferir se o App Hosting tem região em São Paulo.

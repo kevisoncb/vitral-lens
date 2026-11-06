@@ -73,6 +73,7 @@ export async function salvarAdicionais(oticaId: string, formulario: FormData) {
   const lojasExtras = Math.max(0, Math.floor(Number(formulario.get("multiloja")) || 0));
   for (const [recurso, quantidade] of [
     ["nota_fiscal", formulario.get("nota_fiscal") === "on" ? 1 : 0],
+    ["plano_especial", formulario.get("plano_especial") === "on" ? 1 : 0],
     ["multiloja", lojasExtras],
   ] as const) {
     const { error } = await supabase.rpc("painel_definir_adicional", { p_otica: oticaId, p_recurso: recurso, p_quantidade: quantidade });

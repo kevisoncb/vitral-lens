@@ -6,7 +6,7 @@
 - **Ao terminar**, atualize o `README.md` no mesmo commit: a tabela de Estado (✅ testado, 🟡 escrito sem rodar, ⬜ não existe), o Checklist (marque o que fez, acrescente o que descobriu) e uma linha nova no topo do Histórico com data, o que mudou e o que ficou pendente.
 - Se uma regra do produto mudar, mude nos dois lugares (README e aqui).
 
-**Diferencial:** consultório (exame → receita) + loja (orçamento → pagamento) + laboratório (construção do óculos → entrega) num fluxo só, cada área com tela própria e os cards conversando entre elas em tempo real. Plano único de R$ 99 com adicionais (nota fiscal, lojas extras). Foco: óticas pequenas do interior, depois cidade grande.
+**Diferencial:** consultório (exame → receita) + loja (orçamento → pagamento) + laboratório (construção do óculos → entrega) num fluxo só, cada área com tela própria e os cards conversando entre elas em tempo real. Plano de R$ 99, Plano Especial com o PDV e adicionais (nota fiscal, lojas extras). Foco: óticas pequenas do interior, depois cidade grande.
 
 Sistema web (SaaS) para óticas, criado por um freelancer para o cliente piloto **Óticas Nery** e depois vendido a outras óticas. Nome do produto: **Vitral**. Repositório: `vitral-lens` ("lens" é só diferencial do nome do repositório).
 
@@ -29,7 +29,8 @@ Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Stora
 - **Funil de vendas:** Atendimento → Orçamento enviado → Sem retorno → Recuperado / Perdido. Mover para Perdido exige motivo (regra no banco, trigger `atendimento_mudou`).
 - **Laboratório:** Pago → No laboratório → Em montagem → Chegou na loja → Cliente avisado → Entregue. Ao registrar o pagamento, a OS é criada (`registrar_pagamento()` → `criar_os_do_atendimento()`) com a ficha técnica preenchida pela receita e pelo orçamento. Pago, Cliente avisado e Entregue são da loja; No laboratório, Em montagem e Chegou na loja são do laboratório. Exame concluído não muda mais (prontuário).
 - **Agenda:** o mesmo horário nunca é marcado duas vezes (constraint `consulta_sem_conflito`). O site de agendamento usa `horarios_ocupados()`, que expõe só os horários.
-- **Plano único (R$ 99):** tudo incluído. Adicionais em `recursos_adicionais`/`otica_adicionais` (notas fiscais: NFC-e no caixa e entrada pela nota do fornecedor; lojas extras); `recurso_ativo()` só bloqueia o que é adicional. Nota fiscal nunca é grátis.
+- **Plano Especial:** PDV e caixa (adicional `plano_especial`; gatilho `exige_plano_especial()` em `caixas` e `vendas`). Sem ele não abre caixa nem vende; fechar, cancelar e o histórico seguem liberados. Nunca dê a um adicional o nome de um módulo (`acesso()` desliga o módulo inteiro).
+- **Plano único (R$ 99):** tudo incluído, menos o PDV. Adicionais em `recursos_adicionais`/`otica_adicionais` (notas fiscais: NFC-e no caixa e entrada pela nota do fornecedor; lojas extras); `recurso_ativo()` só bloqueia o que é adicional. Nota fiscal nunca é grátis.
 - **Cada coisa no seu lugar:** venda é venda, cliente é cliente, produto é produto. Menu por seções (`MENU` em `src/lib/permissoes.ts`); preço, custo e impostos só mudam na página do produto; telas não editam dado de outro assunto. `oticas.plano` e `plano_recursos` ficaram só por compatibilidade.
 - **Produto na venda:** não achou no catálogo, cadastra na hora (`criado_na_venda`); armação pede foto (`/catalogo/fotos`, reduzida no navegador); lente não.
 - **PDV e financeiro (Versão 4):** módulos separados no mesmo projeto, com login e menu próprios. O PDV mostra só vendas; o financeiro (gerente) tem contas a pagar e a receber, custos, impostos e acesso do contador (perfil Contador, só leitura). Venda do PDV só por `registrar_venda()` (preço do catálogo; desconto acima de 10% exige `pdv:editar`; crediário vira conta a receber); só o gerente cancela (`cancelar_venda()` devolve ao estoque).
@@ -51,7 +52,7 @@ Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Stora
 
 ## Estado atual e próximos passos
 
-Ficam no `README.md` (seções 1 e 2), para não ter duas versões. Resumo: banco testado (0001 a 0021); o `src/` já compila (`npm run typecheck` e `npm run build` passam), mas as telas ainda não foram abertas com um Supabase real; o próximo passo é criar o projeto no Supabase, `.env.local` e `npm run dev`.
+Ficam no `README.md` (seções 1 e 2), para não ter duas versões. Resumo: banco testado (0001 a 0022); o `src/` já compila (`npm run typecheck` e `npm run build` passam), mas as telas ainda não foram abertas com um Supabase real; o próximo passo é criar o projeto no Supabase, `.env.local` e `npm run dev`.
 
 ## Telas de referência
 

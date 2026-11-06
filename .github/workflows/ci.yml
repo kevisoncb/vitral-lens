@@ -117,6 +117,9 @@ jobs:
       - name: Teste da Versão 4 (PDV e financeiro)
         run: |
           psql -q -f supabase/tests/versao4_smoke.sql 2>&1 | tee versao4.txt
+          grep -q "O PDV e o caixa fazem parte do Plano Especial" versao4.txt
+          grep -q "caixas sem plano (esperado 0) | *0" versao4.txt
+          grep -q "fecha sem plano | t" versao4.txt
           grep -q "areas v4 | caixa=pdv,contador=financeiro,financeiro=financeiro" versao4.txt
           grep -q "abre caixa | t" versao4.txt
           grep -q "Desconto acima de 10% precisa do gerente" versao4.txt
