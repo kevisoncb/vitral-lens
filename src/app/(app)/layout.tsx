@@ -6,6 +6,7 @@ import { obterSessao } from "@/lib/sessao";
 import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { sair } from "../login/actions";
 import { Navegacao } from "./navegacao";
+import { recursosLiberados } from "@/lib/planos";
 
 /** Tela da loja (balcão) e da gestão. Consultório e laboratório vão para as telas deles. */
 export default async function LayoutDaLoja({ children }: { children: React.ReactNode }) {
@@ -37,7 +38,7 @@ export default async function LayoutDaLoja({ children }: { children: React.React
   const gestao = sessao.area === "gestao";
   const supabase = await criarClienteServidor();
   const { data: contratados } = await supabase.from("otica_adicionais").select("recurso");
-  const temAdicional = new Set((contratados ?? []).map((a) => a.recurso));
+  const temAdicional = recursosLiberados((contratados ?? []).map((a) => a.recurso));
   const secoes = MENU.map((secao) => ({
     titulo: secao.titulo,
     itens: secao.itens

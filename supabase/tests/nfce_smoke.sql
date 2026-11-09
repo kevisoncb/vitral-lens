@@ -24,10 +24,14 @@ select abrir_caixa(null, 0) is not null as caixa;
 select registrar_venda((select id from caixas where fechado_em is null), 'ad400000-0000-0000-0000-000000000001',
   '[{"item_id": "ad300000-0000-0000-0000-000000000001", "quantidade": 1}, {"item_id": "ad300000-0000-0000-0000-000000000002", "quantidade": 2}]',
   10, '[{"forma": "pix", "valor": 190}, {"forma": "credito", "valor": 200, "parcelas": 2}]') is not null as venda;
--- sem o adicional de nota fiscal
+reset role;
+-- o plano acabou depois da venda (sem Especial e sem notas avulsas): não emite
+delete from otica_adicionais where otica_id = 'ad000000-0000-0000-0000-000000000001';
+set role authenticated; set request.jwt.claim.sub = 'ad200000-0000-0000-0000-000000000002';
 select preparar_nfce((select id from vendas limit 1));
 reset role;
-insert into otica_adicionais (otica_id, recurso) values ('ad000000-0000-0000-0000-000000000001', 'nota_fiscal');
+-- volta para o Especial, que inclui as notas fiscais (0023)
+insert into otica_adicionais (otica_id, recurso) values ('ad000000-0000-0000-0000-000000000001', 'plano_especial');
 
 -- sem o token configurado
 set role authenticated; set request.jwt.claim.sub = 'ad200000-0000-0000-0000-000000000002';

@@ -27,12 +27,12 @@ export default async function EntradaPelaNota() {
           <h1>Entrada pela nota do fornecedor</h1>
         </div>
         <section className="bloco">
-          <span className="etiqueta" style={{ alignSelf: "flex-start" }}>Adicional pago</span>
+          <span className="etiqueta" style={{ alignSelf: "flex-start" }}>Plano Especial</span>
           <h2>Dê entrada na mercadoria subindo o XML da nota</h2>
           <p>
-            Com o adicional <strong>Notas fiscais</strong>, você sobe o arquivo XML que o fornecedor manda e o sistema dá entrada em
+            Com o <strong>Plano Especial</strong> (ou as notas fiscais avulsas), você sobe o arquivo XML que o fornecedor manda e o sistema dá entrada em
             todos os produtos de uma vez, com o custo de compra, cadastra os que faltam e lança os boletos em contas a pagar.
-            O mesmo adicional libera a emissão de NFC-e no caixa.
+            O Plano Especial também traz o PDV com o caixa e a emissão de NFC-e.
           </p>
           <p className="vazio">Para contratar, fale com o suporte do Vitral. Sem o adicional, a entrada continua pelo Estoque, produto a produto.</p>
           <Link className="botao-secundario" href="/estoque" style={{ alignSelf: "flex-start", textDecoration: "none" }}>Ir para o Estoque</Link>

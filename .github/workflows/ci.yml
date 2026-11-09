@@ -160,7 +160,7 @@ jobs:
           grep -q 'Quantidade inválida em "Novo com erro"' nfe.txt
           grep -q "notas lancadas (esperado 1) | *1" nfe.txt
           grep -q "Seu perfil não pode dar entrada no estoque" nfe.txt
-          grep -q "A entrada pela nota do fornecedor faz parte do adicional Notas fiscais" nfe.txt
+          grep -q "A entrada pela nota do fornecedor faz parte do Plano Especial" nfe.txt
           grep -q "Armação acetato preta ncm=90031900 cest=2805400 orig=0 un=UN final=166.25" nfe.txt
           grep -q "Óculos sol aviador ncm=90041000 cest=- orig=2 un=UN final=91.20" nfe.txt
           grep -q "custo do movimento | 62.50,91.20,166.25" nfe.txt
@@ -231,6 +231,16 @@ jobs:
           grep -q "Esta OS já foi assinada pelo cliente" assinatura.txt
           grep -q "vencido | expirada" assinatura.txt
           grep -q "Este link venceu. Peça um novo à ótica." assinatura.txt
+      - name: Teste dos planos (Essencial, notas avulsas, Especial)
+        run: |
+          psql -q -f supabase/tests/planos_smoke.sql 2>&1 | tee planos.txt
+          grep -q "precos | plano_especial=100.00+nota_fiscal | nota_fiscal=a definir | multiloja=49.00" planos.txt
+          grep -q "liberado | avulso:notas=true,pdv=false,clientes=true | especial:notas=true,pdv=true,clientes=true | essencial:notas=false,pdv=false,clientes=true" planos.txt
+          grep -q "especial entrada pela nota | 2" planos.txt
+          grep -q "especial abre caixa | t" planos.txt
+          grep -q "avulso entrada pela nota | 1" planos.txt
+          test "$(grep -c 'O PDV e o caixa fazem parte do Plano Especial' planos.txt)" = 2
+          grep -q "A entrada pela nota do fornecedor faz parte do Plano Especial" planos.txt
       - name: Consultas das telas batem com o banco (tabelas, colunas, relações, rpc)
         run: |
           npm ci

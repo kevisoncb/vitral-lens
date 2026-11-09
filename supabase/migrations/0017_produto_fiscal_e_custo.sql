@@ -76,7 +76,7 @@ begin
   end if;
   -- entrada pela nota do fornecedor é paga à parte: faz parte do adicional de notas fiscais
   if not recurso_ativo('nota_fiscal') then
-    raise exception 'A entrada pela nota do fornecedor faz parte do adicional Notas fiscais. Fale com o suporte do Vitral para contratar.'
+    raise exception 'A entrada pela nota do fornecedor faz parte do Plano Especial (ou das notas fiscais avulsas). Fale com o suporte do Vitral para contratar.'
       using errcode = 'insufficient_privilege';
   end if;
   if v_numero = '' or v_forn = '' then

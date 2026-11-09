@@ -1,3 +1,5 @@
+import { moeda } from "@/lib/formatar";
+import { mensalidade, nomeDoPlano, PRECO_ESPECIAL, PRECO_LOJA_EXTRA } from "@/lib/planos";
 import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { Abas } from "./abas";
 import { criarLoja, salvarOtica } from "./actions";
@@ -6,10 +8,12 @@ import { CampoMascara } from "@/components/campo-mascara";
 export default async function ConfigOtica({ searchParams }: { searchParams: Promise<{ erro?: string; ok?: string }> }) {
   const { erro, ok } = await searchParams;
   const supabase = await criarClienteServidor();
-  const [oticaR, lojasR] = await Promise.all([
+  const [oticaR, lojasR, adicionaisR] = await Promise.all([
     supabase.from("oticas").select("*").maybeSingle(),
     supabase.from("lojas").select("id, nome, telefone, endereco, ativa").order("criado_em"),
+    supabase.from("otica_adicionais").select("recurso, quantidade"),
   ]);
+  const adicionais = Object.fromEntries((adicionaisR.data ?? []).map((a) => [a.recurso, a.quantidade])) as Record<string, number>;
   const o = oticaR.data;
   if (!o) return <p>Ótica não encontrada.</p>;
 
@@ -43,7 +47,13 @@ export default async function ConfigOtica({ searchParams }: { searchParams: Prom
           Emissão de NFC-e: {o.nfce_ambiente === "producao" ? "em produção (notas com valor fiscal)" : "em teste (homologação, sem valor fiscal)"}.
           O certificado digital e o código da SEFAZ (CSC) são configurados com o suporte do Vitral.
         </p>
-        <p className="vazio">Plano Vitral (tudo incluído) · situação: {o.status}. Plano Especial (PDV e caixa) e adicionais (notas fiscais: NFC-e no caixa e entrada pela nota do fornecedor; lojas extras) são contratados com o suporte do Vitral.</p>
+        <p className="vazio">
+          Plano {nomeDoPlano(adicionais)} ({moeda(mensalidade(adicionais))} por mês) · situação: {o.status}.{" "}
+          {adicionais.plano_especial
+            ? "Inclui PDV, caixa e notas fiscais."
+            : `O Plano Especial (${moeda(PRECO_ESPECIAL)}) traz PDV, caixa e notas fiscais.`}{" "}
+          Mudança de plano e lojas extras ({moeda(PRECO_LOJA_EXTRA)} cada) com o suporte do Vitral.
+        </p>
 
         <h2>Site institucional</h2>
         <p className="vazio">

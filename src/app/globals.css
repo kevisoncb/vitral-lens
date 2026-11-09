@@ -684,3 +684,11 @@ a.botao-secundario { display: inline-flex; align-items: center; text-decoration:
 .assinar-dados dd { margin: 0; font-weight: 600; }
 .quadro-assinatura { width: 100%; height: 180px; border: 2px dashed var(--borda-campo); border-radius: 12px; background: #fff; touch-action: none; cursor: crosshair; }
 .assinatura-feita { max-width: 320px; width: 100%; height: auto; border: 1px solid var(--borda); border-radius: 10px; background: #fff; }
+.planos { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; align-items: stretch; }
+.plano { position: relative; border: 1px solid #e3e9e6; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 8px; background: #fff; }
+.plano h3 { margin: 0; font-size: 20px; }
+.plano ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; line-height: 1.45; }
+.plano-preco { margin: 0 0 8px; font-size: 32px; font-weight: 700; }
+.plano-preco span { font-size: 16px; font-weight: 500; color: #56625e; }
+.plano-destaque { border: 2px solid var(--site-cor, #0f6e64); }
+.plano-selo { position: absolute; top: -12px; right: 20px; background: var(--site-cor, #0f6e64); color: #fff; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }

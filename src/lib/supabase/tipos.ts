@@ -2582,14 +2582,23 @@ export type Database = {
         Row: {
           recurso: string;
           nome: string;
+          inclui: string[];
+          preco_mensal: number | null;
+          ordem: number;
         };
         Insert: {
           recurso: string;
           nome: string;
+          inclui?: string[];
+          preco_mensal?: number | null;
+          ordem?: number;
         };
         Update: {
           recurso?: string;
           nome?: string;
+          inclui?: string[];
+          preco_mensal?: number | null;
+          ordem?: number;
         };
         Relationships: [
         ];

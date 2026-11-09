@@ -71,9 +71,11 @@ export async function mudarStatus(oticaId: string, formulario: FormData) {
 export async function salvarAdicionais(oticaId: string, formulario: FormData) {
   const supabase = await criarClienteServidor();
   const lojasExtras = Math.max(0, Math.floor(Number(formulario.get("multiloja")) || 0));
+  const especial = formulario.get("plano") === "especial";
   for (const [recurso, quantidade] of [
-    ["nota_fiscal", formulario.get("nota_fiscal") === "on" ? 1 : 0],
-    ["plano_especial", formulario.get("plano_especial") === "on" ? 1 : 0],
+    // no Especial as notas fiscais já vêm incluídas: o avulso sai
+    ["plano_especial", especial ? 1 : 0],
+    ["nota_fiscal", !especial && formulario.get("nota_fiscal") === "on" ? 1 : 0],
     ["multiloja", lojasExtras],
   ] as const) {
     const { error } = await supabase.rpc("painel_definir_adicional", { p_otica: oticaId, p_recurso: recurso, p_quantidade: quantidade });

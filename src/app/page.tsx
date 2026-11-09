@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FormularioLista } from "./_vitral/formulario-lista";
+import { moeda } from "@/lib/formatar";
+import { PRECO_ESPECIAL, PRECO_ESSENCIAL, PRECO_LOJA_EXTRA } from "@/lib/planos";
 
 export const metadata: Metadata = {
   title: "Vitral · sistema para óticas",
-  description: "Consultório, loja e laboratório da sua ótica num fluxo só. Plano único de R$ 99 por mês.",
+  description: "Consultório, loja e laboratório da sua ótica num fluxo só. A partir de R$ 99 por mês.",
 };
 
 const AREAS = [
@@ -79,11 +81,32 @@ export default function SiteDoVitral() {
 
       <section className="site-bloco" id="preco">
         <h2>Preço</h2>
-        <p style={{ fontSize: 32, fontWeight: 700 }}>R$ 99<span style={{ fontSize: 16, fontWeight: 500 }}> por mês</span></p>
-        <p>
-          Plano único com tudo incluído: consultório, vendas, laboratório, agenda, clientes e receitas, produtos e estoque,
-          relatórios, site da ótica e usuários à vontade. Para quem quer mais: o Plano Especial traz o PDV completo (caixa com troco, venda rápida pelo código de barras, sangria, suprimento e fechamento conferido). Adicionais: notas fiscais (NFC-e no caixa e entrada de mercadoria pelo XML da nota do fornecedor) e lojas extras.
-        </p>
+        <div className="planos">
+          <article className="plano">
+            <h3>Essencial</h3>
+            <p className="plano-preco">{moeda(PRECO_ESSENCIAL)}<span> por mês</span></p>
+            <ul>
+              <li>Consultório: exame e receita</li>
+              <li>Loja: funil de vendas, orçamento, sinal e saldo</li>
+              <li>Laboratório: ordens de serviço ao vivo</li>
+              <li>Agenda, clientes, receitas, estoque e comissões</li>
+              <li>Site da ótica com agendamento online</li>
+              <li>Usuários à vontade</li>
+            </ul>
+          </article>
+          <article className="plano plano-destaque">
+            <span className="plano-selo">Completo</span>
+            <h3>Especial</h3>
+            <p className="plano-preco">{moeda(PRECO_ESPECIAL)}<span> por mês</span></p>
+            <ul>
+              <li><strong>Tudo do Essencial</strong></li>
+              <li>PDV: caixa com troco, venda rápida pelo código de barras, sangria, suprimento e fechamento conferido</li>
+              <li>Nota fiscal no caixa (NFC-e)</li>
+              <li>Entrada de mercadoria pelo XML da nota do fornecedor</li>
+            </ul>
+          </article>
+        </div>
+        <p className="vazio">Loja extra: + {moeda(PRECO_LOJA_EXTRA)} por mês cada. Sem fidelidade.</p>
       </section>
 
       <section className="site-bloco" id="lista">
