@@ -241,6 +241,28 @@ jobs:
           grep -q "avulso entrada pela nota | 1" planos.txt
           test "$(grep -c 'O PDV e o caixa fazem parte do Plano Especial' planos.txt)" = 2
           grep -q "A entrada pela nota do fornecedor faz parte do Plano Especial" planos.txt
+      - name: Teste do caixa (receber óculos e crediário, devolução, resumo e fechamento)
+        run: |
+          psql -q -f supabase/tests/caixa_smoke.sql 2>&1 | tee caixa.txt
+          grep -q "pendencias | oculos:Marta Souza:500.00" caixa.txt
+          grep -q "pelo telefone | *1" caixa.txt
+          grep -q "sinal no caixa cria OS | t" caixa.txt
+          grep -q "passa do que falta pagar (R\$ 300.00)" caixa.txt
+          grep -q "pendencias depois | *0" caixa.txt
+          grep -q "parcela no caixa | t" caixa.txt
+          grep -q "parcelas abertas | 70.00" caixa.txt
+          grep -q "Só o gerente faz devolução" caixa.txt
+          grep -q "devolve estojo | 45.00" caixa.txt
+          grep -q "crediario aberto | 25.00" caixa.txt
+          grep -q "devolve sol | 180.00" caixa.txt
+          grep -q 'Quantidade inválida para "Óculos de sol": pode devolver até 0' caixa.txt
+          grep -q "estoque | Estojo=9,Óculos de sol=5" caixa.txt
+          grep -q "comissao da venda | 45.00/4.50" caixa.txt
+          grep -q 'resumo | {"dinheiro": 100.00} | {"pix": 300.00, "dinheiro": 300.00} | 180.00 *| 320.00' caixa.txt
+          grep -q "fechamento | 0.00" caixa.txt
+          grep -q "OS e funil | *1 | ganha | *2" caixa.txt
+          grep -q "caixa le atendimentos (esperado 0) | *0" caixa.txt
+          grep -q "permission denied for function pendencias_para_receber" caixa.txt
       - name: Consultas das telas batem com o banco (tabelas, colunas, relações, rpc)
         run: |
           npm ci

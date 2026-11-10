@@ -34,7 +34,7 @@ export default async function CaixasFechados({ searchParams }: { searchParams: P
           <div className="tabela-rolagem">
             <table className="tabela">
               <thead>
-                <tr><th>Aberto</th><th>Fechado</th><th>Operador</th><th>Loja</th><th className="numero">Abertura</th><th className="numero">Esperado</th><th className="numero">Contado</th><th className="numero">Diferença</th></tr>
+                <tr><th>Aberto</th><th>Fechado</th><th>Operador</th><th>Loja</th><th className="numero">Abertura</th><th className="numero">Esperado</th><th className="numero">Contado</th><th className="numero">Diferença</th><th><span className="so-leitor">Comprovante</span></th></tr>
               </thead>
               <tbody>
                 {caixas.map((c) => {
@@ -52,6 +52,7 @@ export default async function CaixasFechados({ searchParams }: { searchParams: P
                         {dif === null ? "—" : Math.abs(dif) < 0.005 ? <span className="etiqueta etiqueta-ok">ok</span>
                           : <span className="etiqueta etiqueta-erro">{dif > 0 ? "+" : "−"}{moeda(Math.abs(dif))}</span>}
                       </td>
+                      <td><a href={`/cupom/fechamento/${c.id}`}>{c.fechado_em ? "Comprovante" : "Resumo"}</a></td>
                     </tr>
                   );
                 })}

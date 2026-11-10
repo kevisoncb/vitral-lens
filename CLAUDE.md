@@ -34,6 +34,7 @@ Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Stora
 - **Essencial (R$ 99):** tudo incluído, menos o PDV e as notas fiscais. Adicionais em `recursos_adicionais`/`otica_adicionais` (notas fiscais: NFC-e no caixa e entrada pela nota do fornecedor; lojas extras); `recurso_ativo()` só bloqueia o que é adicional. Nota fiscal nunca é grátis.
 - **Cada coisa no seu lugar:** venda é venda, cliente é cliente, produto é produto. Menu por seções (`MENU` em `src/lib/permissoes.ts`); preço, custo e impostos só mudam na página do produto; telas não editam dado de outro assunto. `oticas.plano` e `plano_recursos` ficaram só por compatibilidade.
 - **Produto na venda:** não achou no catálogo, cadastra na hora (`criado_na_venda`); armação pede foto (`/catalogo/fotos`, reduzida no navegador); lente não.
+- **Caixa recebe e devolve:** `receber_no_caixa()` (óculos e crediário, entra na gaveta), `devolver_itens()` (só gerente; estoque volta, comissão aberta diminui), `resumo_caixa()` é a única conta do caixa (tela, fechamento, comprovante `/cupom/fechamento/[id]`).
 - **PDV e financeiro (Versão 4):** módulos separados no mesmo projeto, com login e menu próprios. O PDV mostra só vendas; o financeiro (gerente) tem contas a pagar e a receber, custos, impostos e acesso do contador (perfil Contador, só leitura). Venda do PDV só por `registrar_venda()` (preço do catálogo; desconto acima de 10% exige `pdv:editar`; crediário vira conta a receber); só o gerente cancela (`cancelar_venda()` devolve ao estoque).
 - **Pagamento:** o primeiro pagamento move o card para a etapa ganha e cria a OS uma única vez (`registrar_pagamento()`).
 - **Site público:** só funções liberadas para `anon` (`site_da_otica`, `pedido_orcamento_site`, `horarios_livres`, `agendar_pelo_site`, e `entrar_lista_espera` do site do Vitral em `/`), com limite de uso e aceite LGPD. O perfil Dono não perde acesso e a ótica nunca fica sem Dono ativo.
@@ -53,7 +54,7 @@ Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Stora
 
 ## Estado atual e próximos passos
 
-Ficam no `README.md` (seções 1 e 2), para não ter duas versões. Resumo: banco testado (0001 a 0023); o `src/` já compila (`npm run typecheck` e `npm run build` passam), mas as telas ainda não foram abertas com um Supabase real; o próximo passo é criar o projeto no Supabase, `.env.local` e `npm run dev`.
+Ficam no `README.md` (seções 1 e 2), para não ter duas versões. Resumo: banco testado (0001 a 0024); o `src/` já compila (`npm run typecheck` e `npm run build` passam), mas as telas ainda não foram abertas com um Supabase real; o próximo passo é criar o projeto no Supabase, `.env.local` e `npm run dev`.
 
 ## Telas de referência
 

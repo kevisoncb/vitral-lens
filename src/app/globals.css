@@ -692,3 +692,6 @@ a.botao-secundario { display: inline-flex; align-items: center; text-decoration:
 .plano-preco span { font-size: 16px; font-weight: 500; color: #56625e; }
 .plano-destaque { border: 2px solid var(--site-cor, #0f6e64); }
 .plano-selo { position: absolute; top: -12px; right: 20px; background: var(--site-cor, #0f6e64); color: #fff; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+.receber-item { display: flex; flex-direction: column; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--borda); }
+.receber-item:last-child { border-bottom: none; }
+.receber-item .linha > * { flex: 1 1 110px; }

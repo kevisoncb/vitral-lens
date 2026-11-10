@@ -1,7 +1,7 @@
 import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { obterSessao } from "@/lib/sessao";
-import { dataHoraBR, moeda } from "@/lib/formatar";
-import { abrirCaixa, fecharCaixa, movimentarCaixa } from "./actions";
+import { dataBR, dataHoraBR, moeda } from "@/lib/formatar";
+import { abrirCaixa, fecharCaixa, movimentarCaixa, receberNoCaixa } from "./actions";
 import { Venda, type ProdutoPdv } from "./venda";
 import { CampoMascara } from "@/components/campo-mascara";
 
@@ -17,8 +17,8 @@ type VendaCaixa = {
   contas_receber: { valor: number }[];
 };
 
-export default async function PaginaCaixa({ searchParams }: { searchParams: Promise<{ erro?: string; ok?: string }> }) {
-  const { erro, ok } = await searchParams;
+export default async function PaginaCaixa({ searchParams }: { searchParams: Promise<{ erro?: string; ok?: string; receber?: string }> }) {
+  const { erro, ok, receber } = await searchParams;
   const sessao = await obterSessao();
   const supabase = await criarClienteServidor();
 
@@ -74,7 +74,7 @@ export default async function PaginaCaixa({ searchParams }: { searchParams: Prom
     );
   }
 
-  const [produtosR, saldosR, vendasR, movR, notaR] = await Promise.all([
+  const [produtosR, saldosR, vendasR, notaR] = await Promise.all([
     supabase.from("catalogo_itens").select("id, nome, codigo, preco, controla_estoque").eq("ativo", true).order("nome").limit(3000),
     supabase.from("estoque_saldos").select("item_id, quantidade").eq("loja_id", caixa.loja_id),
     supabase
@@ -83,9 +83,14 @@ export default async function PaginaCaixa({ searchParams }: { searchParams: Prom
       .eq("caixa_id", caixa.id)
       .order("criado_em", { ascending: false })
       .returns<VendaCaixa[]>(),
-    supabase.from("caixa_movimentos").select("id, tipo, valor, motivo, criado_em").eq("caixa_id", caixa.id).order("criado_em"),
     supabase.rpc("recurso_ativo", { r: "nota_fiscal" }),
   ]);
+  // os números do caixa vêm do banco (a mesma conta do fechamento e do comprovante)
+  const { data: resumoR } = await supabase.rpc("resumo_caixa", { p_caixa: caixa.id });
+  const resumo = (resumoR ?? {}) as { recebimentos_por_forma?: Record<string, number>; sangrias?: number; suprimentos?: number; devolucoes_dinheiro?: number; esperado?: number };
+  const busca = (receber ?? "").trim();
+  const { data: pendenciasR } = busca.length >= 2 ? await supabase.rpc("pendencias_para_receber", { p_busca: busca }) : { data: null };
+  const pendencias = (pendenciasR ?? []) as { tipo: "oculos" | "parcela"; id: string; cliente: string; descricao: string; total: number; pago: number; saldo: number; vencimento: string | null }[];
   const notaFiscal = notaR.data === true;
 
   const saldo = new Map((saldosR.data ?? []).map((s) => [s.item_id, s.quantidade]));
@@ -104,10 +109,11 @@ export default async function PaginaCaixa({ searchParams }: { searchParams: Prom
     for (const p of v.pagamentos) porForma[p.forma] = (porForma[p.forma] ?? 0) + Number(p.valor);
     for (const c of v.contas_receber) porForma.crediario = (porForma.crediario ?? 0) + Number(c.valor);
   }
-  const movimentos = movR.data ?? [];
-  const sangrias = movimentos.filter((m) => m.tipo === "sangria").reduce((s, m) => s + Number(m.valor), 0);
-  const suprimentos = movimentos.filter((m) => m.tipo === "suprimento").reduce((s, m) => s + Number(m.valor), 0);
-  const gaveta = Number(caixa.valor_abertura) + (porForma.dinheiro ?? 0) + suprimentos - sangrias;
+  const sangrias = Number(resumo.sangrias ?? 0);
+  const suprimentos = Number(resumo.suprimentos ?? 0);
+  const devolucoes = Number(resumo.devolucoes_dinheiro ?? 0);
+  const recebimentos = resumo.recebimentos_por_forma ?? {};
+  const gaveta = Number(resumo.esperado ?? caixa.valor_abertura);
 
   return (
     <>
@@ -127,14 +133,47 @@ export default async function PaginaCaixa({ searchParams }: { searchParams: Prom
 
         <aside className="pdv-lado">
           <section className="bloco">
+            <h2>Receber óculos ou crediário</h2>
+            <form action="/pdv" method="get" className="linha">
+              <input className="campo" type="search" name="receber" defaultValue={busca} placeholder="Nome ou telefone do cliente" aria-label="Buscar cliente para receber" />
+              <button className="botao-secundario" type="submit">Buscar</button>
+            </form>
+            {busca.length >= 2 && pendencias.length === 0 && <p className="vazio">Nada para receber de “{busca}”.</p>}
+            {pendencias.map((p) => (
+              <form key={p.id} action={receberNoCaixa.bind(null, caixa.id, p.tipo, p.id, busca)} className="receber-item">
+                <span>
+                  <strong>{p.cliente}</strong>
+                  <small className="vazio" style={{ display: "block" }}>
+                    {p.tipo === "oculos" ? `${p.descricao} · total ${moeda(p.total)} · pago ${moeda(p.pago)}` : `${p.descricao}${p.vencimento ? ` · vence ${dataBR(p.vencimento)}` : ""}`}
+                  </small>
+                </span>
+                <div className="linha" style={{ gap: 8 }}>
+                  <CampoMascara mascara="moeda" name="valor" defaultValue={Number(p.saldo)} aria-label="Valor recebido" readOnly={p.tipo === "parcela"} />
+                  <select className="campo" name="forma" defaultValue="dinheiro" aria-label="Forma">
+                    {Object.entries(FORMAS).map(([f, r]) => <option key={f} value={f}>{r}</option>)}
+                  </select>
+                  {p.tipo === "oculos" && Number(p.pago) === 0 && (
+                    <input className="campo" type="date" name="data_prometida" aria-label="Entrega prometida" title="Entrega prometida (vai para a OS)" />
+                  )}
+                  <button className="botao" type="submit">Receber</button>
+                </div>
+              </form>
+            ))}
+          </section>
+
+          <section className="bloco">
             <h2>Resumo do caixa</h2>
             <div className="linha-valor"><span>Abertura</span><strong>{moeda(caixa.valor_abertura)}</strong></div>
             {Object.entries(FORMAS).map(([f, r]) => (porForma[f] ?? 0) > 0 && (
               <div key={f} className="linha-valor"><span>{r}</span><strong>{moeda(porForma[f])}</strong></div>
             ))}
             {(porForma.crediario ?? 0) > 0 && <div className="linha-valor"><span>Crediário (a receber)</span><strong>{moeda(porForma.crediario)}</strong></div>}
+            {Object.entries(FORMAS).map(([f, r]) => Number(recebimentos[f] ?? 0) > 0 && (
+              <div key={`r${f}`} className="linha-valor"><span>Recebido (óculos/crediário) · {r}</span><strong>{moeda(recebimentos[f])}</strong></div>
+            ))}
             {suprimentos > 0 && <div className="linha-valor"><span>Suprimentos</span><strong>{moeda(suprimentos)}</strong></div>}
             {sangrias > 0 && <div className="linha-valor"><span>Sangrias</span><strong>−{moeda(sangrias)}</strong></div>}
+            {devolucoes > 0 && <div className="linha-valor"><span>Devoluções em dinheiro</span><strong>−{moeda(devolucoes)}</strong></div>}
             <div className="linha-valor"><span>Dinheiro na gaveta</span><strong>{moeda(gaveta)}</strong></div>
           </section>
 

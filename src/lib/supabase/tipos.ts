@@ -1019,6 +1019,7 @@ export type Database = {
           criado_em: string;
           observacao: string | null;
           recebido_forma: string | null;
+          caixa_id: string | null;
         };
         Insert: {
           id?: string;
@@ -1033,6 +1034,7 @@ export type Database = {
           criado_em?: string;
           observacao?: string | null;
           recebido_forma?: string | null;
+          caixa_id?: string | null;
         };
         Update: {
           id?: string;
@@ -1047,8 +1049,16 @@ export type Database = {
           criado_em?: string;
           observacao?: string | null;
           recebido_forma?: string | null;
+          caixa_id?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "contas_receber_caixa_id_fkey";
+            columns: ["caixa_id"];
+            isOneToOne: false;
+            referencedRelation: "caixas";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "contas_receber_cliente_id_fkey";
             columns: ["cliente_id"];
@@ -1072,6 +1082,120 @@ export type Database = {
           },
           {
             foreignKeyName: "contas_receber_venda_id_fkey";
+            columns: ["venda_id"];
+            isOneToOne: false;
+            referencedRelation: "vendas";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      devolucao_itens: {
+        Row: {
+          id: string;
+          otica_id: string;
+          devolucao_id: string;
+          venda_item_id: string;
+          quantidade: number;
+          valor: number;
+        };
+        Insert: {
+          id?: string;
+          otica_id: string;
+          devolucao_id: string;
+          venda_item_id: string;
+          quantidade: number;
+          valor: number;
+        };
+        Update: {
+          id?: string;
+          otica_id?: string;
+          devolucao_id?: string;
+          venda_item_id?: string;
+          quantidade?: number;
+          valor?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "devolucao_itens_devolucao_id_fkey";
+            columns: ["devolucao_id"];
+            isOneToOne: false;
+            referencedRelation: "devolucoes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "devolucao_itens_otica_id_fkey";
+            columns: ["otica_id"];
+            isOneToOne: false;
+            referencedRelation: "oticas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "devolucao_itens_venda_item_id_fkey";
+            columns: ["venda_item_id"];
+            isOneToOne: false;
+            referencedRelation: "venda_itens";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      devolucoes: {
+        Row: {
+          id: string;
+          otica_id: string;
+          venda_id: string;
+          caixa_id: string | null;
+          valor: number;
+          forma: string;
+          motivo: string;
+          usuario_id: string | null;
+          criado_em: string;
+        };
+        Insert: {
+          id?: string;
+          otica_id: string;
+          venda_id: string;
+          caixa_id?: string | null;
+          valor: number;
+          forma: string;
+          motivo: string;
+          usuario_id?: string | null;
+          criado_em?: string;
+        };
+        Update: {
+          id?: string;
+          otica_id?: string;
+          venda_id?: string;
+          caixa_id?: string | null;
+          valor?: number;
+          forma?: string;
+          motivo?: string;
+          usuario_id?: string | null;
+          criado_em?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "devolucoes_caixa_id_fkey";
+            columns: ["caixa_id"];
+            isOneToOne: false;
+            referencedRelation: "caixas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "devolucoes_otica_id_fkey";
+            columns: ["otica_id"];
+            isOneToOne: false;
+            referencedRelation: "oticas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "devolucoes_usuario_id_fkey";
+            columns: ["usuario_id"];
+            isOneToOne: false;
+            referencedRelation: "usuarios";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "devolucoes_venda_id_fkey";
             columns: ["venda_id"];
             isOneToOne: false;
             referencedRelation: "vendas";
@@ -2319,6 +2443,7 @@ export type Database = {
           sinal: boolean;
           pago_em: string;
           registrado_por: string | null;
+          caixa_id: string | null;
         };
         Insert: {
           id?: string;
@@ -2331,6 +2456,7 @@ export type Database = {
           sinal?: boolean;
           pago_em?: string;
           registrado_por?: string | null;
+          caixa_id?: string | null;
         };
         Update: {
           id?: string;
@@ -2343,6 +2469,7 @@ export type Database = {
           sinal?: boolean;
           pago_em?: string;
           registrado_por?: string | null;
+          caixa_id?: string | null;
         };
         Relationships: [
           {
@@ -2350,6 +2477,13 @@ export type Database = {
             columns: ["atendimento_id"];
             isOneToOne: false;
             referencedRelation: "atendimentos";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pagamentos_caixa_id_fkey";
+            columns: ["caixa_id"];
+            isOneToOne: false;
+            referencedRelation: "caixas";
             referencedColumns: ["id"];
           },
           {
@@ -2859,6 +2993,7 @@ export type Database = {
       criar_os_do_atendimento: { Args: { p_atendimento: string | null; p_data_prometida?: string | null }; Returns: string };
       custo_com_partes: { Args: { p_custo: number | null; p_ins: number | null; p_ins_tipo: string | null; p_imp: number | null; p_imp_tipo: string | null }; Returns: number };
       definir_foto_produto: { Args: { p_item: string | null; p_caminho: string | null }; Returns: boolean };
+      devolver_itens: { Args: { p_venda: string | null; p_itens: Json | null; p_forma: string | null; p_motivo: string | null; p_caixa?: string | null }; Returns: Json };
       entrar_lista_espera: { Args: { p_nome: string | null; p_otica: string | null; p_cidade: string | null; p_uf: string | null; p_telefone: string | null; p_email: string | null; p_lojas: number | null; p_aceite_lgpd: boolean | null }; Returns: boolean };
       exigir_admin_vitral: { Args: Record<PropertyKey, never>; Returns: undefined };
       exportar_cliente: { Args: { p_cliente: string | null }; Returns: Json };
@@ -2877,6 +3012,7 @@ export type Database = {
       movimentar_caixa: { Args: { p_caixa: string | null; p_tipo: string | null; p_valor: number | null; p_motivo: string | null }; Returns: boolean };
       movimentar_estoque: { Args: { p_item: string | null; p_loja: string | null; p_tipo: string | null; p_quantidade: number | null; p_custo?: number | null; p_motivo?: string | null }; Returns: number };
       os_para_assinar: { Args: { p_token: string | null }; Returns: Json };
+      pagamento_do_atendimento: { Args: { p_atendimento: string | null; p_valor: number | null; p_forma: string | null; p_parcelas: number | null; p_sinal: boolean | null; p_data_prometida: string | null; p_caixa: string | null }; Returns: string };
       painel_criar_otica: { Args: { p_nome: string | null; p_slug: string | null; p_dono_id: string | null; p_dono_nome: string | null; p_dono_email: string | null }; Returns: string };
       painel_definir_adicional: { Args: { p_otica: string | null; p_recurso: string | null; p_quantidade: number | null }; Returns: boolean };
       painel_definir_credenciais_nfce: { Args: { p_otica: string | null; p_ambiente: string | null; p_token_homologacao: string | null; p_token_producao: string | null }; Returns: boolean };
@@ -2884,6 +3020,7 @@ export type Database = {
       painel_mudar_status: { Args: { p_otica: string | null; p_status: Database["public"]["Enums"]["otica_status"] | null }; Returns: boolean };
       painel_oticas: { Args: Record<PropertyKey, never>; Returns: { id: string; nome: string; slug: string; status: Database["public"]["Enums"]["otica_status"]; criado_em: string; usuarios: number; lojas: number; clientes: number; adicionais: Json; dono_email: string }[] };
       pedido_orcamento_site: { Args: { p_slug: string | null; p_nome: string | null; p_telefone: string | null; p_mensagem: string | null; p_aceite_lgpd: boolean | null }; Returns: boolean };
+      pendencias_para_receber: { Args: { p_busca: string | null }; Returns: { tipo: string; id: string; cliente: string; descricao: string; total: number; pago: number; saldo: number; vencimento: string }[] };
       percentual_comissao: { Args: { p_otica: string | null; p_usuario: string | null; p_categoria: string | null }; Returns: number };
       perfis_por_area: { Args: { p_otica: string | null }; Returns: undefined };
       perfis_v4: { Args: { p_otica: string | null }; Returns: undefined };
@@ -2892,6 +3029,7 @@ export type Database = {
       preparar_cancelamento_nfce: { Args: { p_nota: string | null; p_justificativa: string | null }; Returns: Json };
       preparar_nfce: { Args: { p_venda: string | null }; Returns: Json };
       proximo_numero: { Args: { p_otica: string | null; p_nome: string | null }; Returns: number };
+      receber_no_caixa: { Args: { p_caixa: string | null; p_tipo: string | null; p_id: string | null; p_valor: number | null; p_forma: string | null; p_parcelas?: number | null; p_data_prometida?: string | null }; Returns: string };
       recurso_ativo: { Args: { r: string | null }; Returns: boolean };
       registrar_acesso_saude: { Args: { p_cliente: string | null; p_acao: string | null; p_origem?: string | null }; Returns: undefined };
       registrar_cancelamento_nfce: { Args: { p_nota: string | null; p_justificativa: string | null; p_cancelado: boolean | null; p_mensagem: string | null }; Returns: boolean };
@@ -2899,6 +3037,7 @@ export type Database = {
       registrar_pagamento: { Args: { p_atendimento: string | null; p_valor: number | null; p_forma: string | null; p_parcelas?: number | null; p_sinal?: boolean | null; p_data_prometida?: string | null }; Returns: string };
       registrar_retorno_nfce: { Args: { p_nota: string | null; p_retorno: Json | null }; Returns: string };
       registrar_venda: { Args: { p_caixa: string | null; p_cliente: string | null; p_itens: Json | null; p_desconto: number | null; p_pagamentos: Json | null; p_observacao?: string | null }; Returns: string };
+      resumo_caixa: { Args: { p_caixa: string | null }; Returns: Json };
       site_da_otica: { Args: { p_slug: string | null }; Returns: { nome: string; titulo: string; sobre: string; endereco: string; whatsapp: string; horario: string; instagram: string; cor: string; logo_url: string; agendamento_online: boolean }[] };
       sou_admin_vitral: { Args: Record<PropertyKey, never>; Returns: boolean };
       transferir_estoque: { Args: { p_item: string | null; p_de: string | null; p_para: string | null; p_quantidade: number | null }; Returns: boolean };
