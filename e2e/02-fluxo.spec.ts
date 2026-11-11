@@ -19,12 +19,12 @@ test.describe.serial("fluxo da ótica", () => {
     await expect(page).toHaveURL(/\/consultorio\/exame\//);
 
     await page.getByLabel("Queixa principal").fill("Dificuldade para ler de perto");
-    const od = page.locator("fieldset", { hasText: "Olho direito (OD)" });
+    const od = page.getByRole("group", { name: "Olho direito (OD)" });
     await od.getByLabel("Esférico").fill("-1,25");
     await od.getByLabel("Cilíndrico").fill("-0,50");
     await od.getByLabel("Eixo").fill("180");
     await od.getByLabel("Adição").fill("2,00");
-    const oe = page.locator("fieldset", { hasText: "Olho esquerdo (OE)" });
+    const oe = page.getByRole("group", { name: "Olho esquerdo (OE)" });
     await oe.getByLabel("Esférico").fill("-1,00");
     await oe.getByLabel("Adição").fill("2,00");
     await page.getByRole("button", { name: "Concluir e gerar receita" }).click();

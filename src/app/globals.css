@@ -433,7 +433,8 @@ textarea.campo { height: auto; padding: 10px 12px; }
 .matriz .th { font-size: 12px; font-weight: 700; color: #56625e; padding: 6px 4px; border-bottom: 1px solid #dce3e0; text-transform: capitalize; }
 .matriz-linha { display: contents; }
 .matriz-linha > * { padding: 8px 4px; border-bottom: 1px solid #eef1f0; }
-.matriz-linha input { width: 20px; height: 20px; justify-self: start; }
+.matriz-linha input { width: 20px; height: 20px; margin: 0; vertical-align: middle; }
+.matriz-cabecalho > * { border-bottom: 1px solid #dce3e0; }
 .dias-semana { border: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px 16px; }
 .resumo { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
 .resumo-cartao { background: #fff; border: 1px solid #dce3e0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; }
