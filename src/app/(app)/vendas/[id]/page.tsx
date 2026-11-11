@@ -20,10 +20,10 @@ export default async function DetalheAtendimento({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ erro?: string }>;
+  searchParams: Promise<{ erro?: string; ok?: string }>;
 }) {
   const { id } = await params;
-  const { erro } = await searchParams;
+  const { erro, ok } = await searchParams;
   const supabase = await criarClienteServidor();
 
   const [aR, itensR, pagR, osR, oticaR, etapasR, motivosR] = await Promise.all([
@@ -85,6 +85,8 @@ export default async function DetalheAtendimento({
         <label className="rotulo">Observação<input className="campo" name="observacao" /></label>
         <button className="botao-secundario" type="submit">Mover</button>
       </form>
+
+      {ok && <p className="ok" role="status">{ok}</p>}
 
       <section className="bloco">
         <h2>Orçamento</h2>
