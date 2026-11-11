@@ -362,10 +362,12 @@ jobs:
           npm run build
           nohup npx next start -p 3000 > next.log 2>&1 &
           for i in $(seq 1 60); do curl -sf -o /dev/null http://localhost:3000/login && break; sleep 1; done
-      - name: Navegador do Playwright
-        run: npx playwright install --with-deps chromium
       - name: Teste das telas
-        run: npx playwright test
+        env:
+          PW_CANAL: chrome # Google Chrome que já vem na máquina do GitHub
+        run: |
+          google-chrome --version
+          npx playwright test
       - name: Registro do servidor do Vitral (quando falha)
         if: failure()
         run: tail -n 150 next.log || true

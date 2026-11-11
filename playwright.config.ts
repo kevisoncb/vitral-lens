@@ -20,5 +20,6 @@ export default defineConfig({
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
   },
-  projects: [{ name: "computador", use: { ...devices["Desktop Chrome"] } }],
+  // no CI usa o Google Chrome que já vem na máquina do GitHub (sem baixar pacotes do sistema)
+  projects: [{ name: "computador", use: { ...devices["Desktop Chrome"], channel: process.env.PW_CANAL || undefined } }],
 });
