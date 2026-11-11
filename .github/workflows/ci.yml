@@ -294,6 +294,58 @@ jobs:
       - name: Backup e restauração das fotos
         run: supabase/tests/backup_fotos_teste.sh
 
+  e2e:
+    name: Telas de ponta a ponta (Supabase local + navegador)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 3.1.0
+      - run: npm ci
+      - name: Subir o Supabase local (aplica as migrações)
+        run: supabase start -x studio,imgproxy,inbucket,mailpit,edge-runtime,logflare,vector,postgres-meta,supavisor
+      - name: Chaves do Supabase local
+        run: |
+          supabase status -o json > /tmp/status.json
+          node -e '
+            const s = require("/tmp/status.json");
+            const linhas = [
+              "NEXT_PUBLIC_SUPABASE_URL=" + s.API_URL,
+              "NEXT_PUBLIC_SUPABASE_ANON_KEY=" + (s.ANON_KEY || s.PUBLISHABLE_KEY),
+              "SUPABASE_SERVICE_ROLE_KEY=" + (s.SERVICE_ROLE_KEY || s.SECRET_KEY),
+            ];
+            require("fs").appendFileSync(process.env.GITHUB_ENV, linhas.join("\n") + "\n");'
+      - name: Ótica de teste (logins, produtos, Plano Especial)
+        run: node e2e/preparar.mjs
+      - name: Compilar e subir o Vitral
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+        run: |
+          npm run build
+          nohup npx next start -p 3000 > next.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf -o /dev/null http://localhost:3000/login && break; sleep 1; done
+      - name: Navegador do Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Teste das telas
+        run: npx playwright test
+      - name: Relatório (fotos e rastros das falhas)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-telas
+          path: |
+            playwright-report/
+            test-results/
+            next.log
+          retention-days: 14
+          if-no-files-found: ignore
+
   web:
     name: Aplicativo (tipos e build)
     runs-on: ubuntu-latest
