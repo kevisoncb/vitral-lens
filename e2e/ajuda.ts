@@ -19,8 +19,21 @@ export function pessoa(chave: string): Pessoa {
   return p;
 }
 
+const ouvindo = new WeakSet<Page>();
+/** Mostra no log do teste os erros e avisos do navegador (o que a tela não mostra). */
+export function ouvirNavegador(page: Page) {
+  if (ouvindo.has(page)) return;
+  ouvindo.add(page);
+  page.on("console", (m) => {
+    if (m.type() === "error" || m.type() === "warning") console.log(`[navegador ${m.type()}] ${m.text()}`);
+  });
+  page.on("pageerror", (e) => console.log(`[navegador erro] ${e.message}\n${e.stack ?? ""}`));
+  page.on("requestfailed", (r) => console.log(`[navegador falhou] ${r.method()} ${r.url()} ${r.failure()?.errorText ?? ""}`));
+}
+
 /** Entra com o login de teste do perfil e espera sair da tela de login. */
 export async function entrar(page: Page, chave: string) {
+  ouvirNavegador(page);
   await page.context().clearCookies();
   await page.goto("/login");
   await page.getByLabel("E-mail").fill(pessoa(chave).email);
