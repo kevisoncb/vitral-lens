@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { entrar, PACIENTE, reais, semAlerta, semErroDeTela } from "./ajuda";
+import { entrar, PACIENTE, pronta, reais, semAlerta, semErroDeTela } from "./ajuda";
 
 /**
  * O diferencial do Vitral de ponta a ponta: consultório -> loja -> laboratório -> loja -> cliente assina.
@@ -17,6 +17,7 @@ test.describe.serial("fluxo da ótica", () => {
     await novo.getByLabel(/autorizou o uso dos dados de saúde/).check();
     await novo.getByRole("button", { name: "Cadastrar e abrir exame" }).click();
     await expect(page).toHaveURL(/\/consultorio\/exame\//);
+    await pronta(page);
 
     await page.getByLabel("Queixa principal").fill("Dificuldade para ler de perto");
     const od = page.getByRole("group", { name: "Olho direito (OD)" });
@@ -40,6 +41,7 @@ test.describe.serial("fluxo da ótica", () => {
     await saiu.getByRole("link", { name: new RegExp(PACIENTE) }).click();
     await expect(page).toHaveURL(/\/vendas\/[0-9a-f-]+$/);
     atendimentoUrl = new URL(page.url()).pathname;
+    await pronta(page);
 
     // o card do consultório chega sem itens: acrescenta a lente do catálogo
     const valorLente = await page.locator("select[name=catalogo_id] option", { hasText: "Lente multifocal 1.67" }).getAttribute("value");
@@ -47,6 +49,7 @@ test.describe.serial("fluxo da ótica", () => {
     await page.getByRole("button", { name: "Acrescentar ao orçamento" }).click();
     await semAlerta(page);
     await expect(page.locator(".linha-valor.total").first()).toContainText(reais(640));
+    await pronta(page);
 
     // sinal de R$ 200 no Pix, com a entrega prometida: a OS nasce
     const entrega = new Date(Date.now() + 7 * 86_400_000).toISOString().slice(0, 10);
@@ -66,11 +69,13 @@ test.describe.serial("fluxo da ótica", () => {
     await expect(page).toHaveURL(/\/producao$/);
     await page.getByRole("link", { name: new RegExp(PACIENTE) }).first().click();
     await expect(page).toHaveURL(/\/producao\/os\//);
+    await pronta(page);
     // o laboratório não vê valores
     await expect(page.getByText(/R\$\s?\d/)).toHaveCount(0);
     for (const etapa of ["No laboratório", "Em montagem", "Chegou na loja"]) {
       await page.locator("section", { hasText: "Mover para" }).getByRole("button", { name: etapa, exact: true }).click();
       await expect(page.locator(".subtitulo").first()).toContainText(etapa);
+      await pronta(page);
     }
   });
 
@@ -79,6 +84,7 @@ test.describe.serial("fluxo da ótica", () => {
     await page.goto("/laboratorio");
     await page.getByRole("link", { name: new RegExp(PACIENTE) }).first().click();
     await expect(page).toHaveURL(/\/laboratorio\/[0-9a-f-]+$/);
+    await pronta(page);
     await expect(page.locator(".subtitulo").first()).toContainText("Chegou na loja");
     await page.getByRole("button", { name: "Pedir assinatura do cliente" }).click();
     const link = await page.getByLabel("Link para assinar").inputValue();
@@ -88,6 +94,7 @@ test.describe.serial("fluxo da ótica", () => {
     const celular = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
     const cliente = await celular.newPage();
     await cliente.goto(new URL(link).pathname);
+    await pronta(cliente);
     await expect(cliente.getByRole("heading", { name: /Ordem de serviço/ })).toBeVisible();
     await expect(cliente.getByText("Lente multifocal 1.67")).toBeVisible();
     await expect(cliente.getByText(reais(440))).toBeVisible(); // falta pagar
@@ -104,6 +111,7 @@ test.describe.serial("fluxo da ótica", () => {
     await celular.close();
 
     await page.reload();
+    await pronta(page);
     await expect(page.getByText(/Conferida e assinada por/)).toBeVisible();
     await expect(page.getByRole("img", { name: /Assinatura de/ })).toBeVisible();
 

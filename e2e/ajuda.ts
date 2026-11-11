@@ -27,6 +27,15 @@ export async function entrar(page: Page, chave: string) {
   await page.getByLabel("Senha").fill(dados().senha);
   await page.getByRole("button", { name: "Entrar" }).click();
   await expect(page).not.toHaveURL(/\/login/);
+  await pronta(page);
+}
+
+/**
+ * Espera a tela terminar de carregar antes de mexer, como uma pessoa faria. Clicar no milissegundo em que a
+ * tela aparece (antes de o React ligar a página) faz a ação rodar no servidor mas a tela não se atualizar.
+ */
+export async function pronta(page: Page) {
+  await page.waitForLoadState("networkidle");
 }
 
 /** Valor em reais como a tela mostra: 640 -> "R$ 640,00" (com espaço comum ou fino). */
