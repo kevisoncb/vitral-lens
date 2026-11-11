@@ -66,8 +66,8 @@ export async function semErroDeTela(page: Page) {
 /** Se a tela mostrou um erro (role="alert"), o teste falha com o texto dele. */
 export async function semAlerta(page: Page) {
   await page.waitForLoadState("networkidle");
-  // o Next.js põe um anunciador de rota vazio com role="alert": só conta alerta com texto
-  const alertas = page.locator('[role="alert"]').filter({ hasText: /\S/ });
+  // o Next.js tem um anunciador de troca de tela com role="alert" (lê o título da página): não é erro
+  const alertas = page.locator('[role="alert"]:not(#__next-route-announcer__)').filter({ hasText: /\S/ });
   const n = await alertas.count();
   if (n > 0) throw new Error(`a tela mostrou erro: ${(await alertas.allInnerTexts()).join(" | ")}`);
 }
