@@ -8,7 +8,9 @@ insert into usuarios (id, otica_id, perfil_id, nome, email) values
   ('c7200000-0000-0000-0000-000000000001', 'c7000000-0000-0000-0000-000000000001',
    (select id from perfis where otica_id = 'c7000000-0000-0000-0000-000000000001' and chave = 'vendedor'), 'Balcão', 'balcao@chamar.com'),
   ('c7200000-0000-0000-0000-000000000002', 'c7000000-0000-0000-0000-000000000002',
-   (select id from perfis where otica_id = 'c7000000-0000-0000-0000-000000000002' and chave = 'dono'), 'Dono outra', 'dono@outra.com');
+   (select id from perfis where otica_id = 'c7000000-0000-0000-0000-000000000002' and chave = 'dono'), 'Dono outra', 'dono@outra.com'),
+  ('c7200000-0000-0000-0000-000000000003', 'c7000000-0000-0000-0000-000000000001',
+   (select id from perfis where otica_id = 'c7000000-0000-0000-0000-000000000001' and chave = 'laboratorio'), 'Lab', 'lab@chamar.com');
 
 insert into clientes (id, otica_id, nome, telefone, nascimento) values
   ('c7300000-0000-0000-0000-000000000001', 'c7000000-0000-0000-0000-000000000001', 'Ana Receita',     '27999990001', null),
@@ -61,6 +63,10 @@ reset role;
 -- outra ótica não vê ninguém daqui (e a Iara, de lá, faz aniversário hoje)
 set role authenticated; set request.jwt.claim.sub = 'c7200000-0000-0000-0000-000000000002';
 select 'outra otica' as teste, string_agg(nome || ':' || motivo, ',') from clientes_para_chamar('2027-03-01');
+reset role;
+-- o laboratório não vê clientes: lista vazia
+set role authenticated; set request.jwt.claim.sub = 'c7200000-0000-0000-0000-000000000003';
+select 'laboratorio (esperado 0)' as teste, count(*) from clientes_para_chamar('2027-03-01');
 reset role;
 -- anônimo não chama a função
 set role anon;

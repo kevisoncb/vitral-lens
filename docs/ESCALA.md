@@ -1,7 +1,7 @@
 # Vitral: capacidade, velocidade e custo para crescer
 
 > Documento para planejar o crescimento e para usar na venda.
-> Medido em 2026-10-29. Refazer o teste a cada mudança grande no banco (`supabase/carga/`).
+> Medido em 2026-10-29 e de novo em 2026-11-11 (migrações 0019 a 0025). Refazer o teste a cada mudança grande no banco (`supabase/carga/`).
 
 ## Resumo
 
@@ -53,11 +53,33 @@ Medido de novo em 2026-10-29, com a carga acrescida de, por ótica, 200 produtos
 
 As telas antigas continuaram na mesma faixa (funil 3,2 ms, laboratório 1,3 ms, busca 1,7 ms).
 
+### Telas das migrações 0019 a 0025
+
+Medido em 2026-11-11, com 1.000 óticas e a carga acrescida de nascimento (70% dos clientes), entrega das OS, contatos já feitos e crediário com cliente. Banco: **1,4 GB**. Máquina de 4 núcleos, mediana de 5 execuções na ótica nº 500.
+
+| Tela | Tempo no banco |
+|---|---|
+| Clientes para chamar (lista do dia, também no Início) | **1,3 ms** (era 8,7 ms) |
+| Receber no caixa: buscar cliente | 3,8 ms |
+| Resumo do caixa (150 vendas) | 2,1 ms |
+| Produtos (lista com busca) | 0,9 ms |
+| Início: números do dia | 1,6 ms |
+
+As telas antigas ficaram na mesma faixa: funil 2,2 ms, ficha do cliente 2,4 ms, laboratório 1,0 ms, venda no PDV 3,9 ms.
+
+**A lista de quem chamar foi reescrita depois da medição.** A primeira versão percorria todos os clientes, receitas e OS da ótica e só depois filtrava pela data. Também gastava 4 ms planejando a consulta a cada chamada e repetia a regra de segurança em cada uma das cerca de dez tabelas. Agora:
+
+- cada motivo busca direto pela data, com índice (receitas pelo vencimento, aniversário pelo mês e dia, OS pela entrega);
+- o plano da consulta fica guardado;
+- a função confere uma vez se a pessoa vê clientes e filtra toda consulta pela ótica dela.
+
+Sozinha, ela passou de **286 para 1.289 aberturas por segundo** (50 conexões). O resultado é o mesmo da versão antiga: foram comparadas cerca de 3.800 linhas em 20 óticas e 4 datas, inclusive 29/02 em ano bissexto e fora dele.
+
 **O que a migração 0008 mudou:** as regras de segurança passaram a calcular "qual é a ótica do usuário" e "o que ele pode fazer" uma vez por consulta, em vez de uma vez por linha. Ela também criou os índices que faltavam e a busca por pedaço do nome (trigram). Sem isso, o funil ficaria cada vez mais lento conforme a base crescesse.
 
 ### Usuários simultâneos
 
-Medido por `supabase/carga/simultaneos.pgbench`. Cada transação é um usuário sorteado entre as 1.000 óticas, abrindo o funil, o laboratório ou a busca.
+Medido por `supabase/carga/simultaneos.pgbench`. Cada transação é um usuário sorteado entre as 1.000 óticas, abrindo o funil, o laboratório, a busca ou (desde 2026-11-11) a lista de quem chamar.
 
 Máquina do teste: 2 núcleos e 7 GB de RAM, parecida com o compute **Large** do Supabase.
 
@@ -66,6 +88,14 @@ Máquina do teste: 2 núcleos e 7 GB de RAM, parecida com o compute **Large** do
 | 10 | 1.157 | 9 ms | 0 |
 | 50 | 1.128 | 44 ms | 0 |
 | 100 | 980 | 102 ms | 0 |
+
+Medido de novo em 2026-11-11, com a lista de quem chamar no sorteio, numa máquina de 4 núcleos e 15 GB:
+
+| Conexões ao mesmo tempo | Telas por segundo | Tempo médio | Falhas |
+|---|---|---|---|
+| 10 | 1.374 | 7 ms | 0 |
+| 50 | 1.419 | 35 ms | 0 |
+| 100 | 1.268 | 79 ms | 0 |
 
 ### Quanto isso representa
 
@@ -123,9 +153,9 @@ O tamanho do banco no Supabase muda em minutos, sem trocar código. A aplicaçã
 createdb carga
 psql -d carga -f supabase/tests/stub_supabase.sql
 for m in supabase/migrations/0*.sql; do psql -d carga -v ON_ERROR_STOP=1 -f "$m"; done
-psql -d carga -f supabase/carga/gerar_dados.sql      # ~40 s
+psql -d carga -f supabase/carga/gerar_dados.sql      # ~2 min
 psql -d carga -f supabase/carga/medir.sql
-psql -d carga -c "create table carga_usuarios as select row_number() over (order by u.otica_id) as n, u.id from usuarios u join perfis p on p.id = u.perfil_id where p.chave = 'dono'; create index on carga_usuarios(n); grant select on carga_usuarios to authenticated;"
+psql -d carga -c "create table carga_usuarios as select row_number() over (order by u.otica_id) as n, u.id from usuarios u join perfis p on p.id = u.perfil_id where p.chave = 'dono' and u.otica_id::text like '00000000-0000-0000-0000-%'; create index on carga_usuarios(n); grant select on carga_usuarios to authenticated;"
 pgbench -n -f supabase/carga/simultaneos.pgbench -c 50 -j 4 -T 20 carga
 ```
 

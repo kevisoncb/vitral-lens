@@ -16,6 +16,8 @@ begin
   end loop;
   return t;
 end $$;
+-- desde a 0025 função nova nasce fechada; esta é só do teste
+grant execute on function pg_temp.tempo(text) to authenticated;
 
 select set_config('request.jwt.claim.sub', current_setting('carga.vendedor'), false);
 set role authenticated;
@@ -102,6 +104,39 @@ begin
     perform registrar_venda(cx, null, jsonb_build_array(jsonb_build_object('item_id', it, 'quantidade', 1)), 0,
                             jsonb_build_array(jsonb_build_object('forma', 'pix', 'valor', (select preco from catalogo_itens where id = it))));
     insert into medidas values ('Registrar venda no PDV (estoque + comissão)', extract(epoch from clock_timestamp() - t0) * 1000);
+  end loop;
+end $$;
+reset role;
+
+-- Migrações 0019 a 0024: clientes para chamar (balcão), receber no caixa, resumo do caixa e produtos (dono)
+select set_config('request.jwt.claim.sub', current_setting('carga.vendedor'), false);
+set role authenticated;
+do $$
+declare k int; q text := 'select * from clientes_para_chamar()';
+begin
+  perform pg_temp.tempo(q);
+  for k in 1 .. 5 loop insert into medidas values ('Clientes para chamar (lista do dia)', pg_temp.tempo(q)); end loop;
+end $$;
+reset role;
+select set_config('request.jwt.claim.sub', current_setting('carga.dono'), false);
+set role authenticated;
+do $$
+declare
+  cx uuid := (select id from caixas where fechado_em is not null order by aberto_em limit 1);
+  telas text[][];
+  i int; k int;
+begin
+  telas := array[
+    ['Receber no caixa: buscar cliente', 'select * from pendencias_para_receber(''silva'')'],
+    ['Resumo do caixa (150 vendas)', format('select resumo_caixa(%L)', cx)],
+    ['Produtos (lista com busca)', 'select id, categoria, nome, codigo, marca, preco, ativo from catalogo_itens where nome ilike ''%ace%'' order by nome limit 500'],
+    ['Início: números do dia', 'select (select count(*) from consultas where inicio >= date_trunc(''day'', now()) and inicio < date_trunc(''day'', now()) + interval ''1 day''), (select count(*) from ordens_servico o join os_etapas e on e.id = o.etapa_id where e.avisa_cliente)']
+  ];
+  for i in 1 .. array_length(telas, 1) loop
+    perform pg_temp.tempo(telas[i][2]);
+    for k in 1 .. 5 loop
+      insert into medidas values (telas[i][1], pg_temp.tempo(telas[i][2]));
+    end loop;
   end loop;
 end $$;
 reset role;

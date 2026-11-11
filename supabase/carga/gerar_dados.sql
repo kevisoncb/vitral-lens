@@ -116,6 +116,19 @@ insert into contas_receber (otica_id, descricao, valor, vencimento, recebido_em)
 select o.id, 'Parcela ' || i, 100, current_date + (i - 20), case when i <= 15 then current_date + (i - 20) end
 from oticas o, generate_series(1, 40) i where o.nome ~ '^Ótica [0-9]+$';
 
+-- Migrações 0019 a 0024: plano Especial (PDV), nascimento (aniversários), entrega das OS (óculos há 1 ano),
+-- contatos já feitos e crediário de clientes (para o caixa receber)
+insert into otica_adicionais (otica_id, recurso) select id, 'plano_especial' from oticas where nome ~ '^Ótica [0-9]+$';
+update clientes set nascimento = date '1950-01-01' + (abs(hashtext(id::text)) % 20000)
+where otica_id in (select id from oticas where nome ~ '^Ótica [0-9]+$') and abs(hashtext(id::text)) % 10 < 7;
+update ordens_servico set data_entrega = (criado_em + interval '10 days')::date
+where otica_id in (select id from oticas where nome ~ '^Ótica [0-9]+$') and criado_em < now() - interval '15 days';
+insert into cliente_contatos (otica_id, cliente_id, motivo, criado_em)
+select otica_id, id, 'aniversario', now() - interval '3 days' from clientes
+where otica_id in (select id from oticas where nome ~ '^Ótica [0-9]+$') and abs(hashtext(id::text)) % 50 = 0;
+update contas_receber r set cliente_id = (select c.id from clientes c where c.otica_id = r.otica_id order by c.id limit 1 offset (abs(hashtext(r.id::text)) % 600))
+where otica_id in (select id from oticas where nome ~ '^Ótica [0-9]+$');
+
 set session_replication_role = origin;
 analyze;
 
@@ -130,4 +143,6 @@ union all select 'catalogo_itens', count(*) from catalogo_itens
 union all select 'estoque_movimentos', count(*) from estoque_movimentos
 union all select 'comissoes', count(*) from comissoes
 union all select 'vendas', count(*) from vendas
-union all select 'contas_pagar', count(*) from contas_pagar;
+union all select 'contas_pagar', count(*) from contas_pagar
+union all select 'clientes com nascimento', count(*) from clientes where nascimento is not null
+union all select 'OS entregues', count(*) from ordens_servico where data_entrega is not null;

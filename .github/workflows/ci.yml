@@ -196,6 +196,7 @@ jobs:
           grep -q "contatos (esperado 1) | *1" chamar.txt
           grep -q 'new row violates row-level security policy for table "cliente_contatos"' chamar.txt
           grep -q "outra otica | Iara Outra Ótica:aniversario" chamar.txt
+          grep -q "laboratorio (esperado 0) | *0" chamar.txt
           grep -q "permission denied for function clientes_para_chamar" chamar.txt
       - name: Teste da LGPD do cliente (registro de acesso, exportar, anonimizar)
         run: |
