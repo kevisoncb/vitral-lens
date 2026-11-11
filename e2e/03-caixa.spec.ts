@@ -24,7 +24,9 @@ test("caixa: abre, vende, recebe os óculos, sangria e fecha conferido", async (
   await expect(pendencia.getByLabel("Valor recebido")).toHaveValue(/440,00/);
   await pendencia.getByRole("button", { name: "Receber" }).click();
   await semAlerta(page);
-  await expect(page.getByText("Pagamento dos óculos recebido no caixa.")).toBeVisible();
+  // recebido: sai da lista de pendências e entra no resumo do caixa
+  await expect(page.locator("form.receber-item", { hasText: PACIENTE })).toHaveCount(0);
+  await expect(page.locator(".linha-valor", { hasText: "Recebido (óculos/crediário) · Dinheiro" })).toContainText(reais(440));
 
   // sangria de R$ 20
   const sangria = page.locator("section", { hasText: "Sangria ou suprimento" });
@@ -32,7 +34,7 @@ test("caixa: abre, vende, recebe os óculos, sangria e fecha conferido", async (
   await sangria.getByLabel("Motivo").fill("Depósito");
   await sangria.getByRole("button", { name: "Lançar" }).click();
   await semAlerta(page);
-  await expect(page.getByText("Lançado")).toBeVisible();
+  await expect(page.locator(".linha-valor", { hasText: "Sangrias" })).toContainText(reais(20));
 
   // gaveta: 100 + 50 (estojo) + 440 (óculos) − 20 (sangria) = 570
   await expect(page.locator(".linha-valor", { hasText: "Dinheiro na gaveta" })).toContainText(reais(570));

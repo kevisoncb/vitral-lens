@@ -21,9 +21,8 @@ export async function pagar(atendimentoId: string, formulario: FormData) {
   revalidatePath(`/vendas/${atendimentoId}`);
   revalidatePath("/vendas");
   revalidatePath("/laboratorio");
-  // volta com a confirmação no endereço: endereço novo, a tela sempre recarrega com o saldo novo
-  const valorTexto = (valor ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-  redirect(`/vendas/${atendimentoId}?ok=${encodeURIComponent(`Pagamento de ${valorTexto} registrado.`)}`);
+  // sem redirecionar: a resposta da ação já traz a tela atualizada (redirecionar para a mesma página às vezes
+  // deixava o saldo antigo ou a tela presa no "carregando", visto no teste das telas)
 }
 
 const CATEGORIAS = ["lente", "tratamento", "armacao", "lente_contato", "acessorio", "servico"];
@@ -67,7 +66,6 @@ export async function adicionarItem(atendimentoId: string, formulario: FormData)
   await supabase.from("atendimentos").update({ descricao: item.descricao }).eq("id", atendimentoId).is("descricao", null);
   revalidatePath(`/vendas/${atendimentoId}`);
   if (armacaoNova) redirect(`/catalogo/fotos?itens=${armacaoNova}&voltar=/vendas/${atendimentoId}`);
-  redirect(`/vendas/${atendimentoId}?ok=${encodeURIComponent(`${item.descricao} acrescentado ao orçamento.`)}`);
 }
 
 export async function removerItem(atendimentoId: string, itemId: string) {
@@ -75,5 +73,4 @@ export async function removerItem(atendimentoId: string, itemId: string) {
   const { error } = await supabase.from("atendimento_itens").delete().eq("id", itemId).eq("atendimento_id", atendimentoId);
   if (error) redirect(`/vendas/${atendimentoId}?erro=${encodeURIComponent(error.message)}`);
   revalidatePath(`/vendas/${atendimentoId}`);
-  redirect(`/vendas/${atendimentoId}?ok=${encodeURIComponent("Item removido do orçamento.")}`);
 }

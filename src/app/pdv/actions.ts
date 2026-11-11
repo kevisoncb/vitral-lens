@@ -66,8 +66,7 @@ export async function movimentarCaixa(caixaId: string, formulario: FormData) {
     p_motivo: textoOuNulo(formulario.get("motivo")),
   });
   if (error) voltar("/pdv", error.message);
-  revalidatePath("/pdv");
-  redirect("/pdv?ok=Lançado");
+  revalidatePath("/pdv"); // a resposta já traz o caixa atualizado (sem redirecionar para a mesma tela)
 }
 
 export async function fecharCaixa(caixaId: string, formulario: FormData) {
@@ -111,8 +110,8 @@ export async function receberNoCaixa(caixaId: string, tipo: "oculos" | "parcela"
   });
   const volta = `/pdv?receber=${encodeURIComponent(busca)}`;
   if (error) redirect(`${volta}&erro=${encodeURIComponent(error.message)}`);
+  // a resposta já traz o caixa atualizado: o recebido sai da lista e entra no resumo
   revalidatePath("/pdv");
-  redirect(`/pdv?ok=${encodeURIComponent(tipo === "oculos" ? "Pagamento dos óculos recebido no caixa." : "Parcela do crediário recebida.")}`);
 }
 
 /** Devolução de parte da venda (gerente). Em dinheiro, sai do caixa da venda (se aberto) ou do caixa aberto do gerente. */
