@@ -263,6 +263,14 @@ jobs:
           grep -q "OS e funil | *1 | ganha | *2" caixa.txt
           grep -q "caixa le atendimentos (esperado 0) | *0" caixa.txt
           grep -q "permission denied for function pendencias_para_receber" caixa.txt
+      # depois de todos os outros: usa os usuários e dados que eles criaram
+      - name: Teste de segurança (regra das tabelas, o que o público alcança, varredura entre óticas)
+        run: |
+          psql -q -f supabase/tests/seguranca_smoke.sql 2>&1 | tee seguranca.txt
+          test "$(grep -c '| nenhum$' seguranca.txt)" = 8
+          grep -q "usuarios varridos | t *| t" seguranca.txt
+          grep -q "tabelas varridas | t" seguranca.txt
+          grep -q "funcao nova | f *| t" seguranca.txt
       - name: Consultas das telas batem com o banco (tabelas, colunas, relações, rpc)
         run: |
           npm ci
