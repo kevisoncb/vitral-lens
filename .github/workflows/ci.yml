@@ -264,6 +264,8 @@ jobs:
           grep -q "OS e funil | *1 | ganha | *2" caixa.txt
           grep -q "caixa le atendimentos (esperado 0) | *0" caixa.txt
           grep -q "permission denied for function pendencias_para_receber" caixa.txt
+          test "$(grep -c "O orçamento já tem pagamento e não muda mais" caixa.txt)" = 2
+          grep -q "orcamento travado | *1 | 500.00" caixa.txt
       # depois de todos os outros: usa os usuários e dados que eles criaram
       - name: Teste de segurança (regra das tabelas, o que o público alcança, varredura entre óticas)
         run: |

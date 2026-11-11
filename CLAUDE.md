@@ -36,7 +36,7 @@ Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Stora
 - **Produto na venda:** não achou no catálogo, cadastra na hora (`criado_na_venda`); armação pede foto (`/catalogo/fotos`, reduzida no navegador); lente não.
 - **Caixa recebe e devolve:** `receber_no_caixa()` (óculos e crediário, entra na gaveta), `devolver_itens()` (só gerente; estoque volta, comissão aberta diminui), `resumo_caixa()` é a única conta do caixa (tela, fechamento, comprovante `/cupom/fechamento/[id]`).
 - **PDV e financeiro (Versão 4):** módulos separados no mesmo projeto, com login e menu próprios. O PDV mostra só vendas; o financeiro (gerente) tem contas a pagar e a receber, custos, impostos e acesso do contador (perfil Contador, só leitura). Venda do PDV só por `registrar_venda()` (preço do catálogo; desconto acima de 10% exige `pdv:editar`; crediário vira conta a receber); só o gerente cancela (`cancelar_venda()` devolve ao estoque).
-- **Pagamento:** o primeiro pagamento move o card para a etapa ganha e cria a OS uma única vez (`registrar_pagamento()`).
+- **Pagamento:** o primeiro pagamento move o card para a etapa ganha e cria a OS uma única vez (`registrar_pagamento()`). O orçamento é montado em `/vendas/[id]` e trava no primeiro pagamento (0026).
 - **Site público:** só funções liberadas para `anon` (`site_da_otica`, `pedido_orcamento_site`, `horarios_livres`, `agendar_pelo_site`, `entrar_lista_espera` do site do Vitral em `/`, e `os_para_assinar`/`assinar_os` da assinatura), com limite de uso e aceite LGPD. A lista fica em `supabase/tests/seguranca_smoke.sql`: função pública nova entra lá. O perfil Dono não perde acesso e a ótica nunca fica sem Dono ativo.
 - **Estoque e comissões (Versão 3):** o primeiro pagamento do atendimento dá baixa no estoque (só itens com `controla_estoque`) e gera a comissão (trigger `venda_fechada`). O livro `estoque_movimentos` e `comissoes` só mudam por funções do banco. A venda nunca é bloqueada por falta de estoque.
 - **Nota fiscal (NFC-e):** pela Focus NFe (`src/lib/focus-nfe.ts`), só com o adicional `nota_fiscal`; token por ótica em `nfe_credenciais`, cadastrado no painel e usado só pelo servidor; `preparar_nfce()` exige NCM, origem e CSOSN em todo item; nota sem resposta é retomada com a mesma referência; cancelamento só pelo gerente em 30 min.
@@ -54,7 +54,7 @@ Next.js 15 (App Router) + React 19 + TypeScript, Supabase (Postgres, Auth, Stora
 
 ## Estado atual e próximos passos
 
-Ficam no `README.md` (seções 1 e 2), para não ter duas versões. Resumo: banco testado (0001 a 0025); o `src/` já compila (`npm run typecheck` e `npm run build` passam), mas as telas ainda não foram abertas com um Supabase real; o próximo passo é criar o projeto no Supabase, `.env.local` e `npm run dev`.
+Ficam no `README.md` (seções 1 e 2), para não ter duas versões. Resumo: banco testado (0001 a 0026); o `src/` já compila (`npm run typecheck` e `npm run build` passam), mas as telas ainda não foram abertas com um Supabase real; o próximo passo é criar o projeto no Supabase, `.env.local` e `npm run dev`.
 
 ## Telas de referência
 

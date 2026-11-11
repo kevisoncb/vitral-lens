@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { dataHoraBR, moeda } from "@/lib/formatar";
 import { linkWhatsApp, mensagemCobrarRetorno } from "@/lib/whatsapp";
-import { pagar } from "./actions";
+import { adicionarItem, pagar, removerItem } from "./actions";
 import { moverAtendimentoFormulario } from "../actions";
 import { CampoMascara } from "@/components/campo-mascara";
 
@@ -39,6 +39,7 @@ export default async function DetalheAtendimento({
     supabase.from("funil_etapas").select("id, nome, tipo").eq("visivel", true).order("ordem"),
     supabase.from("motivos_perda").select("id, nome").eq("ativo", true).order("nome"),
   ]);
+  const { data: catalogo } = await supabase.from("catalogo_itens").select("id, nome, preco, categoria").eq("ativo", true).order("nome").limit(2000);
 
   const a = aR.data;
   if (!a) notFound();
@@ -49,6 +50,8 @@ export default async function DetalheAtendimento({
     ? linkWhatsApp(a.clientes.telefone, mensagemCobrarRetorno(a.clientes.nome, oticaR.data?.nome ?? "ótica"))
     : null;
   const registrar = pagar.bind(null, id);
+  // o orçamento muda até o primeiro pagamento (o banco também confere)
+  const orcamentoAberto = (pagR.data ?? []).length === 0;
 
   return (
     <>
@@ -88,11 +91,51 @@ export default async function DetalheAtendimento({
         {(itensR.data ?? []).map((i) => (
           <div key={i.id} className="linha-valor">
             <span>{Number(i.quantidade)}× {i.descricao}</span>
-            <strong>{moeda(Number(i.quantidade) * Number(i.preco_unitario))}</strong>
+            <span className="linha" style={{ gap: 12, flexWrap: "nowrap" }}>
+              <strong>{moeda(Number(i.quantidade) * Number(i.preco_unitario))}</strong>
+              {orcamentoAberto && (
+                <form action={removerItem.bind(null, id, i.id)}>
+                  <button type="submit" className="botao-link" aria-label={`Remover ${i.descricao}`}>remover</button>
+                </form>
+              )}
+            </span>
           </div>
         ))}
-        {(itensR.data ?? []).length === 0 && <p className="vazio">Sem itens no orçamento.</p>}
+        {(itensR.data ?? []).length === 0 && <p className="vazio">Sem itens no orçamento. Acrescente abaixo o que o cliente vai levar.</p>}
         <div className="linha-valor total"><span>Total</span><strong>{moeda(a.valor_total)}</strong></div>
+        {orcamentoAberto ? (
+          <details className="acrescentar-item" open={(itensR.data ?? []).length === 0}>
+            <summary className="resumo-abrir">+ Acrescentar item</summary>
+            <form action={adicionarItem.bind(null, id)} className="formulario" style={{ marginTop: 10 }}>
+              <label className="rotulo">Do catálogo
+                <select className="campo" name="catalogo_id" defaultValue="">
+                  <option value="">— não está no catálogo (produto novo abaixo) —</option>
+                  {(catalogo ?? []).map((c) => <option key={c.id} value={c.id}>{c.nome} ({moeda(c.preco)})</option>)}
+                </select>
+              </label>
+              <div className="grade-campos">
+                <label className="rotulo">Ou produto novo<input className="campo" name="nome" placeholder="Ex.: Lente multifocal 1.67" /></label>
+                <label className="rotulo">Categoria
+                  <select className="campo" name="categoria" defaultValue="lente">
+                    <option value="lente">Lente</option>
+                    <option value="tratamento">Tratamento</option>
+                    <option value="armacao">Armação</option>
+                    <option value="lente_contato">Lente de contato</option>
+                    <option value="acessorio">Acessório</option>
+                    <option value="servico">Serviço</option>
+                  </select>
+                </label>
+                <label className="rotulo">Quantidade<input className="campo" name="quantidade" inputMode="numeric" defaultValue="1" /></label>
+                <label className="rotulo">Preço (R$)
+                  <CampoMascara mascara="moeda" name="preco" placeholder="do catálogo" />
+                </label>
+              </div>
+              <button className="botao-secundario" type="submit" style={{ alignSelf: "flex-start" }}>Acrescentar ao orçamento</button>
+            </form>
+          </details>
+        ) : (
+          <small className="vazio">Orçamento fechado: já tem pagamento.</small>
+        )}
       </section>
 
       <section className="bloco">

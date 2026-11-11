@@ -83,6 +83,15 @@ set role authenticated; set request.jwt.claim.sub = 'cb200000-0000-0000-0000-000
 select 'caixa le atendimentos (esperado 0)' as teste, count(*) from atendimentos;
 select registrar_pagamento('cb500000-0000-0000-0000-000000000001', 10, 'pix');
 reset role;
+-- depois de pago, o orçamento não muda (0026)
+set role authenticated; set request.jwt.claim.sub = 'cb200000-0000-0000-0000-000000000003';
+insert into atendimento_itens (atendimento_id, descricao, quantidade, preco_unitario) values ('cb500000-0000-0000-0000-000000000001', 'Tratamento extra', 1, 100);
+reset role;
+-- o dono pode apagar itens, mas não de orçamento pago
+set role authenticated; set request.jwt.claim.sub = 'cb200000-0000-0000-0000-000000000001';
+delete from atendimento_itens where atendimento_id = 'cb500000-0000-0000-0000-000000000001';
+select 'orcamento travado' as teste, count(*), sum(quantidade * preco_unitario) from atendimento_itens where atendimento_id = 'cb500000-0000-0000-0000-000000000001';
+reset role;
 -- anônimo não alcança nada disso
 set role anon;
 select pendencias_para_receber('marta');
