@@ -144,3 +144,11 @@ reset role;
 select tela, round(percentile_cont(0.5) within group (order by ms)::numeric, 1) as mediana_ms,
        (select count(*) from atendimentos where otica_id = '00000000-0000-0000-0000-000000000500') as cards_da_otica
 from medidas group by tela order by 1;
+
+-- limite do CI: nenhuma tela pode passar de 50 ms no banco (hoje a mais lenta fica em ~4 ms).
+-- Pega regressão grande, como um índice que some ou uma regra de segurança que volta a rodar por linha.
+select 'telas acima de 50 ms' as teste,
+       coalesce((select string_agg(tela || ' (' || mediana || ' ms)', ', ')
+                 from (select tela, round(percentile_cont(0.5) within group (order by ms)::numeric, 1) as mediana
+                       from medidas group by tela) m where mediana > 50), 'nenhuma') as resultado,
+       (select count(distinct tela) from medidas) as telas_medidas;

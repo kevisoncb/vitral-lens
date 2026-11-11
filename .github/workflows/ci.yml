@@ -294,6 +294,38 @@ jobs:
       - name: Backup e restauração das fotos
         run: supabase/tests/backup_fotos_teste.sh
 
+  carga:
+    name: Desempenho com 1.000 óticas (limite de 50 ms por tela)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - name: Banco com as migrações e 1.000 óticas
+        run: |
+          psql -v ON_ERROR_STOP=1 -q -f supabase/tests/stub_supabase.sql
+          for m in supabase/migrations/0*.sql; do psql -v ON_ERROR_STOP=1 -q -f "$m" > /dev/null; done
+          psql -v ON_ERROR_STOP=1 -q -f supabase/carga/gerar_dados.sql
+      - name: Medir as telas
+        run: |
+          psql -q -f supabase/carga/medir.sql 2>&1 | tee medidas.txt
+          grep -q "telas acima de 50 ms | nenhuma *| *18" medidas.txt
+
   e2e:
     name: Telas de ponta a ponta (Supabase local + navegador)
     runs-on: ubuntu-latest
