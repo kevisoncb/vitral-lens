@@ -292,11 +292,38 @@ npm test                                      # testes do código (planilhas, c�
 
 Cada teste imprime as linhas esperadas e alguns erros de propósito: eles provam que o bloqueio funciona. O GitHub Actions (`.github/workflows/ci.yml`) roda tudo a cada push e confere as linhas. O teste de carga (1.000 óticas) está em `supabase/carga/` e os resultados em `docs/ESCALA.md`.
 
+### Teste das telas de ponta a ponta (Supabase local + navegador)
+
+Roda no CI a cada push (job `e2e`) e no seu computador, com o Docker aberto:
+
+```bash
+npx supabase start                               # sobe o Supabase local e aplica as migrações
+SUPABASE_BIN="npx supabase" node e2e/preparar.mjs # ótica de teste com um login por área
+npx supabase status                              # copie API URL e as chaves para o .env.local
+npm run build && npx next start -p 3000          # em outro terminal
+npx playwright test                              # roda os roteiros de e2e/
+```
+
+Os roteiros (`e2e/`):
+
+- **Acesso:** cada perfil cai na tela da sua área e não abre a de outra.
+- **Fluxo da ótica:**
+  - o consultório faz o exame;
+  - a loja monta o orçamento e recebe o sinal (a OS nasce);
+  - o laboratório leva a OS até "Chegou na loja";
+  - a loja pede a assinatura e o cliente assina no celular.
+- **Caixa:** abre, vende pelo código de barras, recebe o saldo dos óculos, faz sangria e fecha conferido.
+- **Todas as telas:** no computador e no celular, sem erro, sem estouro para o lado e sem problema grave de acessibilidade (axe).
+
+A falha deixa foto e rastro no artefato `relatorio-telas` do CI.
+
 ## 6. Mapa do código
 
 ```
 supabase/migrations/   uma migração por mudança; nunca editar uma já aplicada em produção
 supabase/tests/        testes do banco (stub do Supabase + testes de fumaça)
+e2e/                   teste das telas no navegador (Playwright) e o preparo da ótica de teste
+supabase/config.toml   Supabase local (npx supabase start)
 supabase/backup/       backup do banco (fazer_backup.sh, restaurar.sh) e das fotos (fotos.sh, restaurar_fotos.sh); passo a passo em RESTAURAR.md
 src/app/assinar/       página pública para o cliente conferir e assinar a OS (sem login)
 supabase/carga/        teste de carga (gerar dados, medir telas, usuários simultâneos)

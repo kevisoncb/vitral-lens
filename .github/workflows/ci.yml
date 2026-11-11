@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17 # mesma versão do Supabase
         env:
           POSTGRES_PASSWORD: postgres
         ports:
