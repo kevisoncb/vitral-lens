@@ -59,7 +59,7 @@ test.describe.serial("fluxo da ótica", () => {
     await page.getByRole("button", { name: "Registrar pagamento" }).click();
     await semAlerta(page);
     await expect(page.locator(".linha-valor.total", { hasText: "Falta pagar" })).toContainText(reais(440));
-    await expect(page.locator(".subtitulo").first()).toContainText(/OS \d+/);
+    await expect(page.getByText(/Ordem de serviço nº \d+ criada no laboratório/)).toBeVisible();
     // depois de pago, o orçamento fecha
     await expect(page.getByText("Orçamento fechado: já tem pagamento.")).toBeVisible();
   });
