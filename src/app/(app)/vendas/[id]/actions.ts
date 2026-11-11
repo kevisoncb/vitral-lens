@@ -17,6 +17,10 @@ export async function pagar(atendimentoId: string, formulario: FormData) {
     p_data_prometida: textoOuNulo(formulario.get("data_prometida")),
   });
   if (error) redirect(`/vendas/${atendimentoId}?erro=${encodeURIComponent(error.message)}`);
+  // o pagamento muda o saldo, a etapa e cria a OS: a tela e o funil recarregam
+  revalidatePath(`/vendas/${atendimentoId}`);
+  revalidatePath("/vendas");
+  revalidatePath("/laboratorio");
   redirect(`/vendas/${atendimentoId}`);
 }
 

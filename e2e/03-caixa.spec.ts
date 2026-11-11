@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { entrar, PACIENTE, reais } from "./ajuda";
+import { entrar, PACIENTE, reais, semAlerta } from "./ajuda";
 
 /** Um dia de caixa: abre com troco, vende, recebe o saldo dos óculos, faz sangria e fecha conferido. */
 test("caixa: abre, vende, recebe os óculos, sangria e fecha conferido", async ({ page }) => {
@@ -7,6 +7,7 @@ test("caixa: abre, vende, recebe os óculos, sangria e fecha conferido", async (
   await expect(page).toHaveURL(/\/pdv$/);
   await page.getByLabel("Dinheiro na gaveta (R$)").fill("100,00");
   await page.getByRole("button", { name: "Abrir caixa" }).click();
+  await semAlerta(page);
   await expect(page.getByRole("heading", { name: "Nova venda" })).toBeVisible();
 
   // venda pelo código de barras, em dinheiro (a primeira forma já vem com o total)
@@ -22,6 +23,7 @@ test("caixa: abre, vende, recebe os óculos, sangria e fecha conferido", async (
   await expect(pendencia).toBeVisible();
   await expect(pendencia.getByLabel("Valor recebido")).toHaveValue(/440,00/);
   await pendencia.getByRole("button", { name: "Receber" }).click();
+  await semAlerta(page);
   await expect(page.getByText("Pagamento dos óculos recebido no caixa.")).toBeVisible();
 
   // sangria de R$ 20
@@ -29,6 +31,7 @@ test("caixa: abre, vende, recebe os óculos, sangria e fecha conferido", async (
   await sangria.getByLabel("Valor").fill("20,00");
   await sangria.getByLabel("Motivo").fill("Depósito");
   await sangria.getByRole("button", { name: "Lançar" }).click();
+  await semAlerta(page);
   await expect(page.getByText("Lançado")).toBeVisible();
 
   // gaveta: 100 + 50 (estojo) + 440 (óculos) − 20 (sangria) = 570

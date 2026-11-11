@@ -40,3 +40,11 @@ export async function semErroDeTela(page: Page) {
   await expect(page.getByText("Application error")).toHaveCount(0);
   await expect(page.getByText("This page could not be found")).toHaveCount(0);
 }
+
+/** Se a tela mostrou um erro (role="alert"), o teste falha com o texto dele. */
+export async function semAlerta(page: Page) {
+  await page.waitForLoadState("networkidle");
+  const alertas = page.locator('[role="alert"]');
+  const n = await alertas.count();
+  if (n > 0) throw new Error(`a tela mostrou erro: ${(await alertas.allInnerTexts()).join(" | ")}`);
+}

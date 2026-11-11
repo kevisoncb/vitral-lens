@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { entrar, PACIENTE, reais, semErroDeTela } from "./ajuda";
+import { entrar, PACIENTE, reais, semAlerta, semErroDeTela } from "./ajuda";
 
 /**
  * O diferencial do Vitral de ponta a ponta: consultório -> loja -> laboratório -> loja -> cliente assina.
@@ -28,6 +28,7 @@ test.describe.serial("fluxo da ótica", () => {
     await oe.getByLabel("Esférico").fill("-1,00");
     await oe.getByLabel("Adição").fill("2,00");
     await page.getByRole("button", { name: "Concluir e gerar receita" }).click();
+    await semAlerta(page);
     await expect(page).toHaveURL(/concluido=1/);
     await semErroDeTela(page);
   });
@@ -44,6 +45,7 @@ test.describe.serial("fluxo da ótica", () => {
     const valorLente = await page.locator("select[name=catalogo_id] option", { hasText: "Lente multifocal 1.67" }).getAttribute("value");
     await page.locator("select[name=catalogo_id]").selectOption(valorLente!);
     await page.getByRole("button", { name: "Acrescentar ao orçamento" }).click();
+    await semAlerta(page);
     await expect(page.locator(".linha-valor.total").first()).toContainText(reais(640));
 
     // sinal de R$ 200 no Pix, com a entrega prometida: a OS nasce
@@ -52,7 +54,7 @@ test.describe.serial("fluxo da ótica", () => {
     await page.getByLabel("Entrega prometida").fill(entrega);
     await page.getByLabel("É sinal").check();
     await page.getByRole("button", { name: "Registrar pagamento" }).click();
-    await expect(page.getByText("Falta pagar")).toBeVisible();
+    await semAlerta(page);
     await expect(page.locator(".linha-valor.total", { hasText: "Falta pagar" })).toContainText(reais(440));
     await expect(page.locator(".subtitulo").first()).toContainText(/OS \d+/);
     // depois de pago, o orçamento fecha
