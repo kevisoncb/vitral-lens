@@ -9,6 +9,7 @@ const [bin, ...antes] = (process.env.SUPABASE_BIN ?? "supabase").split(" ");
 const status = JSON.parse(execFileSync(bin, [...antes, "status", "-o", "json"], { encoding: "utf8" }));
 const API = status.API_URL;
 const SERVICE = status.SERVICE_ROLE_KEY ?? status.SECRET_KEY;
+const ANON = status.ANON_KEY ?? status.PUBLISHABLE_KEY;
 const DB = status.DB_URL;
 if (!API || !SERVICE || !DB) throw new Error("Não achei API_URL, SERVICE_ROLE_KEY e DB_URL no `supabase status`.");
 
@@ -52,6 +53,23 @@ sql(`insert into catalogo_itens (otica_id, categoria, nome, preco, codigo, contr
 sql(`insert into estoque_movimentos (otica_id, loja_id, item_id, tipo, quantidade, motivo)
      select c.otica_id, (select id from lojas where otica_id = c.otica_id), c.id, 'entrada', 10, 'Estoque inicial do teste'
      from catalogo_itens c where c.otica_id = '${OTICA}' and c.controla_estoque`);
+
+// horários do consultório (segunda a sexta, 9h às 18h): o site da ótica oferece agendamento online
+const optometrista = pessoas.find((p) => p.chave === "optometrista");
+sql(`insert into horarios_trabalho (otica_id, loja_id, profissional_id, dia_semana, inicio, fim, duracao_min)
+     select '${OTICA}', (select id from lojas where otica_id = '${OTICA}'), '${optometrista.id}', d, '09:00', '18:00', 30
+     from generate_series(1, 5) d`);
+
+// confere que cada login entra de verdade (mostra o motivo se não entrar)
+for (const p of pessoas) {
+  const r = await fetch(`${API}/auth/v1/token?grant_type=password`, {
+    method: "POST",
+    headers: { apikey: ANON, "Content-Type": "application/json" },
+    body: JSON.stringify({ email: p.email, password: SENHA }),
+  });
+  if (!r.ok) throw new Error(`login de ${p.email} não entra: ${r.status} ${await r.text()}`);
+}
+console.log("os 5 logins entram pela API do Supabase");
 
 writeFileSync(new URL("./.dados.json", import.meta.url), JSON.stringify({ senha: SENHA, otica: OTICA, pessoas }, null, 2));
 console.log(`ótica de teste pronta: ${pessoas.length} logins, 3 produtos`);

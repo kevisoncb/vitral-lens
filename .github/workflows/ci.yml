@@ -366,6 +366,9 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Teste das telas
         run: npx playwright test
+      - name: Registro do servidor do Vitral (quando falha)
+        if: failure()
+        run: tail -n 150 next.log || true
       - name: Relatório (fotos e rastros das falhas)
         if: always()
         uses: actions/upload-artifact@v4
