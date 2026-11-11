@@ -34,8 +34,10 @@ additional_redirect_urls = ["http://localhost:3000"]
 jwt_expiry = 3600
 enable_signup = false
 
+# login por e-mail ligado (o "enable_signup" daqui liga o provedor de e-mail; com false, ninguém entra).
+# O cadastro aberto continua fechado pelo [auth] enable_signup = false: quem cria login é o dono ou o painel.
 [auth.email]
-enable_signup = false
+enable_signup = true
 enable_confirmations = false
 
 [analytics]

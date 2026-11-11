@@ -224,7 +224,8 @@ Marque com `[x]` quando terminar e anote no Histórico.
 
 ## 4. Como rodar
 
-1. Supabase (região São Paulo) → SQL Editor: rode `supabase/migrations/0001` a `0018`, em ordem.
+1. Supabase (região São Paulo) → SQL Editor: rode `supabase/migrations/0001` em diante, em ordem.
+   Em **Authentication → Sign In / Providers**: deixe o **Email** ligado e **desligue "Allow new users to sign up"** (no Vitral quem cria login é o dono, em Configurações → Usuários, ou o painel).
 2. Primeira ótica e usuário dono, pelo **painel do Vitral**:
    - Authentication → Users → crie o seu login (o da equipe do Vitral) e, no SQL Editor:
      `insert into vitral_admins (usuario_id, email) values ('<id do seu usuário no Auth>', 'voce@exemplo.com');`
