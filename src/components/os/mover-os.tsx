@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useTransition, type ReactNode } from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { moverOS } from "@/app/acoes/os";
 
@@ -17,21 +17,22 @@ export function EtapaOS({ osId, inicial, children }: { osId: string; inicial: st
   const router = useRouter();
   const [atual, setAtual] = useState(inicial);
   const [erro, setErro] = useState<string | null>(null);
-  const [pendente, iniciar] = useTransition();
+  const [pendente, setPendente] = useState(false);
 
-  function mover(etapaId: string) {
+  // o botão fica travado só enquanto o banco responde; a recarga da página vem depois, sem travar a tela
+  async function mover(etapaId: string) {
     const antes = atual;
     setErro(null);
     setAtual(etapaId);
-    iniciar(async () => {
-      const r = await moverOS(osId, etapaId);
-      if (!r.ok) {
-        setAtual(antes);
-        setErro(r.erro);
-        return;
-      }
-      router.refresh();
-    });
+    setPendente(true);
+    const r = await moverOS(osId, etapaId).catch(() => ({ ok: false as const, erro: "Sem conexão. Tente de novo." }));
+    setPendente(false);
+    if (!r.ok) {
+      setAtual(antes);
+      setErro(r.erro);
+      return;
+    }
+    router.refresh();
   }
 
   return <Contexto.Provider value={{ atual, mover, pendente, erro }}>{children}</Contexto.Provider>;
