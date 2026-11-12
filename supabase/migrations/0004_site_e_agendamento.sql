@@ -1,4 +1,4 @@
--- Vitra — migração 0004: site institucional, pedido de orçamento pelo site,
+-- Vitral — migração 0004: site institucional, pedido de orçamento pelo site,
 -- agendamento online e "Sem retorno" automático.
 --
 -- Tudo que o público (anon) usa passa por funções security definer que expõem

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { registrarAcessoSaude } from "@/lib/lgpd";
 import { notFound } from "next/navigation";
 import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { exigirArea } from "@/lib/sessao";
@@ -32,6 +33,7 @@ export default async function HistoricoPaciente({ params }: { params: Promise<{ 
   ]);
   const c = clienteR.data;
   if (!c) notFound();
+  if ((examesR.data ?? []).length > 0 || (externasR.data ?? []).length > 0) await registrarAcessoSaude(supabase, id, "viu_exame", "consultório: histórico");
 
   return (
     <>

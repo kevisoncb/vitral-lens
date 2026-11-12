@@ -1,8 +1,8 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
- * Domínio próprio da ótica -> site público. Ex.: SITE_DOMINIOS="oticaomega.com.br=omega,www.oticaomega.com.br=omega"
+ * Domínio próprio da ótica -> site público. Ex.: SITE_DOMINIOS="oticasnery.com.br=nery,www.oticasnery.com.br=nery"
  * Cada domínio também precisa ser adicionado no projeto da Vercel.
  */
 function slugDoDominio(host: string | null): string | null {
@@ -26,6 +26,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
   if (request.nextUrl.pathname.startsWith("/site/")) return NextResponse.next();
+  // assinatura da OS pelo link: o cliente abre sem login (o código do link é a chave)
+  if (request.nextUrl.pathname.startsWith("/assinar/")) return NextResponse.next();
 
   let response = NextResponse.next({ request });
 
@@ -37,7 +39,7 @@ export async function middleware(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(lista) {
+        setAll(lista: { name: string; value: string; options: CookieOptions }[]) {
           lista.forEach(({ name, value }) => request.cookies.set(name, value));
           response = NextResponse.next({ request });
           lista.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
@@ -51,7 +53,10 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const caminho = request.nextUrl.pathname;
-  const publica = caminho === "/login";
+  // "/" é o site do Vitral (lista de espera); quem está logado vai direto para o sistema
+  // páginas públicas que também abrem para quem está logado: o guia da reforma
+  if (caminho === "/reforma-tributaria") return response;
+  const publica = caminho === "/login" || caminho === "/";
 
   if (!user && !publica) {
     const url = request.nextUrl.clone();
@@ -71,5 +76,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+  // arquivos públicos (ícones, manifesto do app) não passam pelo login
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|icon.svg|icones/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 };

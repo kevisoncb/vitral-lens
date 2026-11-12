@@ -5,10 +5,12 @@ import { carregarOS, NOME_ETAPA_PRODUCAO } from "@/lib/os";
 import { dataBR, dataHoraBR } from "@/lib/formatar";
 import { linkWhatsApp, mensagemOculosPronto } from "@/lib/whatsapp";
 import type { Sessao } from "@/lib/sessao";
-import { moverOSFormulario, registrarProducao, salvarFicha } from "@/app/acoes/os";
+import { registrarProducao, salvarFicha } from "@/app/acoes/os";
+import { EtapaOS, MoverPara, NomeEtapa } from "./mover-os";
 import { AoVivo } from "@/components/ao-vivo";
 import { FichaTecnica, TabelaGrau, TIPO_ARMACAO } from "./ficha-tecnica";
 import { RecadosOS } from "./recados";
+import { AssinaturaOS } from "./assinatura-os";
 
 /**
  * Detalhe da OS. A loja vê a ficha para conferir e entregar; o laboratório edita a ficha
@@ -20,9 +22,8 @@ export async function PainelOS({ id, sessao, modo, voltar }: { id: string; sessa
   if (!dados) notFound();
   const { os, olhos, producao, historico, etapas } = dados;
 
-  const podeMover = (area: string) => sessao.area === "gestao" || sessao.area === area;
-  const atual = etapas.find((e) => e.id === os.etapa_id);
-  const proximas = etapas.filter((e) => e.id !== os.etapa_id && podeMover(e.area));
+  const areas = sessao.area === "gestao" ? "todas" as const : [sessao.area];
+  const listaEtapas = etapas.map((e) => ({ id: e.id, nome: e.nome, ordem: e.ordem, area: e.area }));
   const ficha = { ...os };
 
   let zap: string | null = null;
@@ -32,14 +33,14 @@ export async function PainelOS({ id, sessao, modo, voltar }: { id: string; sessa
   }
 
   return (
-    <>
+    <EtapaOS key={os.etapa_id} osId={os.id} inicial={os.etapa_id}>
       <AoVivo tabelas={["ordens_servico", "os_mensagens", "os_producao"]} />
       <div className="topo">
         <div>
           <Link href={voltar}>← Voltar ao quadro</Link>
           <h1>OS {os.numero} · {os.cliente_nome}</h1>
           <p className="subtitulo">
-            {atual?.nome}
+            <NomeEtapa etapas={listaEtapas} />
             {os.data_prometida ? ` · entrega prometida ${dataBR(os.data_prometida)}` : ""}
             {os.responsavel ? ` · com ${os.responsavel.nome}` : " · ainda não puxada pelo laboratório"}
             {os.garantia_ate ? ` · garantia até ${dataBR(os.garantia_ate)}` : ""}
@@ -52,18 +53,7 @@ export async function PainelOS({ id, sessao, modo, voltar }: { id: string; sessa
         </div>
       </div>
 
-      {proximas.length > 0 && (
-        <section className="bloco">
-          <h2>Mover para</h2>
-          <div className="topo-acoes">
-            {proximas.map((e) => (
-              <form key={e.id} action={moverOSFormulario.bind(null, os.id, e.id)}>
-                <button className={e.ordem === (atual?.ordem ?? 0) + 1 ? "botao" : "botao-secundario"} type="submit">{e.nome}</button>
-              </form>
-            ))}
-          </div>
-        </section>
-      )}
+      <MoverPara etapas={listaEtapas} areas={areas} />
 
       {modo === "laboratorio" ? (
         <form action={salvarFicha.bind(null, os.id)} className="bloco">
@@ -133,6 +123,10 @@ export async function PainelOS({ id, sessao, modo, voltar }: { id: string; sessa
         )}
       </section>
 
+      {modo === "loja" && sessao.pode("vendas") && (
+        <AssinaturaOS osId={os.id} clienteId={os.cliente_id} clienteNome={os.cliente_nome ?? ""} oticaNome={sessao.oticaNome} podePedir={sessao.pode("vendas", "editar")} />
+      )}
+
       <RecadosOS osId={os.id} />
 
       <section className="bloco">
@@ -145,6 +139,6 @@ export async function PainelOS({ id, sessao, modo, voltar }: { id: string; sessa
           </div>
         ))}
       </section>
-    </>
+    </EtapaOS>
   );
 }

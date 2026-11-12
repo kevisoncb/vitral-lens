@@ -1,4 +1,4 @@
--- Vitra — migração 0007: fotos dos produtos (armações) no Storage.
+-- Vitral — migração 0007: fotos dos produtos (armações) no Storage.
 -- Pasta pública "produtos" (foto de armação não é dado sensível e pode ir para o site depois).
 -- Caminho: <otica_id>/<item_id>/<arquivo>. Só quem cria/edita catálogo da própria ótica grava.
 -- Só roda no Supabase (no Postgres puro dos testes não há schema storage).

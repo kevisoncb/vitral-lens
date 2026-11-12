@@ -1,0 +1,108 @@
+import { criarClienteServidor } from "@/lib/supabase/servidor";
+import { dataBR, moeda } from "@/lib/formatar";
+import { mudarStatus, salvarAdicionais, salvarCredenciaisNfce } from "./actions";
+import { NovaOtica } from "./nova-otica";
+import { mensalidade, nomeDoPlano, PRECO_ESPECIAL, PRECO_ESSENCIAL } from "@/lib/planos";
+
+const STATUS: Record<string, string> = { teste: "Em teste", ativa: "Ativa", suspensa: "Suspensa", cancelada: "Cancelada" };
+
+/** Óticas do Vitral: criar com o login do dono, situação, plano (Essencial ou Especial) e adicionais. */
+export default async function PainelOticas({ searchParams }: { searchParams: Promise<{ erro?: string; ok?: string }> }) {
+  const { erro, ok } = await searchParams;
+  const supabase = await criarClienteServidor();
+  const { data } = await supabase.rpc("painel_oticas");
+  const oticas = data ?? [];
+  const ativas = oticas.filter((o) => o.status === "ativa");
+
+  return (
+    <>
+      <div>
+        <h1>Óticas</h1>
+        <p className="subtitulo">Uma ótica nova começa “em teste”. Mude para “ativa” quando começar a pagar.</p>
+      </div>
+      {erro && <p className="erro" role="alert">{erro}</p>}
+      {ok && <p className="ok" role="status">{ok}</p>}
+
+      <div className="resumo">
+        <div className="resumo-cartao"><span>Óticas</span><strong>{oticas.length}</strong><small>{oticas.filter((o) => o.status === "teste").length} em teste</small></div>
+        <div className="resumo-cartao"><span>Ativas</span><strong>{ativas.length}</strong></div>
+        <div className="resumo-cartao"><span>Especial / Essencial</span><strong>{ativas.filter((o) => (o.adicionais as Record<string, number>)?.plano_especial).length} / {ativas.filter((o) => !(o.adicionais as Record<string, number>)?.plano_especial).length}</strong><small>entre as ativas</small></div>
+        <div className="resumo-cartao"><span>Mensalidades por mês</span><strong>{moeda(ativas.reduce((s, o) => s + mensalidade((o.adicionais ?? {}) as Record<string, number>), 0))}</strong><small>planos e lojas extras (notas avulsas fora)</small></div>
+      </div>
+
+      <details className="bloco">
+        <summary style={{ cursor: "pointer", fontWeight: 700 }}>+ Nova ótica</summary>
+        <NovaOtica />
+      </details>
+
+      <section className="bloco">
+        {oticas.length > 0 ? (
+          <div className="tabela-rolagem">
+            <table className="tabela">
+              <thead>
+                <tr><th>Ótica</th><th>Dono</th><th className="numero">Usuários</th><th className="numero">Lojas</th><th className="numero">Clientes</th><th>Situação</th><th>Plano e adicionais</th></tr>
+              </thead>
+              <tbody>
+                {oticas.map((o) => {
+                  const adicionais = (o.adicionais ?? {}) as Record<string, number>;
+                  return (
+                    <tr key={o.id}>
+                      <td>
+                        <strong>{o.nome}</strong>
+                        <br /><small className="vazio">{o.slug ? `/site/${o.slug}` : "sem site"} · desde {dataBR(o.criado_em)}</small>
+                      </td>
+                      <td>{o.dono_email ?? "—"}</td>
+                      <td className="numero">{o.usuarios}</td>
+                      <td className="numero">{o.lojas}</td>
+                      <td className="numero">{o.clientes}</td>
+                      <td>
+                        <form action={mudarStatus.bind(null, o.id)} className="linha" style={{ flexWrap: "nowrap" }}>
+                          <select className="campo" name="status" defaultValue={o.status} aria-label={`Situação de ${o.nome}`} style={{ width: 130 }}>
+                            {Object.entries(STATUS).map(([v, r]) => <option key={v} value={v}>{r}</option>)}
+                          </select>
+                          <button className="botao-secundario" type="submit">Salvar</button>
+                        </form>
+                      </td>
+                      <td>
+                        <form action={salvarAdicionais.bind(null, o.id)} className="linha" style={{ flexWrap: "nowrap" }}>
+                          <select className="campo" name="plano" defaultValue={adicionais.plano_especial ? "especial" : "essencial"} aria-label={`Plano de ${o.nome}`} style={{ width: 190 }}>
+                            <option value="essencial">Essencial ({moeda(PRECO_ESSENCIAL)})</option>
+                            <option value="especial">Especial ({moeda(PRECO_ESPECIAL)})</option>
+                          </select>
+                          {!adicionais.plano_especial && (
+                            <label className="marcar" title="Só para o Essencial: no Especial as notas já vêm incluídas"><input type="checkbox" name="nota_fiscal" defaultChecked={!!adicionais.nota_fiscal} /> Notas avulsas</label>
+                          )}
+                          <label className="marcar">Lojas extras
+                            <input className="campo" name="multiloja" type="number" min={0} max={50} defaultValue={adicionais.multiloja ?? 0} style={{ width: 70 }} />
+                          </label>
+                          <button className="botao-secundario" type="submit">Salvar</button>
+                        </form>
+                        <small className="vazio">Plano {nomeDoPlano(adicionais)} · {moeda(mensalidade(adicionais))}/mês</small>
+                        {adicionais.nota_fiscal || adicionais.plano_especial ? (
+                          <details>
+                            <summary style={{ cursor: "pointer" }}>Nota fiscal (Focus NFe)</summary>
+                            <form action={salvarCredenciaisNfce.bind(null, o.id)} className="formulario" style={{ marginTop: 8 }}>
+                              <select className="campo" name="ambiente" defaultValue="homologacao" aria-label="Ambiente">
+                                <option value="homologacao">Teste (homologação)</option>
+                                <option value="producao">Produção (vale como nota)</option>
+                              </select>
+                              <input className="campo" name="token_homologacao" type="password" autoComplete="off" placeholder="Token de homologação (vazio mantém)" aria-label="Token de homologação" />
+                              <input className="campo" name="token_producao" type="password" autoComplete="off" placeholder="Token de produção (vazio mantém)" aria-label="Token de produção" />
+                              <button className="botao-secundario" type="submit">Salvar</button>
+                            </form>
+                          </details>
+                        ) : null}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="vazio">Nenhuma ótica ainda. Crie a primeira acima.</p>
+        )}
+      </section>
+    </>
+  );
+}

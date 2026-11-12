@@ -1,4 +1,4 @@
--- Vitra — migração 0002: preenchimento automático da ótica, total do orçamento e pagamento (sinal e saldo)
+-- Vitral — migração 0002: preenchimento automático da ótica, total do orçamento e pagamento (sinal e saldo)
 --
 -- 1. otica_id passa a ser preenchido pelo banco (minha_otica()) quando o app não informa.
 --    A política de RLS continua exigindo que o otica_id seja o da ótica do usuário.

@@ -8,3 +8,12 @@ next-env.d.ts
 !.env.example
 .DS_Store
 .vercel
+
+# saídas dos testes do banco (CI e local)
+/*.txt
+# teste das telas (Playwright)
+/e2e/.dados.json
+/playwright-report/
+/test-results/
+/supabase/.temp/
+/supabase/.branches/

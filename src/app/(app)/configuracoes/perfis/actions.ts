@@ -6,7 +6,7 @@ import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { MODULOS_CONFIGURAVEIS, ACOES } from "./modulos";
 import { textoOuNulo } from "@/lib/formatar";
 
-const AREAS = ["loja", "consultorio", "laboratorio", "gestao"];
+const AREAS = ["loja", "consultorio", "laboratorio", "gestao", "pdv", "financeiro"];
 const areaValida = (v: FormDataEntryValue | null) => (AREAS.includes(String(v)) ? String(v) : "loja");
 
 export async function salvarPerfil(id: string, formulario: FormData) {

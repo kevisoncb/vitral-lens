@@ -12,3 +12,5 @@ grant usage on schema auth to anon, authenticated;
 grant usage on schema public to anon, authenticated;
 alter default privileges in schema public grant all on tables to authenticated;
 alter default privileges in schema public grant all on sequences to authenticated;
+-- como no Supabase: função nova nasce executável por anon e authenticated (a 0025 fecha para anon)
+alter default privileges in schema public grant execute on functions to anon, authenticated;

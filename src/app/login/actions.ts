@@ -15,6 +15,8 @@ export async function entrar(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
 
   if (error) {
+    // a tela diz só "credenciais"; o motivo real fica no registro do servidor (sem a senha)
+    console.error(`login recusado: ${error.status ?? ""} ${error.code ?? ""} ${error.message}`);
     redirect("/login?erro=credenciais");
   }
 

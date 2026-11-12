@@ -38,20 +38,23 @@ export default async function ConfigPerfis({ searchParams }: { searchParams: Pro
               {p.chave === "dono" && <small className="vazio">Acesso total, não editável.</small>}
             </div>
             <div className="matriz" role="table" aria-label={`Permissões de ${p.nome}`}>
-              <span className="th">Módulo</span>
-              {ACOES.map((a) => <span key={a} className="th">{a}</span>)}
+              <div className="matriz-linha matriz-cabecalho" role="row">
+                <span className="th" role="columnheader">Módulo</span>
+                {ACOES.map((a) => <span key={a} className="th" role="columnheader">{a}</span>)}
+              </div>
               {MODULOS_CONFIGURAVEIS.map(({ modulo, rotulo }) => (
                 <div key={modulo} className="matriz-linha" role="row">
-                  <span>{rotulo}</span>
+                  <span role="rowheader">{rotulo}</span>
                   {ACOES.map((a) => (
-                    <input
-                      key={a}
-                      type="checkbox"
-                      name={`${modulo}:${a}`}
-                      defaultChecked={perm[modulo]?.includes(a) ?? false}
-                      disabled={travado}
-                      aria-label={`${rotulo}: ${a}`}
-                    />
+                    <span key={a} role="cell">
+                      <input
+                        type="checkbox"
+                        name={`${modulo}:${a}`}
+                        defaultChecked={perm[modulo]?.includes(a) ?? false}
+                        disabled={travado}
+                        aria-label={`${rotulo}: ${a}`}
+                      />
+                    </span>
                   ))}
                 </div>
               ))}
