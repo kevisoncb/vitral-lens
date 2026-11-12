@@ -96,7 +96,7 @@ test.describe.serial("fluxo da ótica", () => {
     await cliente.goto(new URL(link).pathname);
     await pronta(cliente);
     await expect(cliente.getByRole("heading", { name: /Ordem de serviço/ })).toBeVisible();
-    await expect(cliente.getByText("Lente multifocal 1.67")).toBeVisible();
+    await expect(cliente.getByText("Lente multifocal 1.67").first()).toBeVisible();
     await expect(cliente.getByText(reais(440))).toBeVisible(); // falta pagar
     const quadro = cliente.getByLabel("Quadro para assinar");
     await quadro.scrollIntoViewIfNeeded();
